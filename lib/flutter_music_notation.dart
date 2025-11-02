@@ -13,5 +13,12 @@ export 'src/models/note.dart';
 export 'src/geometry/staff_position.dart';
 export 'src/geometry/staff_units.dart';
 
-// Rendering
+// Playback
+export 'src/playback/playback_controller.dart';
+
+// Widgets
+export 'src/widgets/notation_view.dart';
+
+// Rendering (for advanced users)
 export 'src/rendering/staff_renderer.dart';
+export 'src/rendering/note_renderer.dart';

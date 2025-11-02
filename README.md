@@ -6,18 +6,22 @@ A professional music notation rendering library for Flutter with MIDI support an
 
 ## Features (Roadmap)
 
-### ✅ Phase 0 (Current): Foundation
 - [x] Pitch model with MIDI conversion
 - [x] Duration model with dots and tuplets
 - [x] Note and chord models
 - [x] Staff position calculations
 - [x] Basic staff rendering
+- [x] **Notehead rendering (filled and hollow)**
+- [x] **Stem rendering with automatic direction**
+- [x] **Accidental rendering (♯, ♭, ♮)**
+- [x] **Ledger lines**
+- [x] **PlaybackController for synchronized highlighting**
+- [x] **NotationView widget with real-time playback**
 
 ### 🚧 In Progress
-- [ ] Notehead rendering
-- [ ] Stem rendering
-- [ ] Accidental rendering
-- [ ] Playback controller
+- [ ] Rest rendering (currently placeholder)
+- [ ] Dot rendering (for dotted notes)
+- [ ] Flag rendering (for eighth/sixteenth notes)
 
 ### 📋 Planned
 - [ ] Beaming
@@ -83,8 +87,8 @@ The library follows a component-based architecture:
 
 This library is being built systematically following a 24-week implementation plan:
 
-- **Phase 0-1** (Weeks 1-3): Foundation ✅ Current
-- **Phase 2** (Weeks 4-5): Playback Core
+- **Phase 0-1** (Weeks 1-3): Foundation ✅ 
+- **Phase 2** (Weeks 4-5): Playback Core ✅ Current
 - **Phase 3** (Weeks 6-9): Essential Notation
 - **Phase 4** (Weeks 10-12): Layout & Spacing
 - **Phase 5** (Weeks 13-14): Grand Staff

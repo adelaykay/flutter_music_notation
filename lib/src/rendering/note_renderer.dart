@@ -1,0 +1,145 @@
+// lib/src/rendering/note_renderer.dart
+
+import 'package:flutter/material.dart';
+import '../models/note.dart';
+import '../models/pitch.dart';
+import '../geometry/staff_position.dart';
+import 'notehead_renderer.dart';
+import 'stem_renderer.dart';
+import 'accidental_renderer.dart';
+import 'staff_renderer.dart';
+
+/// High-level renderer that combines notehead, stem, and accidental
+class NoteRenderer {
+  final double staffSpaceSize;
+  final StaffRenderer staffRenderer;
+  final NoteheadRenderer noteheadRenderer;
+  final StemRenderer stemRenderer;
+  final AccidentalRenderer accidentalRenderer;
+
+  NoteRenderer({
+    required this.staffSpaceSize,
+    Color color = Colors.black,
+  })  : staffRenderer = StaffRenderer(staffSpaceSize: staffSpaceSize, lineColor: color),
+        noteheadRenderer = NoteheadRenderer(staffSpaceSize: staffSpaceSize, color: color),
+        stemRenderer = StemRenderer(staffSpaceSize: staffSpaceSize, color: color),
+        accidentalRenderer = AccidentalRenderer(staffSpaceSize: staffSpaceSize, color: color);
+
+  /// Render a complete note
+  void paintNote(
+      Canvas canvas, {
+        required Note note,
+        required Offset staffTopLeft,
+        required double xPosition,
+        required ClefType clef,
+        required bool showAccidental,
+        required bool isActive,
+      }) {
+    // Calculate staff position for this pitch
+    final staffPosition = StaffPosition.forPitch(note.pitch, clef);
+
+    // Convert to Y coordinate
+    final yPosition = staffRenderer.positionToY(staffPosition);
+    final noteCenter = Offset(xPosition, staffTopLeft.dy + yPosition);
+
+    // Draw ledger lines if needed
+    staffRenderer.paintLedgerLines(canvas, noteCenter, staffPosition);
+
+    // Draw accidental if needed
+    if (showAccidental && note.pitch.accidental != Accidental.natural) {
+      accidentalRenderer.paint(canvas, noteCenter, note.pitch.accidental);
+    }
+
+    // Draw notehead
+    final filled = NoteheadRenderer.shouldBeFilled(note.duration);
+    noteheadRenderer.paint(canvas, noteCenter, filled: filled, isActive: isActive);
+
+    // Draw stem if needed
+    if (note.duration.needsStem) {
+      final stemDirection = StemRenderer.determineStemDirection(staffPosition);
+      stemRenderer.paint(canvas, noteCenter, direction: stemDirection, isActive: isActive);
+    }
+  }
+
+  /// Render a chord (multiple notes at same time position)
+  void paintChord(
+      Canvas canvas, {
+        required Chord chord,
+        required Offset staffTopLeft,
+        required double xPosition,
+        required ClefType clef,
+        required Set<int> notesShowingAccidentals,
+        required bool isActive,
+      }) {
+    final sortedNotes = chord.sortedNotes;
+
+    // Calculate positions for all notes
+    final positions = sortedNotes
+        .map((n) => StaffPosition.forPitch(n.pitch, clef))
+        .toList();
+
+    // Determine stem direction for the chord
+    final stemDirection = StemRenderer.determineStemDirectionForChord(positions);
+
+    // Draw all noteheads and accidentals
+    for (int i = 0; i < sortedNotes.length; i++) {
+      final note = sortedNotes[i];
+      final position = positions[i];
+      final yPosition = staffRenderer.positionToY(position);
+      final noteCenter = Offset(xPosition, staffTopLeft.dy + yPosition);
+
+      // Draw ledger lines
+      staffRenderer.paintLedgerLines(canvas, noteCenter, position);
+
+      // Draw accidental if needed
+      final showAccidental = notesShowingAccidentals.contains(note.pitch.midiNumber);
+      if (showAccidental && note.pitch.accidental != Accidental.natural) {
+        // Offset accidentals vertically to avoid collision in tight chords
+        final accidentalOffset = Offset(xPosition - (i * 5), noteCenter.dy);
+        accidentalRenderer.paint(canvas, accidentalOffset, note.pitch.accidental);
+      }
+
+      // Draw notehead
+      final filled = NoteheadRenderer.shouldBeFilled(note.duration);
+      noteheadRenderer.paint(canvas, noteCenter, filled: filled, isActive: isActive);
+    }
+
+    // Draw single stem for the whole chord
+    if (chord.duration.needsStem) {
+      final extremeNote = stemDirection == StemDirection.up
+          ? sortedNotes.last  // Highest note
+          : sortedNotes.first; // Lowest note
+
+      final extremePosition = StaffPosition.forPitch(extremeNote.pitch, clef);
+      final yPosition = staffRenderer.positionToY(extremePosition);
+      final noteCenter = Offset(xPosition, staffTopLeft.dy + yPosition);
+
+      stemRenderer.paint(canvas, noteCenter, direction: stemDirection, isActive: isActive);
+    }
+  }
+
+  /// Render a rest
+  void paintRest(
+      Canvas canvas, {
+        required Rest rest,
+        required Offset staffTopLeft,
+        required double xPosition,
+      }) {
+    // Rests are centered on the staff (position 4 = middle line)
+    final restY = staffRenderer.positionToY(StaffPosition.middleLine);
+    final restCenter = Offset(xPosition, staffTopLeft.dy + restY);
+
+    // For now, draw a simple placeholder
+    // TODO: Use proper rest glyphs from Bravura font
+    final paint = Paint()
+      ..color = Colors.black
+      ..strokeWidth = 2;
+
+    // Simple vertical line as placeholder
+    canvas.drawLine(
+      Offset(restCenter.dx, restCenter.dy - 10),
+      Offset(restCenter.dx, restCenter.dy + 10),
+      paint,
+    );
+  }
+}

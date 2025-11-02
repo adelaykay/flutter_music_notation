@@ -76,25 +76,23 @@ class StaffPosition {
   }
 
   /// Calculate position for treble clef (G clef on 2nd line from bottom)
-  /// Middle line (position 4) = B4
+  /// Bottom line (position 0) = E4
+  /// Top line (position 8) = F5
   static StaffPosition _treblePosition(Pitch pitch) {
-    // B4 is at position 4
-    final b4 = Pitch(noteName: NoteName.B, octave: 4);
-    final semitonesFromB4 = pitch.midiNumber - b4.midiNumber;
-
-    // Each line/space represents a step in the scale
-    // C->D = 2 semitones but 1 step, D->E = 2 semitones but 1 step, etc.
-    final steps = _calculateSteps(b4, pitch);
-    return StaffPosition(4.0 - steps); // B4 is at 4, so subtract steps
+    // E4 is at position 0 (bottom line)
+    final e4 = Pitch(noteName: NoteName.E, octave: 4);
+    final steps = _calculateSteps(e4, pitch);
+    return StaffPosition(steps); // E4 at 0, steps increase upward
   }
 
   /// Calculate position for bass clef (F clef on 2nd line from top)
-  /// Middle line (position 4) = D3
+  /// Bottom line (position 0) = G2
+  /// Top line (position 8) = A3
   static StaffPosition _bassPosition(Pitch pitch) {
-    // D3 is at position 4
-    final d3 = Pitch(noteName: NoteName.D, octave: 3);
-    final steps = _calculateSteps(d3, pitch);
-    return StaffPosition(4.0 - steps);
+    // G2 is at position 0 (bottom line)
+    final g2 = Pitch(noteName: NoteName.G, octave: 2);
+    final steps = _calculateSteps(g2, pitch);
+    return StaffPosition(steps);
   }
 
   /// Calculate position for alto clef (C clef on middle line)
@@ -102,7 +100,7 @@ class StaffPosition {
   static StaffPosition _altoPosition(Pitch pitch) {
     final c4 = Pitch(noteName: NoteName.C, octave: 4);
     final steps = _calculateSteps(c4, pitch);
-    return StaffPosition(4.0 - steps);
+    return StaffPosition(4.0 + steps);
   }
 
   /// Calculate position for tenor clef (C clef on 2nd line from top)
@@ -110,7 +108,7 @@ class StaffPosition {
   static StaffPosition _tenorPosition(Pitch pitch) {
     final c4 = Pitch(noteName: NoteName.C, octave: 4);
     final steps = _calculateSteps(c4, pitch);
-    return StaffPosition(6.0 - steps);
+    return StaffPosition(6.0 + steps);
   }
 
   /// Calculate the number of diatonic steps between two pitches
