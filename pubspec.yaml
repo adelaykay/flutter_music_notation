@@ -1,0 +1,30 @@
+name: flutter_music_notation
+description: "A professional music notation rendering library for Flutter with MIDI support and synchronized playback."
+version: 0.1.0
+homepage: https://github.com/adelaykay/flutter_music_notation
+repository: https://github.com/adelaykay/flutter_music_notation
+issue_tracker: https://github.com/adelaykay/flutter_music_notation/issues
+
+environment:
+  sdk: ^3.9.2
+  flutter: ">=1.17.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0
+
+flutter:
+  fonts:
+    - family: Bravura
+      fonts:
+        - asset: assets/fonts/Bravura.otf
+
+  # To add assets to your package, add an assets section, like this:
+  # assets:
+  #   - images/a_dot_burr.jpeg
+  #   - images/a_dot_ham.jpeg
