@@ -2,7 +2,7 @@
 
 A professional music notation rendering library for Flutter that displays standard Western music notation with beautiful, accurate engraving.
 
-[//]: # ([![pub package]&#40;https://img.shields.io/pub/v/flutter_music_notation.svg&#41;]&#40;https://pub.dev/packages/flutter_music_notation&#41;)
+[![pub package](https://img.shields.io/pub/v/flutter_music_notation.svg)](https://pub.dev/packages/flutter_music_notation)
 [![License: BSD-3-Clause](https://img.shields.io/badge/License-BSD--3--Clause-blue.svg)](https://opensource.org/licenses/BSD-3-Clause)
 
 ## Features
@@ -23,7 +23,25 @@ A professional music notation rendering library for Flutter that displays standa
 
 ## Screenshots
 
-[Add screenshots here showing different examples]
+### 🎼 Basic Notation
+![Basic Notation](example/screenshots/clefs.png)
+
+### 🎵 Key Signatures
+![Key Signatures - sharps](example/screenshots/key_signature_sharps.png)
+![Key Signatures - flats](example/screenshots/key_signature_flats.png)]
+
+### 🕒 Time Signatures
+![Time Signatures](example/screenshots/time_signature.png)
+
+### 🎹 Note & Rest Rendering
+![Note Rendering](example/screenshots/note_rendering.png)
+
+### 📏 Ledger Lines
+![Ledger Lines](example/screenshots/ledger_lines.png)
+
+### 🎯 Multiple Barlines
+![Multiple Barlines](example/screenshots/barline_types.png)
+
 
 ## Installation
 
@@ -425,8 +443,7 @@ The Bravura font used for music symbols is licensed under the SIL Open Font Lice
 
 ## Acknowledgments
 
-- **Bravura Font**: Created by Steinberg Media Technologies GmbH
-- **SMuFL Standard**: Standard Music Font Layout specification
+- **Bravura** and **Petaluma** © Steinberg Media Technologies GmbH
 - **Music Engraving**: Based on best practices from "Behind Bars" by Elaine Gould
 
 ## Support

@@ -343,11 +343,13 @@ class _ComprehensiveDemoState extends State<ComprehensiveDemo> {
         notes: [
           Note(pitch: Pitch(noteName: NoteName.C, octave: 4), duration: const NoteDuration.quarter(), startBeat: 0.0),
           Note(pitch: Pitch(noteName: NoteName.E, octave: 4), duration: const NoteDuration.eighth(), startBeat: 2.0),
-          Note(pitch: Pitch(noteName: NoteName.G, octave: 4), duration: const NoteDuration.eighth(), startBeat: 2.5),
+          Note(pitch: Pitch(noteName: NoteName.G, octave: 4), duration: const NoteDuration.eighth(), startBeat: 3.0),
+          Note(pitch: Pitch(noteName: NoteName.G, octave: 4), duration: const NoteDuration.sixteenth(), startBeat: 3.5),
         ],
         rests: [
           const Rest(duration: NoteDuration.quarter(), startBeat: 1.0),
-          const Rest(duration: NoteDuration.half(), startBeat: 3.0),
+          const Rest(duration: NoteDuration.eighth(), startBeat: 2.5),
+          const Rest(duration: NoteDuration.sixteenth(), startBeat: 3.25),
         ],
         endBarline: BarlineType.final_,
       ),
