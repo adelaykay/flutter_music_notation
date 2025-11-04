@@ -29,6 +29,8 @@ class GlyphProvider {
   static const eighthRest = '\uE4E6';
   static const sixteenthRest = '\uE4E7';
   static const thirtySecondRest = '\uE4E8';
+  static const sixtyFourthRest = '\uE4E9';
+
 
   // Notehead glyphs (we'll use shapes instead for better control)
   static const noteheadBlack = '\uE0A4';
@@ -88,8 +90,9 @@ class GlyphProvider {
       case DurationType.sixteenth:
         return sixteenthRest;
       case DurationType.thirtySecond:
-      case DurationType.sixtyFourth:
         return thirtySecondRest;
+      case DurationType.sixtyFourth:
+        return sixtyFourthRest;
     }
   }
 }

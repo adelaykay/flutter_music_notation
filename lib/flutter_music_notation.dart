@@ -22,3 +22,5 @@ export 'src/widgets/notation_view.dart';
 // Rendering (for advanced users)
 export 'src/rendering/staff_renderer.dart';
 export 'src/rendering/note_renderer.dart';
+export 'src/rendering/rest_renderer.dart';
+export 'src/rendering/dot_renderer.dart';

@@ -8,7 +8,7 @@ import 'note_renderer.dart';
 
 /// CustomPainter that renders musical notation
 class NotationPainter extends CustomPainter {
-  final List<Note> notes;
+  final List<dynamic> notes;
   final NotationConfig config;
   final Set<Note> activeNotes;
 
@@ -30,80 +30,106 @@ class NotationPainter extends CustomPainter {
     // Calculate staff position
     final staffHeight = noteRenderer.staffRenderer.height;
     final staffY = (size.height - staffHeight) / 2;
-    final staffTopLeft = Offset(50, staffY);
+    final staffTopLeft = Offset(config.leftMargin, staffY);
 
-    /// Returns the number of distinct note/chord positions in the score.
-    ///
-    /// Notes that share the same `startBeat` (i.e. part of the same chord)
-    /// are counted as one position.
-    int countNotePositions(List<Note> notes) {
-      // Use a set to collect unique beat values
-      final beatSet = <double>{};
-
-      for (final note in notes) {
-        beatSet.add(note.startBeat);
-      }
-
-      return beatSet.length;
-    }
-
-
-    // Draw staff lines
-    final totalWidth = (countNotePositions(notes) * config.pixelsPerNote);
-    noteRenderer.staffRenderer.paint(canvas, staffTopLeft, totalWidth);
+    // Draw staff lines (extend to right edge)
+    noteRenderer.staffRenderer.paint(
+      canvas,
+      staffTopLeft,
+      size.width - config.leftMargin - 20,
+    );
 
     // Track which notes need accidentals
-    // (In a real implementation, this would consider key signature and measure context)
-    final notesNeedingAccidentals = <int>{};
     final seenPitchClasses = <int>{};
 
-    // Group notes by start beat (still needed to identify chords)
-    final notesByBeat = <double, List<Note>>{};
-    for (final note in notes) {
-      notesByBeat.putIfAbsent(note.startBeat, () => []).add(note);
+    // Sort all elements (notes and rests) by start beat
+    final allElements = <dynamic>[...notes];
+    allElements.sort((a, b) {
+      final aStart = a is Note ? a.startBeat : (a as Rest).startBeat;
+      final bStart = b is Note ? b.startBeat : (b as Rest).startBeat;
+      return aStart.compareTo(bStart);
+    });
+
+    // Group consecutive notes with same start beat (chords)
+    final elementsByBeat = <double, List<dynamic>>{};
+    for (final element in allElements) {
+      final beat = element is Note ? element.startBeat : (element as Rest).startBeat;
+      elementsByBeat.putIfAbsent(beat, () => []).add(element);
     }
 
-// Sort beats to preserve order
-    final sortedBeats = notesByBeat.keys.toList()..sort();
+    final sortedBeats = elementsByBeat.keys.toList()..sort();
 
-// Draw notes/chords equally spaced
+    // Draw elements with UNIFORM spacing
     for (int i = 0; i < sortedBeats.length; i++) {
       final beat = sortedBeats[i];
-      final notesAtBeat = notesByBeat[beat]!;
-      final xPosition = staffTopLeft.dx + (i * config.pixelsPerNote) + 20;
+      final elementsAtBeat = elementsByBeat[beat]!;
 
-      if (notesAtBeat.length == 1) {
-        final note = notesAtBeat.first;
-        final isActive = activeNotes.contains(note);
+      // Uniform horizontal position
+      final xPosition = staffTopLeft.dx + (i * config.noteWidth);
 
-        final pitchClass = note.pitch.midiNumber % 12;
-        final showAccidental = note.pitch.accidental != Accidental.natural;
-
-        noteRenderer.paintNote(
+      // Check if this is a rest or notes
+      if (elementsAtBeat.first is Rest) {
+        // Render rest
+        final rest = elementsAtBeat.first as Rest;
+        noteRenderer.paintRest(
           canvas,
-          note: note,
+          rest: rest,
           staffTopLeft: staffTopLeft,
           xPosition: xPosition,
-          clef: config.clef,
-          showAccidental: showAccidental,
-          isActive: isActive,
         );
       } else {
-        // Chord case
-        final chord = Chord(notes: notesAtBeat);
-        final isActive = notesAtBeat.any((n) => activeNotes.contains(n));
-        noteRenderer.paintChord(
-          canvas,
-          chord: chord,
-          staffTopLeft: staffTopLeft,
-          xPosition: xPosition,
-          clef: config.clef,
-          notesShowingAccidentals: notesAtBeat
-              .where((n) => n.pitch.accidental != Accidental.natural)
-              .map((n) => n.pitch.midiNumber)
-              .toSet(),
-          isActive: isActive,
-        );
+        // Render notes (single note or chord)
+        final notesAtBeat = elementsAtBeat.cast<Note>();
+
+        if (notesAtBeat.length == 1) {
+          // Single note
+          final note = notesAtBeat.first;
+          final isActive = activeNotes.contains(note);
+
+          // Determine if accidental should be shown
+          final pitchClass = note.pitch.midiNumber % 12;
+          final showAccidental = !seenPitchClasses.contains(pitchClass) &&
+              note.pitch.accidental != Accidental.natural;
+
+          if (showAccidental) {
+            seenPitchClasses.add(pitchClass);
+          }
+
+          noteRenderer.paintNote(
+            canvas,
+            note: note,
+            staffTopLeft: staffTopLeft,
+            xPosition: xPosition,
+            clef: config.clef,
+            showAccidental: showAccidental,
+            isActive: isActive,
+          );
+        } else {
+          // Chord
+          final chord = Chord(notes: notesAtBeat);
+          final isActive = notesAtBeat.any((n) => activeNotes.contains(n));
+
+          // Determine which notes in chord need accidentals
+          final chordAccidentals = <int>{};
+          for (final note in notesAtBeat) {
+            final pitchClass = note.pitch.midiNumber % 12;
+            if (!seenPitchClasses.contains(pitchClass) &&
+                note.pitch.accidental != Accidental.natural) {
+              chordAccidentals.add(note.pitch.midiNumber);
+              seenPitchClasses.add(pitchClass);
+            }
+          }
+
+          noteRenderer.paintChord(
+            canvas,
+            chord: chord,
+            staffTopLeft: staffTopLeft,
+            xPosition: xPosition,
+            clef: config.clef,
+            notesShowingAccidentals: chordAccidentals,
+            isActive: isActive,
+          );
+        }
       }
     }
   }

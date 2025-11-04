@@ -104,7 +104,7 @@ class _Phase2DemoState extends State<Phase2Demo> {
 
   List<Note> _createScaleWithAccidentals() {
     return [
-      // C major scale with some accidentals
+      // C major scale with some accidentals and dotted notes
       Note(
         pitch: Pitch(noteName: NoteName.C, octave: 4),
         duration: const NoteDuration.eighth(),
@@ -117,57 +117,17 @@ class _Phase2DemoState extends State<Phase2Demo> {
       ),
       Note(
         pitch: Pitch(noteName: NoteName.E, octave: 4),
-        duration: const NoteDuration.eighth(),
+        duration: const NoteDuration(type: DurationType.quarter, dots: 1), // Dotted quarter
         startBeat: 1.0,
       ),
       Note(
         pitch: Pitch(noteName: NoteName.F, accidental: Accidental.sharp, octave: 4),
         duration: const NoteDuration.eighth(),
-        startBeat: 1.5,
-      ),
-      Note(
-        pitch: Pitch(noteName: NoteName.G, octave: 4),
-        duration: const NoteDuration.eighth(),
-        startBeat: 2.0,
-      ),
-      Note(
-        pitch: Pitch(noteName: NoteName.A, octave: 4),
-        duration: const NoteDuration.eighth(),
         startBeat: 2.5,
       ),
       Note(
-        pitch: Pitch(noteName: NoteName.B, accidental: Accidental.flat, octave: 4),
-        duration: const NoteDuration.eighth(),
-        startBeat: 3.0,
-      ),
-      Note(
-        pitch: Pitch(noteName: NoteName.C, octave: 5),
-        duration: const NoteDuration.quarter(),
-        startBeat: 3.5,
-      ),
-    ];
-  }
-
-  List<Note> _createBassNotes() {
-    return [
-      Note(
-        pitch: Pitch(noteName: NoteName.E, octave: 2),
-        duration: const NoteDuration.quarter(),
-        startBeat: 0.0,
-      ),
-      Note(
-        pitch: Pitch(noteName: NoteName.G, octave: 2),
-        duration: const NoteDuration.quarter(),
-        startBeat: 1.0,
-      ),
-      Note(
-        pitch: Pitch(noteName: NoteName.B, octave: 2),
-        duration: const NoteDuration.quarter(),
-        startBeat: 2.0,
-      ),
-      Note(
-        pitch: Pitch(noteName: NoteName.D, octave: 3),
-        duration: const NoteDuration.half(),
+        pitch: Pitch(noteName: NoteName.G, octave: 4),
+        duration: const NoteDuration(type: DurationType.half, dots: 1), // Dotted half
         startBeat: 3.0,
       ),
     ];
@@ -207,8 +167,36 @@ class _Phase2DemoState extends State<Phase2Demo> {
                 playbackController: _playbackController,
                 config: const NotationConfig(
                   staffSpaceSize: 12,
-                  pixelsPerNote: 40,
+                  noteWidth: 60,
+                  leftMargin: 100,
                   activeNoteColor: Colors.green,
+                ),
+              ),
+            ),
+
+            const SizedBox(height: 40),
+
+            // Rests example
+            const Padding(
+              padding: EdgeInsets.all(16.0),
+              child: Text(
+                'Notes with Rests',
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              ),
+            ),
+            Container(
+              height: 200,
+              decoration: BoxDecoration(
+                border: Border.all(color: Colors.grey),
+                color: Colors.white,
+              ),
+              child: NotationView(
+                notes: _createMelodyWithRests(),
+                rests: _createRests(),
+                config: const NotationConfig(
+                  staffSpaceSize: 12,
+                  noteWidth: 60,
+                  leftMargin: 100,
                 ),
               ),
             ),
@@ -233,7 +221,8 @@ class _Phase2DemoState extends State<Phase2Demo> {
                 notes: _createScaleWithAccidentals(),
                 config: const NotationConfig(
                   staffSpaceSize: 12,
-                  pixelsPerNote: 40,
+                  noteWidth: 50,
+                  leftMargin: 100,
                 ),
               ),
             ),
@@ -258,7 +247,8 @@ class _Phase2DemoState extends State<Phase2Demo> {
                 notes: _createBassNotes(),
                 config: const NotationConfig(
                   staffSpaceSize: 12,
-                  pixelsPerNote: 50,
+                  noteWidth: 60,
+                  leftMargin: 100,
                   clef: ClefType.bass,
                 ),
               ),
@@ -271,6 +261,65 @@ class _Phase2DemoState extends State<Phase2Demo> {
     );
   }
 
+  List<Note> _createBassNotes() {
+    return [
+      Note(
+        pitch: Pitch(noteName: NoteName.E, octave: 2),
+        duration: const NoteDuration.quarter(),
+        startBeat: 0.0,
+      ),
+      Note(
+        pitch: Pitch(noteName: NoteName.G, octave: 2),
+        duration: const NoteDuration.quarter(),
+        startBeat: 1.0,
+      ),
+      Note(
+        pitch: Pitch(noteName: NoteName.B, octave: 2),
+        duration: const NoteDuration.quarter(),
+        startBeat: 2.0,
+      ),
+      Note(
+        pitch: Pitch(noteName: NoteName.D, octave: 3),
+        duration: const NoteDuration.half(),
+        startBeat: 3.0,
+      ),
+    ];
+  }
+
+  List<Note> _createMelodyWithRests() {
+    return [
+      Note(
+        pitch: Pitch(noteName: NoteName.C, octave: 4),
+        duration: const NoteDuration.quarter(),
+        startBeat: 0.0,
+      ),
+      // Rest at beat 1
+      Note(
+        pitch: Pitch(noteName: NoteName.F, octave: 4),
+        duration: const NoteDuration(type: DurationType.quarter, dots: 1),
+        startBeat: 2.0,
+      ),
+      // Rest at beat 3
+      Note(
+        pitch: Pitch(noteName: NoteName.G, octave: 4),
+        duration: const NoteDuration(type: DurationType.half, dots: 1),
+        startBeat: 4.0,
+      ),
+    ];
+  }
+
+  List<Rest> _createRests() {
+    return [
+      const Rest(
+        duration: NoteDuration.half(),
+        startBeat: 1.0,
+      ),
+      const Rest(
+        duration: NoteDuration(type: DurationType.sixtyFourth),
+        startBeat: 3.0,
+      ),
+    ];
+  }
 
   Widget _buildPlaybackControls() {
     return ListenableBuilder(

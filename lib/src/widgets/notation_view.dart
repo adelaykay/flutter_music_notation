@@ -32,8 +32,11 @@ class NotationConfig {
   /// Padding around the notation
   final EdgeInsets padding;
 
-  /// Pixels per beat (horizontal spacing)
-  final double pixelsPerNote;
+  /// Fixed width per note (uniform spacing)
+  final double noteWidth;
+
+  /// Left padding for clef, key sig, time sig (even if not rendered yet)
+  final double leftMargin;
 
   const NotationConfig({
     this.staffSpaceSize = 12.0,
@@ -44,7 +47,8 @@ class NotationConfig {
     this.width,
     this.height,
     this.padding = const EdgeInsets.all(20),
-    this.pixelsPerNote = 80.0,
+    this.noteWidth = 60.0,
+    this.leftMargin = 100.0,
   });
 
   NotationConfig copyWith({
@@ -56,7 +60,8 @@ class NotationConfig {
     double? width,
     double? height,
     EdgeInsets? padding,
-    double? pixelsPerNote,
+    double? noteWidth,
+    double? leftMargin,
   }) {
     return NotationConfig(
       staffSpaceSize: staffSpaceSize ?? this.staffSpaceSize,
@@ -67,7 +72,8 @@ class NotationConfig {
       width: width ?? this.width,
       height: height ?? this.height,
       padding: padding ?? this.padding,
-      pixelsPerNote: pixelsPerNote ?? this.pixelsPerNote,
+      noteWidth: noteWidth ?? this.noteWidth,
+      leftMargin: leftMargin ?? this.leftMargin,
     );
   }
 }
@@ -76,6 +82,9 @@ class NotationConfig {
 class NotationView extends StatefulWidget {
   /// Notes to display
   final List<Note> notes;
+
+  /// Rests to display (optional)
+  final List<Rest> rests;
 
   /// Optional playback controller for highlighting active notes
   final PlaybackController? playbackController;
@@ -86,6 +95,7 @@ class NotationView extends StatefulWidget {
   const NotationView({
     super.key,
     required this.notes,
+    this.rests = const [],
     this.playbackController,
     this.config = const NotationConfig(),
   });
@@ -152,7 +162,7 @@ class _NotationViewState extends State<NotationView>
           padding: widget.config.padding,
           child: CustomPaint(
             painter: NotationPainter(
-              notes: widget.notes,
+              notes: [...widget.notes, ...widget.rests],
               config: widget.config,
               activeNotes: widget.playbackController?.activeNotes ?? {},
             ),

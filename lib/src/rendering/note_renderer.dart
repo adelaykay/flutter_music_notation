@@ -8,14 +8,18 @@ import 'notehead_renderer.dart';
 import 'stem_renderer.dart';
 import 'accidental_renderer.dart';
 import 'staff_renderer.dart';
+import 'dot_renderer.dart';
+import 'rest_renderer.dart';
 
-/// High-level renderer that combines notehead, stem, and accidental
+/// High-level renderer that combines notehead, stem, accidental, and dots
 class NoteRenderer {
   final double staffSpaceSize;
   final StaffRenderer staffRenderer;
   final NoteheadRenderer noteheadRenderer;
   final StemRenderer stemRenderer;
   final AccidentalRenderer accidentalRenderer;
+  final DotRenderer dotRenderer;
+  final RestRenderer restRenderer;
 
   NoteRenderer({
     required this.staffSpaceSize,
@@ -23,7 +27,9 @@ class NoteRenderer {
   })  : staffRenderer = StaffRenderer(staffSpaceSize: staffSpaceSize, lineColor: color),
         noteheadRenderer = NoteheadRenderer(staffSpaceSize: staffSpaceSize, color: color),
         stemRenderer = StemRenderer(staffSpaceSize: staffSpaceSize, color: color),
-        accidentalRenderer = AccidentalRenderer(staffSpaceSize: staffSpaceSize, color: color);
+        accidentalRenderer = AccidentalRenderer(staffSpaceSize: staffSpaceSize, color: color),
+        dotRenderer = DotRenderer(staffSpaceSize: staffSpaceSize, color: color),
+        restRenderer = RestRenderer(staffSpaceSize: staffSpaceSize, color: color);
 
   /// Render a complete note
   void paintNote(
@@ -58,6 +64,16 @@ class NoteRenderer {
     if (note.duration.needsStem) {
       final stemDirection = StemRenderer.determineStemDirection(staffPosition);
       stemRenderer.paint(canvas, noteCenter, direction: stemDirection, isActive: isActive);
+    }
+
+    // Draw dots if needed
+    if (note.duration.dots > 0) {
+      dotRenderer.paintNoteDots(
+        canvas,
+        noteCenter,
+        staffPosition,
+        note.duration.dots,
+      );
     }
   }
 
@@ -104,7 +120,7 @@ class NoteRenderer {
       noteheadRenderer.paint(canvas, noteCenter, filled: filled, isActive: isActive);
     }
 
-    // Draw single stem for the whole chord
+    // Draw stem for the whole chord
     if (chord.duration.needsStem) {
       final extremeNote = stemDirection == StemDirection.up
           ? sortedNotes.last  // Highest note
@@ -116,6 +132,21 @@ class NoteRenderer {
 
       stemRenderer.paint(canvas, noteCenter, direction: stemDirection, isActive: isActive);
     }
+
+    // Draw dots for chord (on the highest note)
+    if (chord.duration.dots > 0) {
+      final highestNote = sortedNotes.last;
+      final highestPosition = StaffPosition.forPitch(highestNote.pitch, clef);
+      final yPosition = staffRenderer.positionToY(highestPosition);
+      final noteCenter = Offset(xPosition, staffTopLeft.dy + yPosition);
+
+      dotRenderer.paintNoteDots(
+        canvas,
+        noteCenter,
+        highestPosition,
+        chord.duration.dots,
+      );
+    }
   }
 
   /// Render a rest
@@ -125,21 +156,22 @@ class NoteRenderer {
         required Offset staffTopLeft,
         required double xPosition,
       }) {
-    // Rests are centered on the staff (position 4 = middle line)
-    final restY = staffRenderer.positionToY(StaffPosition.middleLine);
-    final restCenter = Offset(xPosition, staffTopLeft.dy + restY);
-
-    // For now, draw a simple placeholder
-    // TODO: Use proper rest glyphs from Bravura font
-    final paint = Paint()
-      ..color = Colors.black
-      ..strokeWidth = 2;
-
-    // Simple vertical line as placeholder
-    canvas.drawLine(
-      Offset(restCenter.dx, restCenter.dy - 10),
-      Offset(restCenter.dx, restCenter.dy + 10),
-      paint,
+    // Draw rest symbol
+    restRenderer.paint(
+      canvas,
+      staffTopLeft,
+      xPosition,
+      rest.duration.type,
     );
+
+    // Draw dots if needed
+    if (rest.duration.dots > 0) {
+      final restY = staffTopLeft.dy + (staffSpaceSize * 2); // Middle of staff
+      dotRenderer.paintRestDots(
+        canvas,
+        Offset(xPosition, restY),
+        rest.duration.dots,
+      );
+    }
   }
 }
