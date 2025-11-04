@@ -21,14 +21,14 @@ class StemRenderer {
     this.color = Colors.black,
   });
 
-  /// Paint a stem from the notehead
-  void paint(
+  /// Paint a stem from the notehead and return the stem end position
+  Offset paint(
       Canvas canvas,
       Offset noteheadCenter, {
         required StemDirection direction,
         bool isActive = false,
       }) {
-    if (direction == StemDirection.none) return;
+    if (direction == StemDirection.none) return noteheadCenter;
 
     final thickness = StaffUnits.stemThickness.toPixels(staffSpaceSize);
     final length = StaffUnits.stemLength.toPixels(staffSpaceSize);
@@ -54,6 +54,8 @@ class StemRenderer {
     }
 
     canvas.drawLine(stemStart, stemEnd, paint);
+
+    return stemEnd; // Return stem end for flag attachment
   }
 
   /// Determine stem direction based on note position on staff

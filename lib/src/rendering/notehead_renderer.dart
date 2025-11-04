@@ -49,7 +49,7 @@ class NoteheadRenderer {
     // Draw glow for active notes
     if (isActive) {
       final glowPaint = Paint()
-        ..color = Colors.green.withOpacity(0.3)
+        ..color = Colors.green.withValues(alpha: 0.3)
         ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 4)
         ..style = PaintingStyle.fill;
       canvas.drawOval(rect, glowPaint);

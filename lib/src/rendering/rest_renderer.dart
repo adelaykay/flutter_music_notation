@@ -2,7 +2,6 @@
 
 import 'package:flutter/material.dart';
 import '../models/duration.dart';
-import '../geometry/staff_units.dart';
 import 'glyph_provider.dart';
 
 /// Renders rest symbols at appropriate positions on staff

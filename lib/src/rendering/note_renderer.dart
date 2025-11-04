@@ -10,6 +10,8 @@ import 'accidental_renderer.dart';
 import 'staff_renderer.dart';
 import 'dot_renderer.dart';
 import 'rest_renderer.dart';
+import 'flag_renderer.dart';
+
 
 /// High-level renderer that combines notehead, stem, accidental, and dots
 class NoteRenderer {
@@ -20,6 +22,8 @@ class NoteRenderer {
   final AccidentalRenderer accidentalRenderer;
   final DotRenderer dotRenderer;
   final RestRenderer restRenderer;
+  final FlagRenderer flagRenderer;
+
 
   NoteRenderer({
     required this.staffSpaceSize,
@@ -29,7 +33,8 @@ class NoteRenderer {
         stemRenderer = StemRenderer(staffSpaceSize: staffSpaceSize, color: color),
         accidentalRenderer = AccidentalRenderer(staffSpaceSize: staffSpaceSize, color: color),
         dotRenderer = DotRenderer(staffSpaceSize: staffSpaceSize, color: color),
-        restRenderer = RestRenderer(staffSpaceSize: staffSpaceSize, color: color);
+        restRenderer = RestRenderer(staffSpaceSize: staffSpaceSize, color: color),
+        flagRenderer = FlagRenderer(staffSpaceSize: staffSpaceSize, color: color);
 
   /// Render a complete note
   void paintNote(
@@ -60,10 +65,25 @@ class NoteRenderer {
     final filled = NoteheadRenderer.shouldBeFilled(note.duration);
     noteheadRenderer.paint(canvas, noteCenter, filled: filled, isActive: isActive);
 
-    // Draw stem if needed
+    // Draw stem and flags if needed
     if (note.duration.needsStem) {
       final stemDirection = StemRenderer.determineStemDirection(staffPosition);
-      stemRenderer.paint(canvas, noteCenter, direction: stemDirection, isActive: isActive);
+      final stemEnd = stemRenderer.paint(
+        canvas,
+        noteCenter,
+        direction: stemDirection,
+        isActive: isActive,
+      );
+
+      // Draw flags if note needs them (eighth, sixteenth, etc.)
+      if (note.duration.needsFlag) {
+        flagRenderer.paint(
+          canvas,
+          stemEnd,
+          direction: stemDirection,
+          durationType: note.duration.type,
+        );
+      }
     }
 
     // Draw dots if needed
@@ -120,7 +140,7 @@ class NoteRenderer {
       noteheadRenderer.paint(canvas, noteCenter, filled: filled, isActive: isActive);
     }
 
-    // Draw stem for the whole chord
+    // Draw stem and flags for the whole chord
     if (chord.duration.needsStem) {
       final extremeNote = stemDirection == StemDirection.up
           ? sortedNotes.last  // Highest note
@@ -130,7 +150,22 @@ class NoteRenderer {
       final yPosition = staffRenderer.positionToY(extremePosition);
       final noteCenter = Offset(xPosition, staffTopLeft.dy + yPosition);
 
-      stemRenderer.paint(canvas, noteCenter, direction: stemDirection, isActive: isActive);
+      final stemEnd = stemRenderer.paint(
+        canvas,
+        noteCenter,
+        direction: stemDirection,
+        isActive: isActive,
+      );
+
+      // Draw flags if chord needs them
+      if (chord.duration.needsFlag) {
+        flagRenderer.paint(
+          canvas,
+          stemEnd,
+          direction: stemDirection,
+          durationType: chord.duration.type,
+        );
+      }
     }
 
     // Draw dots for chord (on the highest note)

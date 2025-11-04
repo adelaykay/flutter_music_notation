@@ -15,3 +15,12 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^5.0.0
+
+flutter:
+  fonts:
+    - family: Bravura
+      fonts:
+        - asset: assets/fonts/Bravura.otf
+    - family: Petaluma
+      fonts:
+        - asset: assets/fonts/Petaluma.otf

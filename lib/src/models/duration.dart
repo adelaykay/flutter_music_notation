@@ -190,7 +190,7 @@ class NoteDuration {
   @override
   String toString() {
     final buffer = StringBuffer(type.name);
-    if (dots > 0) buffer.write(' (${dots} dot${dots > 1 ? 's' : ''})');
+    if (dots > 0) buffer.write(' ($dots dot${dots > 1 ? 's' : ''})');
     if (tuplet != null) buffer.write(' tuplet: $tuplet');
     return buffer.toString();
   }

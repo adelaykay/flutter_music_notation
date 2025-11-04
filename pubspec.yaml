@@ -23,6 +23,10 @@ flutter:
     - family: Bravura
       fonts:
         - asset: assets/fonts/Bravura.otf
+    - family: Petaluma
+      fonts:
+        - asset: assets/fonts/Petaluma.otf
+
 
   # To add assets to your package, add an assets section, like this:
   # assets:

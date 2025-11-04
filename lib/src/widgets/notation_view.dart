@@ -2,12 +2,16 @@
 
 import 'package:flutter/material.dart';
 import '../models/note.dart';
+import '../models/measure.dart';
 import '../geometry/staff_position.dart';
 import '../playback/playback_controller.dart';
 import '../rendering/notation_painter.dart';
 
 /// Configuration for notation display
 class NotationConfig {
+  final String fontFamilyMain;
+  final String fontFamilyAccidentals;
+
   /// Size of staff space in pixels
   final double staffSpaceSize;
 
@@ -32,11 +36,14 @@ class NotationConfig {
   /// Padding around the notation
   final EdgeInsets padding;
 
-  /// Fixed width per note (uniform spacing)
+  /// Fixed width per note (uniform spacing) - used in simple mode
   final double noteWidth;
 
-  /// Left padding for clef, key sig, time sig (even if not rendered yet)
+  /// Left padding for clef, key sig, time sig
   final double leftMargin;
+
+  /// Spacing between measures
+  final double measureSpacing;
 
   const NotationConfig({
     this.staffSpaceSize = 12.0,
@@ -49,6 +56,9 @@ class NotationConfig {
     this.padding = const EdgeInsets.all(20),
     this.noteWidth = 60.0,
     this.leftMargin = 100.0,
+    this.measureSpacing = 40.0,
+    this.fontFamilyMain = 'Bravura',
+    this.fontFamilyAccidentals = 'Petaluma',
   });
 
   NotationConfig copyWith({
@@ -62,6 +72,9 @@ class NotationConfig {
     EdgeInsets? padding,
     double? noteWidth,
     double? leftMargin,
+    double? measureSpacing,
+    String? fontFamilyMain,
+    String? fontFamilyAccidentals,
   }) {
     return NotationConfig(
       staffSpaceSize: staffSpaceSize ?? this.staffSpaceSize,
@@ -74,17 +87,23 @@ class NotationConfig {
       padding: padding ?? this.padding,
       noteWidth: noteWidth ?? this.noteWidth,
       leftMargin: leftMargin ?? this.leftMargin,
+      measureSpacing: measureSpacing ?? this.measureSpacing,
+      fontFamilyMain: fontFamilyMain ?? this.fontFamilyMain,
+      fontFamilyAccidentals: fontFamilyAccidentals ?? this.fontFamilyAccidentals,
     );
   }
 }
 
 /// Widget that displays musical notation
 class NotationView extends StatefulWidget {
-  /// Notes to display
-  final List<Note> notes;
+  /// Measures to display (preferred for complete notation)
+  final List<Measure>? measures;
 
-  /// Rests to display (optional)
-  final List<Rest> rests;
+  /// Notes to display (legacy mode, for backward compatibility)
+  final List<Note>? notes;
+
+  /// Rests to display (legacy mode)
+  final List<Rest>? rests;
 
   /// Optional playback controller for highlighting active notes
   final PlaybackController? playbackController;
@@ -94,11 +113,15 @@ class NotationView extends StatefulWidget {
 
   const NotationView({
     super.key,
-    required this.notes,
-    this.rests = const [],
+    this.measures,
+    this.notes,
+    this.rests,
     this.playbackController,
     this.config = const NotationConfig(),
-  });
+  }) : assert(
+  measures != null || notes != null,
+  'Either measures or notes must be provided',
+  );
 
   @override
   State<NotationView> createState() => _NotationViewState();
@@ -153,20 +176,27 @@ class _NotationViewState extends State<NotationView>
       builder: (context, child) {
         // Update playback position if playing
         if (widget.playbackController?.isPlaying ?? false) {
-          widget.playbackController?.update(_animationController.lastElapsedDuration?.inMilliseconds.toDouble() ?? 0 / 1000.0);
+          widget.playbackController?.update(
+            _animationController.lastElapsedDuration?.inMilliseconds.toDouble() ?? 0 / 1000.0,
+          );
         }
 
-        return Container(
-          width: widget.config.width,
-          height: widget.config.height,
-          padding: widget.config.padding,
-          child: CustomPaint(
-            painter: NotationPainter(
-              notes: [...widget.notes, ...widget.rests],
-              config: widget.config,
-              activeNotes: widget.playbackController?.activeNotes ?? {},
+        return SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: Container(
+            width: widget.config.width,
+            height: widget.config.height,
+            padding: widget.config.padding,
+            child: CustomPaint(
+              painter: NotationPainter(
+                measures: widget.measures,
+                notes: widget.notes,
+                rests: widget.rests,
+                config: widget.config,
+                activeNotes: widget.playbackController?.activeNotes ?? {},
+              ),
+              size: Size.infinite,
             ),
-            size: Size.infinite,
           ),
         );
       },
