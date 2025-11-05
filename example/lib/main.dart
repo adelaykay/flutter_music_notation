@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_music_notation/flutter_music_notation.dart';
+import 'package:flutter_notation_example/phase4_spacing_demo.dart';
 
 void main() {
   runApp(const MyApp());
@@ -18,7 +19,7 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
         useMaterial3: true,
       ),
-      home: const ComprehensiveDemo(),
+      home: const SpacingDemo(),
     );
   }
 }

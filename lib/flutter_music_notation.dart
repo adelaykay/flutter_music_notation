@@ -16,6 +16,10 @@ export 'src/models/key_signature.dart';
 export 'src/geometry/staff_position.dart';
 export 'src/geometry/staff_units.dart';
 
+// Layout
+export 'src/layout/spacing_engine.dart';
+export 'src/layout/collision_detector.dart';
+
 // Playback
 export 'src/playback/playback_controller.dart';
 

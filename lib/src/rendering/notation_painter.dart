@@ -5,6 +5,7 @@ import '../models/note.dart';
 import '../models/pitch.dart';
 import '../models/measure.dart';
 import '../widgets/notation_view.dart';
+import '../layout/spacing_engine.dart';
 import 'note_renderer.dart';
 import 'clef_renderer.dart';
 import 'key_signature_renderer.dart';
@@ -79,6 +80,9 @@ class NotationPainter extends CustomPainter {
 
     double currentX = staffTopLeft.dx;
 
+    // Use spacing engine for proportional spacing
+    final spacingEngine = config.spacingEngine;
+
     // Track accidentals for each measure
     for (int measureIndex = 0; measureIndex < measures!.length; measureIndex++) {
       final measure = measures![measureIndex];
@@ -132,13 +136,20 @@ class NotationPainter extends CustomPainter {
 
       final sortedBeats = elementsByBeat.keys.toList()..sort();
 
-      // Draw elements with uniform spacing
+      // Calculate spacing for this measure using the spacing engine
+      final flatElements = sortedBeats.map((beat) => elementsByBeat[beat]!.first).toList();
+      final positions = spacingEngine.calculateSpacing(
+        flatElements,
+        startX: measureStartX,
+      );
+
+      // Draw elements with calculated spacing
       for (int i = 0; i < sortedBeats.length; i++) {
         final beat = sortedBeats[i];
         final elementsAtBeat = elementsByBeat[beat]!;
 
-        // Calculate position within measure
-        final xPosition = measureStartX + (i * config.noteWidth);
+        // Get position from spacing engine
+        final xPosition = positions[i];
 
         // Check if this is a rest or notes
         if (elementsAtBeat.first is Rest) {
@@ -206,8 +217,10 @@ class NotationPainter extends CustomPainter {
         }
       }
 
-      // Calculate measure end position
-      final measureEndX = measureStartX + (sortedBeats.length * config.noteWidth);
+      // Calculate measure end position based on last element position
+      final measureEndX = positions.isNotEmpty
+          ? positions.last + config.noteWidth
+          : measureStartX + config.minMeasureWidth;
 
       // Draw barline at end of measure
       barlineRenderer.paint(

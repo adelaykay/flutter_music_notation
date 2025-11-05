@@ -5,13 +5,11 @@ import '../models/note.dart';
 import '../models/measure.dart';
 import '../geometry/staff_position.dart';
 import '../playback/playback_controller.dart';
+import '../layout/spacing_engine.dart';
 import '../rendering/notation_painter.dart';
 
 /// Configuration for notation display
 class NotationConfig {
-  final String fontFamilyMain;
-  final String fontFamilyAccidentals;
-
   /// Size of staff space in pixels
   final double staffSpaceSize;
 
@@ -36,7 +34,7 @@ class NotationConfig {
   /// Padding around the notation
   final EdgeInsets padding;
 
-  /// Fixed width per note (uniform spacing) - used in simple mode
+  /// Fixed width per note (used in legacy/uniform spacing mode)
   final double noteWidth;
 
   /// Left padding for clef, key sig, time sig
@@ -44,6 +42,12 @@ class NotationConfig {
 
   /// Spacing between measures
   final double measureSpacing;
+
+  /// Minimum measure width
+  final double minMeasureWidth;
+
+  /// Spacing engine for calculating proportional spacing
+  final SpacingEngine spacingEngine;
 
   const NotationConfig({
     this.staffSpaceSize = 12.0,
@@ -57,8 +61,8 @@ class NotationConfig {
     this.noteWidth = 60.0,
     this.leftMargin = 100.0,
     this.measureSpacing = 40.0,
-    this.fontFamilyMain = 'Bravura',
-    this.fontFamilyAccidentals = 'Petaluma',
+    this.minMeasureWidth = 100.0,
+    this.spacingEngine = SpacingPresets.normal,  // NEW!
   });
 
   NotationConfig copyWith({
@@ -73,8 +77,8 @@ class NotationConfig {
     double? noteWidth,
     double? leftMargin,
     double? measureSpacing,
-    String? fontFamilyMain,
-    String? fontFamilyAccidentals,
+    double? minMeasureWidth,
+    SpacingEngine? spacingEngine,  // NEW!
   }) {
     return NotationConfig(
       staffSpaceSize: staffSpaceSize ?? this.staffSpaceSize,
@@ -88,8 +92,8 @@ class NotationConfig {
       noteWidth: noteWidth ?? this.noteWidth,
       leftMargin: leftMargin ?? this.leftMargin,
       measureSpacing: measureSpacing ?? this.measureSpacing,
-      fontFamilyMain: fontFamilyMain ?? this.fontFamilyMain,
-      fontFamilyAccidentals: fontFamilyAccidentals ?? this.fontFamilyAccidentals,
+      minMeasureWidth: minMeasureWidth ?? this.minMeasureWidth,
+      spacingEngine: spacingEngine ?? this.spacingEngine,  // NEW!
     );
   }
 }
@@ -181,22 +185,19 @@ class _NotationViewState extends State<NotationView>
           );
         }
 
-        return SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          child: Container(
-            width: widget.config.width,
-            height: widget.config.height,
-            padding: widget.config.padding,
-            child: CustomPaint(
-              painter: NotationPainter(
-                measures: widget.measures,
-                notes: widget.notes,
-                rests: widget.rests,
-                config: widget.config,
-                activeNotes: widget.playbackController?.activeNotes ?? {},
-              ),
-              size: Size.infinite,
+        return Container(
+          width: widget.config.width,
+          height: widget.config.height,
+          padding: widget.config.padding,
+          child: CustomPaint(
+            painter: NotationPainter(
+              measures: widget.measures,
+              notes: widget.notes,
+              rests: widget.rests,
+              config: widget.config,
+              activeNotes: widget.playbackController?.activeNotes ?? {},
             ),
+            size: Size.infinite,
           ),
         );
       },
