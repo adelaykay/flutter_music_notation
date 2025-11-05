@@ -3,7 +3,6 @@
 import 'dart:math';
 
 import '../models/note.dart';
-import '../models/duration.dart';
 
 /// Calculates optimal horizontal spacing for musical notation
 /// based on duration and engraving best practices.

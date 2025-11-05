@@ -5,7 +5,6 @@ import '../models/note.dart';
 import '../models/pitch.dart';
 import '../models/measure.dart';
 import '../widgets/notation_view.dart';
-import '../layout/spacing_engine.dart';
 import 'note_renderer.dart';
 import 'clef_renderer.dart';
 import 'key_signature_renderer.dart';
