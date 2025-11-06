@@ -6,6 +6,7 @@ import '../models/measure.dart';
 import '../geometry/staff_position.dart';
 import '../playback/playback_controller.dart';
 import '../layout/spacing_engine.dart';
+import '../layout/line_breaker.dart';
 import '../rendering/notation_painter.dart';
 
 /// Configuration for notation display
@@ -40,6 +41,12 @@ class NotationConfig {
   /// Left padding for clef, key sig, time sig
   final double leftMargin;
 
+  /// Right margin
+  final double rightMargin;
+
+  /// Top margin
+  final double topMargin;
+
   /// Spacing between measures
   final double measureSpacing;
 
@@ -48,6 +55,24 @@ class NotationConfig {
 
   /// Spacing engine for calculating proportional spacing
   final SpacingEngine spacingEngine;
+
+  /// Whether to use system layout (multi-line)
+  final bool useSystemLayout;
+
+  /// Height of each system (line of music)
+  final double systemHeight;
+
+  /// Vertical spacing between systems
+  final double systemSpacing;
+
+  /// Whether to show measure numbers
+  final bool showMeasureNumbers;
+
+  /// Whether to show clef on each system
+  final bool showClefOnEachSystem;
+
+  /// Line break configuration
+  final LineBreakConfig? lineBreakConfig;
 
   const NotationConfig({
     this.staffSpaceSize = 12.0,
@@ -60,9 +85,17 @@ class NotationConfig {
     this.padding = const EdgeInsets.all(20),
     this.noteWidth = 60.0,
     this.leftMargin = 100.0,
+    this.rightMargin = 20.0,
+    this.topMargin = 40.0,
     this.measureSpacing = 40.0,
     this.minMeasureWidth = 100.0,
-    this.spacingEngine = SpacingPresets.normal,  // NEW!
+    this.spacingEngine = SpacingPresets.normal,
+    this.useSystemLayout = false,
+    this.systemHeight = 200.0,
+    this.systemSpacing = 60.0,
+    this.showMeasureNumbers = true,
+    this.showClefOnEachSystem = true,
+    this.lineBreakConfig,
   });
 
   NotationConfig copyWith({
@@ -76,9 +109,17 @@ class NotationConfig {
     EdgeInsets? padding,
     double? noteWidth,
     double? leftMargin,
+    double? rightMargin,
+    double? topMargin,
     double? measureSpacing,
     double? minMeasureWidth,
-    SpacingEngine? spacingEngine,  // NEW!
+    SpacingEngine? spacingEngine,
+    bool? useSystemLayout,
+    double? systemHeight,
+    double? systemSpacing,
+    bool? showMeasureNumbers,
+    bool? showClefOnEachSystem,
+    LineBreakConfig? lineBreakConfig,
   }) {
     return NotationConfig(
       staffSpaceSize: staffSpaceSize ?? this.staffSpaceSize,
@@ -91,11 +132,70 @@ class NotationConfig {
       padding: padding ?? this.padding,
       noteWidth: noteWidth ?? this.noteWidth,
       leftMargin: leftMargin ?? this.leftMargin,
+      rightMargin: rightMargin ?? this.rightMargin,
+      topMargin: topMargin ?? this.topMargin,
       measureSpacing: measureSpacing ?? this.measureSpacing,
       minMeasureWidth: minMeasureWidth ?? this.minMeasureWidth,
-      spacingEngine: spacingEngine ?? this.spacingEngine,  // NEW!
+      spacingEngine: spacingEngine ?? this.spacingEngine,
+      useSystemLayout: useSystemLayout ?? this.useSystemLayout,
+      systemHeight: systemHeight ?? this.systemHeight,
+      systemSpacing: systemSpacing ?? this.systemSpacing,
+      showMeasureNumbers: showMeasureNumbers ?? this.showMeasureNumbers,
+      showClefOnEachSystem: showClefOnEachSystem ?? this.showClefOnEachSystem,
+      lineBreakConfig: lineBreakConfig ?? this.lineBreakConfig,
     );
   }
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+          other is NotationConfig &&
+              runtimeType == other.runtimeType &&
+              staffSpaceSize == other.staffSpaceSize &&
+              staffLineColor == other.staffLineColor &&
+              noteColor == other.noteColor &&
+              activeNoteColor == other.activeNoteColor &&
+              clef == other.clef &&
+              width == other.width &&
+              height == other.height &&
+              padding == other.padding &&
+              noteWidth == other.noteWidth &&
+              leftMargin == other.leftMargin &&
+              rightMargin == other.rightMargin &&
+              topMargin == other.topMargin &&
+              measureSpacing == other.measureSpacing &&
+              minMeasureWidth == other.minMeasureWidth &&
+              spacingEngine == other.spacingEngine &&
+              useSystemLayout == other.useSystemLayout &&
+              systemHeight == other.systemHeight &&
+              systemSpacing == other.systemSpacing &&
+              showMeasureNumbers == other.showMeasureNumbers &&
+              showClefOnEachSystem == other.showClefOnEachSystem &&
+              lineBreakConfig == other.lineBreakConfig;
+
+  @override
+  int get hashCode => Object.hash(
+    staffSpaceSize,
+    staffLineColor,
+    noteColor,
+    activeNoteColor,
+    clef,
+    width,
+    height,
+    padding,
+    noteWidth,
+    leftMargin,
+    rightMargin,
+    topMargin,
+    measureSpacing,
+    minMeasureWidth,
+    spacingEngine,
+    useSystemLayout,
+    systemHeight,
+    systemSpacing,
+    showMeasureNumbers,
+    showClefOnEachSystem,
+  );
 }
 
 /// Widget that displays musical notation
@@ -134,19 +234,25 @@ class NotationView extends StatefulWidget {
 class _NotationViewState extends State<NotationView>
     with SingleTickerProviderStateMixin {
   late AnimationController _animationController;
+  DateTime? _lastUpdateTime;
 
   @override
   void initState() {
     super.initState();
 
-    // Create animation controller for smooth playback updates (60fps)
+    // Create animation controller but don't start it yet
     _animationController = AnimationController(
       vsync: this,
-      duration: const Duration(seconds: 1),
-    )..repeat();
+      duration: const Duration(hours: 1), // Long duration, we'll use elapsed time
+    );
 
     // Listen to playback controller
     widget.playbackController?.addListener(_onPlaybackUpdate);
+
+    // Start animation only if playing
+    if (widget.playbackController?.isPlaying ?? false) {
+      _startAnimation();
+    }
   }
 
   @override
@@ -158,6 +264,14 @@ class _NotationViewState extends State<NotationView>
       oldWidget.playbackController?.removeListener(_onPlaybackUpdate);
       widget.playbackController?.addListener(_onPlaybackUpdate);
     }
+
+    // Start/stop animation based on playback state
+    final isPlaying = widget.playbackController?.isPlaying ?? false;
+    if (isPlaying && !_animationController.isAnimating) {
+      _startAnimation();
+    } else if (!isPlaying && _animationController.isAnimating) {
+      _stopAnimation();
+    }
   }
 
   @override
@@ -167,27 +281,78 @@ class _NotationViewState extends State<NotationView>
     super.dispose();
   }
 
+  void _startAnimation() {
+    _lastUpdateTime = DateTime.now();
+    _animationController.repeat();
+  }
+
+  void _stopAnimation() {
+    _animationController.stop();
+    _lastUpdateTime = null;
+  }
+
   void _onPlaybackUpdate() {
     if (mounted) {
+      // Control animation based on playback state
+      final isPlaying = widget.playbackController?.isPlaying ?? false;
+      if (isPlaying && !_animationController.isAnimating) {
+        _startAnimation();
+      } else if (!isPlaying && _animationController.isAnimating) {
+        _stopAnimation();
+      }
       setState(() {});
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    // Calculate height if using system layout
+    double? effectiveHeight = widget.config.height;
+
+    if (widget.config.useSystemLayout && widget.measures != null && effectiveHeight == null) {
+      // Estimate height based on number of systems needed
+      final measuresCount = widget.measures!.length;
+      final estimatedSystems = (measuresCount / 4).ceil(); // Rough estimate
+      effectiveHeight = widget.config.topMargin +
+          (estimatedSystems * (widget.config.systemHeight + widget.config.systemSpacing));
+    }
+
+    // If no playback controller, just render statically
+    if (widget.playbackController == null) {
+      return Container(
+        width: widget.config.width,
+        height: effectiveHeight,
+        padding: widget.config.padding,
+        child: CustomPaint(
+          painter: NotationPainter(
+            measures: widget.measures,
+            notes: widget.notes,
+            rests: widget.rests,
+            config: widget.config,
+            activeNotes: {},
+          ),
+          size: Size.infinite,
+        ),
+      );
+    }
+
+    // With playback controller, use AnimatedBuilder only when playing
     return AnimatedBuilder(
       animation: _animationController,
       builder: (context, child) {
         // Update playback position if playing
         if (widget.playbackController?.isPlaying ?? false) {
-          widget.playbackController?.update(
-            _animationController.lastElapsedDuration?.inMilliseconds.toDouble() ?? 0 / 1000.0,
-          );
+          final now = DateTime.now();
+          if (_lastUpdateTime != null) {
+            final deltaTime = now.difference(_lastUpdateTime!).inMilliseconds / 1000.0;
+            widget.playbackController?.update(deltaTime);
+          }
+          _lastUpdateTime = now;
         }
 
         return Container(
           width: widget.config.width,
-          height: widget.config.height,
+          height: effectiveHeight,
           padding: widget.config.padding,
           child: CustomPaint(
             painter: NotationPainter(

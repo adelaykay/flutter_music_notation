@@ -3,6 +3,26 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_music_notation/flutter_music_notation.dart';
 
+void main() {
+  runApp(const MyApp());
+}
+
+class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: 'Phase 4: Spacing Engine Demo',
+      theme: ThemeData(
+        colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
+        useMaterial3: true,
+      ),
+      home: const SpacingDemo(),
+    );
+  }
+}
+
 class SpacingDemo extends StatelessWidget {
   const SpacingDemo({super.key});
 
@@ -155,6 +175,7 @@ class SpacingDemo extends StatelessWidget {
       child: NotationView(
         measures: measures,
         config: NotationConfig(
+          useSystemLayout: true,
           staffSpaceSize: 12,
           leftMargin: 80,
           measureSpacing: 40,

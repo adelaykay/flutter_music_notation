@@ -16,9 +16,11 @@ export 'src/models/key_signature.dart';
 export 'src/geometry/staff_position.dart';
 export 'src/geometry/staff_units.dart';
 
-// Layout
+// Layout - NEW Phase 4 exports
 export 'src/layout/spacing_engine.dart';
 export 'src/layout/collision_detector.dart';
+export 'src/layout/line_breaker.dart';
+export 'src/layout/system_layout.dart';
 
 // Playback
 export 'src/playback/playback_controller.dart';
