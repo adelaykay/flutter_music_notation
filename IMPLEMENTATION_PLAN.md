@@ -114,14 +114,14 @@ lib/src/rendering/
 ```
 
 **Tasks:**
-- [ ] Implement rest symbols using Bravura glyphs
+- [x] Implement rest symbols using Bravura glyphs
     - Whole, half, quarter, eighth, sixteenth rests
     - Proper vertical positioning on staff
-- [ ] Implement dot rendering for dotted notes
+- [x] Implement dot rendering for dotted notes
     - Single and double dots
     - Proper spacing from notehead
-- [ ] Add dots to duration visualization
-- [ ] Update NotationPainter to handle rests
+- [x] Add dots to duration visualization
+- [x] Update NotationPainter to handle rests
 
 **Deliverable**: Notes and rests display correctly with dots
 
@@ -133,13 +133,13 @@ lib/src/rendering/
 ```
 
 **Tasks:**
-- [ ] Implement flag rendering for eighth notes and shorter
+- [x] Implement flag rendering for eighth notes and shorter
     - Use Bravura glyphs or draw with paths
     - Proper attachment to stem
     - Multiple flags for sixteenth, thirty-second notes
     - Correct direction (up/down)
-- [ ] Update NoteRenderer to use flags
-- [ ] Test with various note durations
+- [x] Update NoteRenderer to use flags
+- [x] Test with various note durations
 
 **Deliverable**: Eighth and sixteenth notes render correctly
 
@@ -162,20 +162,20 @@ lib/src/layout/
 ```
 
 **Tasks:**
-- [ ] Create Measure model
+- [x] Create Measure model
     - Contains notes/rests for one measure
     - Validates duration matches time signature
-- [ ] Implement time signature model
+- [x] Implement time signature model
     - Common time signatures (4/4, 3/4, 6/8, etc.)
     - Beat grouping logic
-- [ ] Implement key signature model
+- [x] Implement key signature model
     - All 15 major/minor keys (-7 to +7 accidentals)
     - Proper accidental placement for treble/bass
-- [ ] Render clef symbols using Bravura
-- [ ] Render key signatures (sharps/flats on correct lines)
-- [ ] Render time signatures (stacked numbers or symbols)
-- [ ] Render bar lines (single, double, final)
-- [ ] Basic measure layout (one measure at a time)
+- [x] Render clef symbols using Bravura
+- [x] Render key signatures (sharps/flats on correct lines)
+- [x] Render time signatures (stacked numbers or symbols)
+- [x] Render bar lines (single, double, final)
+- [x] Basic measure layout (one measure at a time)
 
 **Deliverable**: Complete single measures with all notation elements
 
@@ -195,14 +195,14 @@ lib/src/layout/
 ```
 
 **Tasks:**
-- [ ] Implement proportional spacing algorithm
+- [x] Implement proportional spacing algorithm
     - Duration-based spacing (longer notes = more space)
     - Minimum distances between elements
     - Natural-looking distribution
-- [ ] Collision detection for accidentals
+- [x] Collision detection for accidentals
     - Stack accidentals vertically in chords
     - Adjust spacing to avoid overlaps
-- [ ] Test with complex rhythms
+- [x] Test with complex rhythms
 
 **Deliverable**: Professional-looking horizontal spacing
 
@@ -218,12 +218,12 @@ lib/src/layout/
 ```
 
 **Tasks:**
-- [ ] Implement system (line of measures)
-- [ ] Line breaking algorithm
+- [x] Implement system (line of measures)
+- [x] Line breaking algorithm
     - Determine how many measures fit per line
     - Justify spacing across line
-- [ ] System connector lines (for grand staff)
-- [ ] Measure number rendering
+- [x] System connector lines (for grand staff)
+- [x] Measure number rendering
 
 **Deliverable**: Multi-measure scores with line breaks
 
