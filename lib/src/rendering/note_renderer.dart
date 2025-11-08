@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import '../models/note.dart';
 import '../models/pitch.dart';
 import '../geometry/staff_position.dart';
+import '../geometry/staff_units.dart';
 import 'notehead_renderer.dart';
 import 'stem_renderer.dart';
 import 'accidental_renderer.dart';
@@ -208,5 +209,15 @@ class NoteRenderer {
         rest.duration.dots,
       );
     }
+  }
+
+  /// Calculate the width occupied by a note
+  double getWidth(Note note){
+    var width = StaffUnits.noteheadWidth.toPixels(staffSpaceSize);
+    if(note.duration.needsFlag) width += StaffUnits.flagWidth.toPixels(staffSpaceSize);
+    if(note.pitch.accidental != Accidental.natural) {
+      width += StaffUnits.accidentalWidth.toPixels(staffSpaceSize) * 1.5;
+    }
+    return width;
   }
 }

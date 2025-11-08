@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import '../models/note.dart';
 import '../models/measure.dart';
+import '../models/grand_staff.dart';
 import '../geometry/staff_position.dart';
 import '../playback/playback_controller.dart';
 import '../layout/spacing_engine.dart';
@@ -11,68 +12,31 @@ import '../rendering/notation_painter.dart';
 
 /// Configuration for notation display
 class NotationConfig {
-  /// Size of staff space in pixels
   final double staffSpaceSize;
-
-  /// Color for staff lines
   final Color staffLineColor;
-
-  /// Color for notes
   final Color noteColor;
-
-  /// Color for active (playing) notes
   final Color activeNoteColor;
-
-  /// Which clef to display
   final ClefType clef;
-
-  /// Width of the notation area
   final double? width;
-
-  /// Height of the notation area
   final double? height;
-
-  /// Padding around the notation
   final EdgeInsets padding;
-
-  /// Fixed width per note (used in legacy/uniform spacing mode)
   final double noteWidth;
-
-  /// Left padding for clef, key sig, time sig
   final double leftMargin;
-
-  /// Right margin
   final double rightMargin;
-
-  /// Top margin
   final double topMargin;
-
-  /// Spacing between measures
   final double measureSpacing;
-
-  /// Minimum measure width
   final double minMeasureWidth;
-
-  /// Spacing engine for calculating proportional spacing
   final SpacingEngine spacingEngine;
-
-  /// Whether to use system layout (multi-line)
   final bool useSystemLayout;
-
-  /// Height of each system (line of music)
   final double systemHeight;
-
-  /// Vertical spacing between systems
   final double systemSpacing;
-
-  /// Whether to show measure numbers
   final bool showMeasureNumbers;
-
-  /// Whether to show clef on each system
   final bool showClefOnEachSystem;
-
-  /// Line break configuration
   final LineBreakConfig? lineBreakConfig;
+  final double grandStaffGap;
+  final double upperStaffHeight;
+  final double lowerStaffHeight;
+  final bool showBrace;
 
   const NotationConfig({
     this.staffSpaceSize = 12.0,
@@ -96,6 +60,10 @@ class NotationConfig {
     this.showMeasureNumbers = true,
     this.showClefOnEachSystem = true,
     this.lineBreakConfig,
+    this.grandStaffGap = 60.0,
+    this.upperStaffHeight = 40.0,
+    this.lowerStaffHeight = 40.0,
+    this.showBrace = true,
   });
 
   NotationConfig copyWith({
@@ -120,6 +88,10 @@ class NotationConfig {
     bool? showMeasureNumbers,
     bool? showClefOnEachSystem,
     LineBreakConfig? lineBreakConfig,
+    double? grandStaffGap,
+    double? upperStaffHeight,
+    double? lowerStaffHeight,
+    bool? showBrace,
   }) {
     return NotationConfig(
       staffSpaceSize: staffSpaceSize ?? this.staffSpaceSize,
@@ -143,6 +115,10 @@ class NotationConfig {
       showMeasureNumbers: showMeasureNumbers ?? this.showMeasureNumbers,
       showClefOnEachSystem: showClefOnEachSystem ?? this.showClefOnEachSystem,
       lineBreakConfig: lineBreakConfig ?? this.lineBreakConfig,
+      grandStaffGap: grandStaffGap ?? this.grandStaffGap,
+      upperStaffHeight: upperStaffHeight ?? this.upperStaffHeight,
+      lowerStaffHeight: lowerStaffHeight ?? this.lowerStaffHeight,
+      showBrace: showBrace ?? this.showBrace,
     );
   }
 
@@ -171,7 +147,11 @@ class NotationConfig {
               systemSpacing == other.systemSpacing &&
               showMeasureNumbers == other.showMeasureNumbers &&
               showClefOnEachSystem == other.showClefOnEachSystem &&
-              lineBreakConfig == other.lineBreakConfig;
+              lineBreakConfig == other.lineBreakConfig &&
+              grandStaffGap == other.grandStaffGap &&
+              upperStaffHeight == other.upperStaffHeight &&
+              lowerStaffHeight == other.lowerStaffHeight &&
+              showBrace == other.showBrace;
 
   @override
   int get hashCode => Object.hash(
@@ -200,32 +180,31 @@ class NotationConfig {
 
 /// Widget that displays musical notation
 class NotationView extends StatefulWidget {
-  /// Measures to display (preferred for complete notation)
   final List<Measure>? measures;
-
-  /// Notes to display (legacy mode, for backward compatibility)
+  final GrandStaff? grandStaff;
   final List<Note>? notes;
-
-  /// Rests to display (legacy mode)
   final List<Rest>? rests;
-
-  /// Optional playback controller for highlighting active notes
   final PlaybackController? playbackController;
-
-  /// Visual configuration
   final NotationConfig config;
 
   const NotationView({
     super.key,
     this.measures,
+    this.grandStaff,
     this.notes,
     this.rests,
     this.playbackController,
     this.config = const NotationConfig(),
   }) : assert(
-  measures != null || notes != null,
-  'Either measures or notes must be provided',
-  );
+  measures != null || grandStaff != null || notes != null,
+  'Either measures, grandStaff, or notes must be provided',
+  ),
+        assert(
+        (measures == null || grandStaff == null) &&
+            (measures == null || notes == null) &&
+            (grandStaff == null || notes == null),
+        'Only one of measures, grandStaff, or notes should be provided',
+        );
 
   @override
   State<NotationView> createState() => _NotationViewState();
@@ -240,16 +219,13 @@ class _NotationViewState extends State<NotationView>
   void initState() {
     super.initState();
 
-    // Create animation controller but don't start it yet
     _animationController = AnimationController(
       vsync: this,
-      duration: const Duration(hours: 1), // Long duration, we'll use elapsed time
+      duration: const Duration(hours: 1),
     );
 
-    // Listen to playback controller
     widget.playbackController?.addListener(_onPlaybackUpdate);
 
-    // Start animation only if playing
     if (widget.playbackController?.isPlaying ?? false) {
       _startAnimation();
     }
@@ -259,13 +235,11 @@ class _NotationViewState extends State<NotationView>
   void didUpdateWidget(NotationView oldWidget) {
     super.didUpdateWidget(oldWidget);
 
-    // Update playback controller listener
     if (oldWidget.playbackController != widget.playbackController) {
       oldWidget.playbackController?.removeListener(_onPlaybackUpdate);
       widget.playbackController?.addListener(_onPlaybackUpdate);
     }
 
-    // Start/stop animation based on playback state
     final isPlaying = widget.playbackController?.isPlaying ?? false;
     if (isPlaying && !_animationController.isAnimating) {
       _startAnimation();
@@ -293,7 +267,6 @@ class _NotationViewState extends State<NotationView>
 
   void _onPlaybackUpdate() {
     if (mounted) {
-      // Control animation based on playback state
       final isPlaying = widget.playbackController?.isPlaying ?? false;
       if (isPlaying && !_animationController.isAnimating) {
         _startAnimation();
@@ -306,18 +279,33 @@ class _NotationViewState extends State<NotationView>
 
   @override
   Widget build(BuildContext context) {
-    // Calculate height if using system layout
+    // Calculate height based on content type
     double? effectiveHeight = widget.config.height;
 
-    if (widget.config.useSystemLayout && widget.measures != null && effectiveHeight == null) {
-      // Estimate height based on number of systems needed
-      final measuresCount = widget.measures!.length;
-      final estimatedSystems = (measuresCount / 4).ceil(); // Rough estimate
-      effectiveHeight = widget.config.topMargin +
-          (estimatedSystems * (widget.config.systemHeight + widget.config.systemSpacing));
+    if (effectiveHeight == null) {
+      if (widget.grandStaff != null) {
+        // Grand staff: two staves + gap
+        final measuresCount = widget.grandStaff!.measureCount;
+        final estimatedSystems = (measuresCount / 3).ceil();
+        final singleStaffHeight = widget.config.staffSpaceSize * 4; // 5 lines = 4 spaces
+        final systemHeight = singleStaffHeight +
+            widget.config.grandStaffGap +
+            singleStaffHeight;
+        effectiveHeight = widget.config.topMargin +
+            (estimatedSystems * (systemHeight + widget.config.systemSpacing)) +
+            widget.config.topMargin;
+      } else if (widget.config.useSystemLayout && widget.measures != null) {
+        // Multi-line single staff
+        final measuresCount = widget.measures!.length;
+        final estimatedSystems = (measuresCount / 4).ceil();
+        effectiveHeight = widget.config.topMargin +
+            (estimatedSystems * (widget.config.systemHeight + widget.config.systemSpacing));
+      } else {
+        // Single line or legacy mode
+        effectiveHeight = 200;
+      }
     }
 
-    // If no playback controller, just render statically
     if (widget.playbackController == null) {
       return Container(
         width: widget.config.width,
@@ -326,6 +314,7 @@ class _NotationViewState extends State<NotationView>
         child: CustomPaint(
           painter: NotationPainter(
             measures: widget.measures,
+            grandStaff: widget.grandStaff,
             notes: widget.notes,
             rests: widget.rests,
             config: widget.config,
@@ -336,11 +325,9 @@ class _NotationViewState extends State<NotationView>
       );
     }
 
-    // With playback controller, use AnimatedBuilder only when playing
     return AnimatedBuilder(
       animation: _animationController,
       builder: (context, child) {
-        // Update playback position if playing
         if (widget.playbackController?.isPlaying ?? false) {
           final now = DateTime.now();
           if (_lastUpdateTime != null) {
@@ -357,6 +344,7 @@ class _NotationViewState extends State<NotationView>
           child: CustomPaint(
             painter: NotationPainter(
               measures: widget.measures,
+              grandStaff: widget.grandStaff,
               notes: widget.notes,
               rests: widget.rests,
               config: widget.config,

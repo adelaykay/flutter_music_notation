@@ -39,7 +39,7 @@ class ClefRenderer {
 
   /// Draw treble (G) clef
   void _drawTrebleClef(Canvas canvas, double x, double staffTopY) {
-    final size = staffSpaceSize * 5.0;
+    final size = staffSpaceSize * 4.5;
     final glyph = GlyphProvider.getGlyph(
       GlyphProvider.trebleClef,
       size,
@@ -48,7 +48,7 @@ class ClefRenderer {
 
     // Position: curls around second line from bottom (G4)
     // The G clef wraps around the line where G4 sits
-    final y = staffTopY - staffSpaceSize * 7.25;
+    final y = staffTopY - staffSpaceSize * 6.25;
 
     glyph.paint(canvas, Offset(x, y));
   }

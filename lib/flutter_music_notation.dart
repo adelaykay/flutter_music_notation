@@ -11,6 +11,7 @@ export 'src/models/note.dart';
 export 'src/models/measure.dart';
 export 'src/models/time_signature.dart';
 export 'src/models/key_signature.dart';
+export 'src/models/grand_staff.dart';
 
 // Geometry
 export 'src/geometry/staff_position.dart';
