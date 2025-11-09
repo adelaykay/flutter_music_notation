@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import '../models/note.dart';
 import '../models/pitch.dart';
+import '../models/beam.dart';
 import '../geometry/staff_position.dart';
 import '../geometry/staff_units.dart';
 import 'notehead_renderer.dart';
@@ -12,6 +13,7 @@ import 'staff_renderer.dart';
 import 'dot_renderer.dart';
 import 'rest_renderer.dart';
 import 'flag_renderer.dart';
+import 'beam_renderer.dart';
 
 
 /// High-level renderer that combines notehead, stem, accidental, and dots
@@ -24,7 +26,7 @@ class NoteRenderer {
   final DotRenderer dotRenderer;
   final RestRenderer restRenderer;
   final FlagRenderer flagRenderer;
-
+  final BeamRenderer beamRenderer;
 
   NoteRenderer({
     required this.staffSpaceSize,
@@ -35,7 +37,8 @@ class NoteRenderer {
         accidentalRenderer = AccidentalRenderer(staffSpaceSize: staffSpaceSize, color: color),
         dotRenderer = DotRenderer(staffSpaceSize: staffSpaceSize, color: color),
         restRenderer = RestRenderer(staffSpaceSize: staffSpaceSize, color: color),
-        flagRenderer = FlagRenderer(staffSpaceSize: staffSpaceSize, color: color);
+        flagRenderer = FlagRenderer(staffSpaceSize: staffSpaceSize, color: color),
+        beamRenderer = BeamRenderer(staffSpaceSize: staffSpaceSize, color: color);
 
   /// Render a complete note
   void paintNote(
@@ -46,6 +49,7 @@ class NoteRenderer {
         required ClefType clef,
         required bool showAccidental,
         required bool isActive,
+        bool isBeamed = false, // NEW: Skip flags if beamed
       }) {
     // Calculate staff position for this pitch
     final staffPosition = StaffPosition.forPitch(note.pitch, clef);
@@ -76,8 +80,8 @@ class NoteRenderer {
         isActive: isActive,
       );
 
-      // Draw flags if note needs them (eighth, sixteenth, etc.)
-      if (note.duration.needsFlag) {
+      // Draw flags ONLY if note needs them AND is not beamed
+      if (note.duration.needsFlag && !isBeamed) {
         flagRenderer.paint(
           canvas,
           stemEnd,
@@ -98,6 +102,90 @@ class NoteRenderer {
     }
   }
 
+  /// Render a beam group (notes connected by beams)
+  void paintBeamGroup(
+      Canvas canvas,
+      BeamGroup beamGroup,
+      Offset staffTopLeft,
+      List<double> xPositions,
+      ClefType clef,
+      Map<int, bool> showAccidentals,
+      Set<Note> activeNotes,
+      ) {
+    final notes = beamGroup.notes;
+    if (notes.isEmpty || xPositions.length != notes.length) return;
+
+    // Calculate staff positions and note centers
+    final staffPositions = <StaffPosition>[];
+    final noteheadCenters = <Offset>[];
+
+    for (int i = 0; i < notes.length; i++) {
+      final note = notes[i];
+      final staffPosition = StaffPosition.forPitch(note.pitch, clef);
+      final yPosition = staffRenderer.positionToY(staffPosition);
+      final noteCenter = Offset(xPositions[i], staffTopLeft.dy + yPosition);
+
+      staffPositions.add(staffPosition);
+      noteheadCenters.add(noteCenter);
+
+      // Draw ledger lines
+      staffRenderer.paintLedgerLines(canvas, noteCenter, staffPosition);
+
+      // Draw accidental if needed
+      final showAccidental = showAccidentals[note.pitch.midiNumber] ?? false;
+      if (showAccidental && note.pitch.accidental != Accidental.natural) {
+        accidentalRenderer.paint(canvas, noteCenter, note.pitch.accidental);
+      }
+
+      // Draw notehead
+      final filled = NoteheadRenderer.shouldBeFilled(note.duration);
+      final isActive = activeNotes.contains(note);
+      noteheadRenderer.paint(canvas, noteCenter, filled: filled, isActive: isActive);
+
+      // Draw dots if needed
+      if (note.duration.dots > 0) {
+        dotRenderer.paintNoteDots(
+          canvas,
+          noteCenter,
+          staffPosition,
+          note.duration.dots,
+        );
+      }
+    }
+
+    // Determine stem direction for the group
+    final stemDirection = StemRenderer.determineStemDirectionForChord(staffPositions);
+
+    // Calculate stem ends for beaming
+    final stemEnds = beamRenderer.calculateStemEnds(
+      notes,
+      noteheadCenters,
+      staffPositions,
+      stemDirection,
+    );
+
+    // Draw stems (without flags - beams replace them)
+    for (int i = 0; i < notes.length; i++) {
+      final noteCenter = noteheadCenters[i];
+      final isActive = activeNotes.contains(notes[i]);
+
+      stemRenderer.paint(
+        canvas,
+        noteCenter,
+        direction: stemDirection,
+        isActive: isActive,
+      );
+    }
+
+    // Draw the beam group
+    beamRenderer.paintBeamGroup(
+      canvas,
+      beamGroup,
+      stemEnds,
+      stemDirection,
+    );
+  }
+
   /// Render a chord (multiple notes at same time position)
   void paintChord(
       Canvas canvas, {
@@ -107,6 +195,7 @@ class NoteRenderer {
         required ClefType clef,
         required Set<int> notesShowingAccidentals,
         required bool isActive,
+        bool isBeamed = false,
       }) {
     final sortedNotes = chord.sortedNotes;
 
@@ -158,8 +247,8 @@ class NoteRenderer {
         isActive: isActive,
       );
 
-      // Draw flags if chord needs them
-      if (chord.duration.needsFlag) {
+      // Draw flags if chord needs them AND is not beamed
+      if (chord.duration.needsFlag && !isBeamed) {
         flagRenderer.paint(
           canvas,
           stemEnd,

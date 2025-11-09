@@ -1,8 +1,12 @@
 // lib/src/models/measure.dart
 
 import 'note.dart';
+import 'slur.dart';
 import 'time_signature.dart';
 import 'key_signature.dart';
+import 'beam.dart';
+import 'tie.dart';
+import 'tuplet_bracket.dart';
 
 /// Represents a single measure (bar) of music
 class Measure {
@@ -24,6 +28,15 @@ class Measure {
   /// Type of barline at the end of this measure
   final BarlineType endBarline;
 
+  /// Ties in this measure (optional - auto-detected if null)
+  final List<Tie>? ties;
+
+  /// Slurs in this measure (optional - auto-detected if null)
+  final List<Slur>? slurs;
+
+  /// Tuplet brackets in this measure (optional - auto-detected if null)
+  final List<TupletBracket>? tuplets;
+
   const Measure({
     required this.number,
     required this.timeSignature,
@@ -31,6 +44,9 @@ class Measure {
     this.notes = const [],
     this.rests = const [],
     this.endBarline = BarlineType.single,
+    this.ties,
+    this.slurs,
+    this.tuplets,
   });
 
   /// All elements (notes and rests) sorted by start beat
@@ -42,6 +58,53 @@ class Measure {
       return aStart.compareTo(bStart);
     });
     return combined;
+  }
+
+  /// Automatically calculate beam groups for this measure
+  List<BeamGroup> get beamGroups {
+    return BeamGroupCalculator.calculateBeamGroups(
+      notes,
+      timeSignature.beats,
+      timeSignature.beatUnit,
+    );
+  }
+
+  /// Get ties for this measure (auto-detect if not provided)
+  List<Tie> get tiesInMeasure {
+    if (ties != null) return ties!;
+
+    // Auto-detect ties within this measure
+    final detectedTies = <Tie>[];
+
+    for (int i = 0; i < notes.length - 1; i++) {
+      for (int j = i + 1; j < notes.length; j++) {
+        final note1 = notes[i];
+        final note2 = notes[j];
+
+        // Check if notes are the same pitch and consecutive
+        if (note1.pitch == note2.pitch &&
+            (note2.startBeat - note1.endBeat).abs() < 0.01) {
+          detectedTies.add(Tie(
+            startNote: note1,
+            endNote: note2,
+          ));
+        }
+      }
+    }
+
+    return detectedTies;
+  }
+
+  /// Get tuplets for this measure (auto-detect if not provided)
+  List<TupletBracket> get tupletsInMeasure {
+    if (tuplets != null) return tuplets!;
+    return TupletHelper.detectTuplets(notes);
+  }
+
+  /// Get slurs for this measure (return provided slurs)
+  /// Note: Slurs typically need to be explicitly defined
+  List<Slur> get slursInMeasure {
+    return slurs ?? [];
   }
 
   /// Check if this measure has the correct duration
@@ -69,6 +132,9 @@ class Measure {
     List<Note>? notes,
     List<Rest>? rests,
     BarlineType? endBarline,
+    List<Tie>? ties,
+    List<Slur>? slurs,
+    List<TupletBracket>? tuplets,
   }) {
     return Measure(
       number: number ?? this.number,
@@ -77,6 +143,9 @@ class Measure {
       notes: notes ?? this.notes,
       rests: rests ?? this.rests,
       endBarline: endBarline ?? this.endBarline,
+      ties: ties ?? this.ties,
+      slurs: slurs ?? this.slurs,
+      tuplets: tuplets ?? this.tuplets,
     );
   }
 }

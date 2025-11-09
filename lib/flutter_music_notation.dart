@@ -12,12 +12,17 @@ export 'src/models/measure.dart';
 export 'src/models/time_signature.dart';
 export 'src/models/key_signature.dart';
 export 'src/models/grand_staff.dart';
+// Phase 6 Models
+export 'src/models/beam.dart';
+export 'src/models/tie.dart';
+export 'src/models/slur.dart';
+export 'src/models/tuplet_bracket.dart';
 
 // Geometry
 export 'src/geometry/staff_position.dart';
 export 'src/geometry/staff_units.dart';
 
-// Layout - NEW Phase 4 exports
+// Layout - Phase 4 exports
 export 'src/layout/spacing_engine.dart';
 export 'src/layout/collision_detector.dart';
 export 'src/layout/line_breaker.dart';
@@ -39,3 +44,8 @@ export 'src/rendering/clef_renderer.dart';
 export 'src/rendering/key_signature_renderer.dart';
 export 'src/rendering/time_signature_renderer.dart';
 export 'src/rendering/barline_renderer.dart';
+// Phase 6 Renderers
+export 'src/rendering/beam_renderer.dart';
+export 'src/rendering/tie_renderer.dart';
+export 'src/rendering/slur_renderer.dart';
+export 'src/rendering/tuplet_renderer.dart';

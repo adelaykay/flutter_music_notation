@@ -198,25 +198,79 @@ class CollisionDetector {
     return (pos1.value - pos2.value).abs() <= 1.0;
   }
 
+  /// Calculate total width occupied by a note including accidentals and dots
+  /// This is crucial for proper spacing
+  double calculateNoteWidth(
+      Note note,
+      bool showAccidental,
+      ) {
+    double width = StaffUnits.noteheadWidth.toPixels(staffSpaceSize);
+
+    // Add accidental width if needed
+    if (showAccidental && note.pitch.accidental != Accidental.natural) {
+      width += StaffUnits.accidentalWidth.toPixels(staffSpaceSize);
+      width += StaffUnits.accidentalPadding.toPixels(staffSpaceSize);
+    }
+
+    // Add flag width if needed
+    if (note.duration.needsFlag) {
+      width += StaffUnits.flagWidth.toPixels(staffSpaceSize) * 0.5;
+    }
+
+    // Add dot width if needed
+    if (note.duration.dots > 0) {
+      width += StaffUnits.dotSpacing.toPixels(staffSpaceSize) * (note.duration.dots + 1);
+    }
+
+    return width;
+  }
+
+  /// Calculate total width for a rest including dots
+  double calculateRestWidth(Rest rest) {
+    // Base rest width (approximate)
+    double width = staffSpaceSize * 2.0;
+
+    // Add dot width if needed
+    if (rest.duration.dots > 0) {
+      width += StaffUnits.dotSpacing.toPixels(staffSpaceSize) * (rest.duration.dots + 1);
+    }
+
+    return width;
+  }
+
   /// Calculate minimum horizontal spacing needed between two elements
-  /// to avoid collision
+  /// to avoid collision - NOW ACCOUNTS FOR ACCIDENTALS AND DOTS
   double calculateMinimumSpacing(
       dynamic element1,
       dynamic element2,
       ClefType clef,
+      bool element1ShowsAccidental,
+      bool element2ShowsAccidental,
       ) {
     // Base minimum spacing
     double minSpacing = StaffUnits.minimumNoteSpacing.toPixels(staffSpaceSize);
 
-    // Increase spacing if notes have accidentals
-    if (element1 is Note && element1.pitch.accidental != Accidental.natural) {
-      minSpacing += StaffUnits.accidentalWidth.toPixels(staffSpaceSize);
+    // Calculate actual widths
+    double element1Width = 0;
+    double element2Width = 0;
+
+    if (element1 is Note) {
+      element1Width = calculateNoteWidth(element1, element1ShowsAccidental);
+    } else if (element1 is Rest) {
+      element1Width = calculateRestWidth(element1);
     }
 
-    // Increase spacing for rests (they need more visual space)
-    if (element1 is Rest || element2 is Rest) {
-      minSpacing *= 1.2;
+    if (element2 is Note) {
+      element2Width = calculateNoteWidth(element2, element2ShowsAccidental);
+    } else if (element2 is Rest) {
+      element2Width = calculateRestWidth(element2);
     }
+
+    // Use the larger of the two widths as baseline
+    final maxWidth = element1Width > element2Width ? element1Width : element2Width;
+
+    // Minimum spacing is at least half of the wider element
+    minSpacing = (maxWidth * 0.5).clamp(minSpacing, double.infinity);
 
     // Check if notes are vertically adjacent (might visually collide)
     if (element1 is Note && element2 is Note) {

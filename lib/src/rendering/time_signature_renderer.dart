@@ -92,7 +92,7 @@ class TimeSignatureRenderer {
       double staffTopY,
       TimeSignature timeSignature,
       ) {
-    final fontSize = staffSpaceSize * 2.6;
+    final fontSize = staffSpaceSize * 2.8;
 
     // Draw numerator (top number)
     final numeratorPainter = TextPainter(
@@ -127,7 +127,7 @@ class TimeSignatureRenderer {
     final staffMiddle = staffTopY + (staffSpaceSize * 2);
 
     // Numerator above middle line
-    final numeratorY = staffMiddle - staffSpaceSize * 0.7;
+    final numeratorY = staffMiddle - staffSpaceSize * 1.7;
     numeratorPainter.paint(
       canvas,
       Offset(x, numeratorY - numeratorPainter.height / 2),
