@@ -231,13 +231,15 @@ class NotationPainter extends CustomPainter {
       }
 
       // Time signature
-      timeSignatureRenderer.paint(
-        canvas,
-        currentX,
-        staffTopLeft.dy,
-        firstMeasure.timeSignature,
-      );
-      currentX += timeSignatureRenderer.getWidth(firstMeasure.timeSignature) + config.staffSpaceSize;
+      if (config.showTimeSignature) {
+        timeSignatureRenderer.paint(
+          canvas,
+          currentX,
+          staffTopLeft.dy,
+          firstMeasure.timeSignature,
+        );
+        currentX += timeSignatureRenderer.getWidth(firstMeasure.timeSignature) + config.staffSpaceSize;
+      }
     }
 
     // Draw measures and track barline positions
@@ -523,7 +525,9 @@ class NotationPainter extends CustomPainter {
         if (measure.keySignature.accidentals != 0) {
           currentX += keySignatureRenderer.getWidth(measure.keySignature);
         }
-        currentX += timeSignatureRenderer.getWidth(measure.timeSignature) + config.staffSpaceSize;
+        if (config.showTimeSignature) {
+          currentX += timeSignatureRenderer.getWidth(measure.timeSignature) + config.staffSpaceSize;
+        }
       }
 
       final measureStartX = currentX;
@@ -571,8 +575,10 @@ class NotationPainter extends CustomPainter {
           currentX += keySignatureRenderer.getWidth(measure.keySignature);
         }
 
-        timeSignatureRenderer.paint(canvas, currentX, staffTopLeft.dy, measure.timeSignature);
-        currentX += timeSignatureRenderer.getWidth(measure.timeSignature) + config.staffSpaceSize;
+        if (config.showTimeSignature) {
+          timeSignatureRenderer.paint(canvas, currentX, staffTopLeft.dy, measure.timeSignature);
+          currentX += timeSignatureRenderer.getWidth(measure.timeSignature) + config.staffSpaceSize;
+        }
       }
 
       final measureStartX = currentX;

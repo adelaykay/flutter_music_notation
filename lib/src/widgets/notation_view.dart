@@ -32,6 +32,7 @@ class NotationConfig {
   final double systemSpacing;
   final bool showMeasureNumbers;
   final bool showClefOnEachSystem;
+  final bool showTimeSignature;
   final LineBreakConfig? lineBreakConfig;
   final double grandStaffGap;
   final double upperStaffHeight;
@@ -60,6 +61,7 @@ class NotationConfig {
     this.systemSpacing = 60.0,
     this.showMeasureNumbers = true,
     this.showClefOnEachSystem = true,
+    this.showTimeSignature = true,
     this.lineBreakConfig,
     this.grandStaffGap = 60.0,
     this.upperStaffHeight = 40.0,
@@ -89,6 +91,7 @@ class NotationConfig {
     double? systemSpacing,
     bool? showMeasureNumbers,
     bool? showClefOnEachSystem,
+    bool? showTimeSignature,
     LineBreakConfig? lineBreakConfig,
     double? grandStaffGap,
     double? upperStaffHeight,
@@ -117,6 +120,7 @@ class NotationConfig {
       systemSpacing: systemSpacing ?? this.systemSpacing,
       showMeasureNumbers: showMeasureNumbers ?? this.showMeasureNumbers,
       showClefOnEachSystem: showClefOnEachSystem ?? this.showClefOnEachSystem,
+      showTimeSignature: showTimeSignature ?? this.showTimeSignature,
       lineBreakConfig: lineBreakConfig ?? this.lineBreakConfig,
       grandStaffGap: grandStaffGap ?? this.grandStaffGap,
       upperStaffHeight: upperStaffHeight ?? this.upperStaffHeight,
@@ -151,6 +155,7 @@ class NotationConfig {
               systemSpacing == other.systemSpacing &&
               showMeasureNumbers == other.showMeasureNumbers &&
               showClefOnEachSystem == other.showClefOnEachSystem &&
+              showTimeSignature == other.showTimeSignature &&
               lineBreakConfig == other.lineBreakConfig &&
               grandStaffGap == other.grandStaffGap &&
               upperStaffHeight == other.upperStaffHeight &&
@@ -180,6 +185,7 @@ class NotationConfig {
     systemSpacing,
     showMeasureNumbers,
     showClefOnEachSystem,
+    showTimeSignature,
     justifyLastBarline,
   ]);
 }
