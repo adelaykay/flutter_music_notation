@@ -106,10 +106,11 @@ class NotationPainter extends CustomPainter {
     for (final system in scoreLayout.systems) {
       final upperStaffY = system.upperStaffY;
       final lowerStaffY = system.lowerStaffY;
+      final braceTotalHeight = (lowerStaffY + noteRenderer.staffRenderer.height) - upperStaffY;
 
       // Draw brace connecting both staves
       if (config.showBrace) {
-        final braceX = config.leftMargin - braceRenderer.getWidth() - config.staffSpaceSize;
+        final braceX = config.leftMargin - braceRenderer.getWidth(height: braceTotalHeight) - config.staffSpaceSize;
         braceRenderer.paint(
           canvas,
           braceX,
@@ -182,7 +183,7 @@ class NotationPainter extends CustomPainter {
           canvas,
           system.instrumentName!,
           Offset(
-            config.leftMargin - braceRenderer.getWidth() - config.staffSpaceSize * 6,
+            config.leftMargin - braceRenderer.getWidth(height: braceTotalHeight) - config.staffSpaceSize * 6,
             upperStaffY + system.totalHeight / 2,
           ),
         );
