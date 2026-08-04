@@ -24,6 +24,10 @@ class Measure {
   /// Type of barline at the end of this measure
   final BarlineType endBarline;
 
+  /// Type of barline at the beginning of this measure (e.g. a left barline
+  /// after the brace on a grand staff). `null` means no start barline.
+  final BarlineType? startBarline;
+
   const Measure({
     required this.number,
     required this.timeSignature,
@@ -31,6 +35,7 @@ class Measure {
     this.notes = const [],
     this.rests = const [],
     this.endBarline = BarlineType.single,
+    this.startBarline,
   });
 
   /// All elements (notes and rests) sorted by start beat
@@ -69,6 +74,7 @@ class Measure {
     List<Note>? notes,
     List<Rest>? rests,
     BarlineType? endBarline,
+    BarlineType? startBarline,
   }) {
     return Measure(
       number: number ?? this.number,
@@ -77,6 +83,7 @@ class Measure {
       notes: notes ?? this.notes,
       rests: rests ?? this.rests,
       endBarline: endBarline ?? this.endBarline,
+      startBarline: startBarline ?? this.startBarline,
     );
   }
 }

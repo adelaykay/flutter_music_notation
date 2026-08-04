@@ -106,17 +106,34 @@ class NotationPainter extends CustomPainter {
     for (final system in scoreLayout.systems) {
       final upperStaffY = system.upperStaffY;
       final lowerStaffY = system.lowerStaffY;
-      final braceTotalHeight = (lowerStaffY + noteRenderer.staffRenderer.height) - upperStaffY;
+      final braceTotalHeight =
+          (lowerStaffY + noteRenderer.staffRenderer.height) - upperStaffY;
 
       // Draw brace connecting both staves
       if (config.showBrace) {
-        final braceX = config.leftMargin - braceRenderer.getWidth(height: braceTotalHeight) - config.staffSpaceSize;
+        final braceX =
+            config.leftMargin -
+            braceRenderer.getWidth(height: braceTotalHeight) -
+            config.staffSpaceSize;
         braceRenderer.paint(
           canvas,
           braceX,
           upperStaffY,
           lowerStaffY,
           noteRenderer.staffRenderer.height,
+        );
+      }
+
+      // Draw shared start barline (e.g. left of the first system, after brace)
+      if (system.isFirstSystem &&
+          system.upperStaffMeasures.isNotEmpty &&
+          system.upperStaffMeasures.first.startBarline != null) {
+        barlineRenderer.paint(
+          canvas,
+          config.leftMargin,
+          upperStaffY,
+          lowerStaffY + noteRenderer.staffRenderer.height,
+          system.upperStaffMeasures.first.startBarline!,
         );
       }
 
@@ -137,7 +154,8 @@ class NotationPainter extends CustomPainter {
         system.spacing,
         ClefType.treble,
         isFirstSystem: system.isFirstSystem,
-        showMeasureNumbers: system.showMeasureNumbers && config.showMeasureNumbers,
+        showMeasureNumbers:
+            system.showMeasureNumbers && config.showMeasureNumbers,
         barlinePositions: upperBarlinePositions,
       );
 
@@ -183,7 +201,9 @@ class NotationPainter extends CustomPainter {
           canvas,
           system.instrumentName!,
           Offset(
-            config.leftMargin - braceRenderer.getWidth(height: braceTotalHeight) - config.staffSpaceSize * 6,
+            config.leftMargin -
+                braceRenderer.getWidth(height: braceTotalHeight) -
+                config.staffSpaceSize * 6,
             upperStaffY + system.totalHeight / 2,
           ),
         );
@@ -193,23 +213,25 @@ class NotationPainter extends CustomPainter {
 
   /// Paint a single staff and return barline positions (for grand staff)
   void _paintSingleStaffWithBarlines(
-      Canvas canvas,
-      List<Measure> measures,
-      double staffY,
-      double staffHeight,
-      NoteRenderer noteRenderer,
-      ClefRenderer clefRenderer,
-      KeySignatureRenderer keySignatureRenderer,
-      TimeSignatureRenderer timeSignatureRenderer,
-      LineSpacing lineSpacing,
-      ClefType clef, {
-        required bool isFirstSystem,
-        required bool showMeasureNumbers,
-        required List<double> barlinePositions,
-      }) {
+    Canvas canvas,
+    List<Measure> measures,
+    double staffY,
+    double staffHeight,
+    NoteRenderer noteRenderer,
+    ClefRenderer clefRenderer,
+    KeySignatureRenderer keySignatureRenderer,
+    TimeSignatureRenderer timeSignatureRenderer,
+    LineSpacing lineSpacing,
+    ClefType clef, {
+    required bool isFirstSystem,
+    required bool showMeasureNumbers,
+    required List<double> barlinePositions,
+  }) {
     final staffTopLeft = Offset(config.leftMargin, staffY);
 
-    double currentX = config.leftMargin;
+    // Content (clef etc.) starts one staff space to the right of the staff's
+    // left edge (where the start barline sits), leaving a gap to the barline.
+    double currentX = config.leftMargin + config.staffSpaceSize;
 
     // Draw clef, key signature, time signature on first system
     if (isFirstSystem && measures.isNotEmpty) {
@@ -232,18 +254,20 @@ class NotationPainter extends CustomPainter {
       }
 
       // Time signature
-        if (config.showTimeSignature) {
-          timeSignatureRenderer.paint(
-            canvas,
-            currentX,
-            staffTopLeft.dy,
-            firstMeasure.timeSignature,
-          );
-          currentX += timeSignatureRenderer.getWidth(firstMeasure.timeSignature) + config.staffSpaceSize;
-        }
-
-        currentX += config.leadingSpace;
+      if (config.showTimeSignature) {
+        timeSignatureRenderer.paint(
+          canvas,
+          currentX,
+          staffTopLeft.dy,
+          firstMeasure.timeSignature,
+        );
+        currentX +=
+            timeSignatureRenderer.getWidth(firstMeasure.timeSignature) +
+            config.staffSpaceSize;
       }
+
+      currentX += config.leadingSpace;
+    }
 
     // Draw measures and track barline positions
     for (int i = 0; i < measures.length; i++) {
@@ -283,11 +307,7 @@ class NotationPainter extends CustomPainter {
     final staffWidth = config.justifyLastBarline
         ? lineSpacing.lineWidth - config.leftMargin
         : currentX - config.leftMargin - config.measureSpacing;
-    noteRenderer.staffRenderer.paint(
-      canvas,
-      staffTopLeft,
-      staffWidth,
-    );
+    noteRenderer.staffRenderer.paint(canvas, staffTopLeft, staffWidth);
   }
 
   /// Draw instrument name
@@ -307,7 +327,10 @@ class NotationPainter extends CustomPainter {
 
     textPainter.paint(
       canvas,
-      Offset(position.dx - textPainter.width, position.dy - textPainter.height / 2),
+      Offset(
+        position.dx - textPainter.width,
+        position.dy - textPainter.height / 2,
+      ),
     );
   }
 
@@ -368,14 +391,14 @@ class NotationPainter extends CustomPainter {
 
   /// Paint with full system layout (multiple lines)
   void _paintWithSystemLayout(
-      Canvas canvas,
-      Size size,
-      NoteRenderer noteRenderer,
-      ClefRenderer clefRenderer,
-      KeySignatureRenderer keySignatureRenderer,
-      TimeSignatureRenderer timeSignatureRenderer,
-      BarlineRenderer barlineRenderer,
-      ) {
+    Canvas canvas,
+    Size size,
+    NoteRenderer noteRenderer,
+    ClefRenderer clefRenderer,
+    KeySignatureRenderer keySignatureRenderer,
+    TimeSignatureRenderer timeSignatureRenderer,
+    BarlineRenderer barlineRenderer,
+  ) {
     // Create system layout
     final systemLayout = SystemLayout(
       spacingEngine: config.spacingEngine,
@@ -402,11 +425,22 @@ class NotationPainter extends CustomPainter {
       final staffY = system.yPosition;
       final staffTopLeft = Offset(config.leftMargin, staffY);
 
-      double currentX = config.leftMargin;
+      // Content starts one staff space to the right of the staff's left edge.
+      double currentX = config.leftMargin + config.staffSpaceSize;
 
       // Draw clef, key sig, time sig on first measure of first system
       if (system.isFirstSystem && system.measures.isNotEmpty) {
         final firstMeasure = system.measures.first;
+
+        if (firstMeasure.startBarline != null) {
+          barlineRenderer.paint(
+            canvas,
+            config.leftMargin,
+            staffTopLeft.dy,
+            staffTopLeft.dy + staffHeight,
+            firstMeasure.startBarline!,
+          );
+        }
 
         clefRenderer.paint(canvas, currentX, staffTopLeft.dy, config.clef);
         currentX += 35 + config.staffSpaceSize;
@@ -428,7 +462,9 @@ class NotationPainter extends CustomPainter {
           staffTopLeft.dy,
           firstMeasure.timeSignature,
         );
-        currentX += timeSignatureRenderer.getWidth(firstMeasure.timeSignature) + config.staffSpaceSize;
+        currentX +=
+            timeSignatureRenderer.getWidth(firstMeasure.timeSignature) +
+            config.staffSpaceSize;
         currentX += config.leadingSpace;
       } else if (system.measures.isNotEmpty && config.showClefOnEachSystem) {
         clefRenderer.paint(canvas, currentX, staffTopLeft.dy, config.clef);
@@ -439,7 +475,11 @@ class NotationPainter extends CustomPainter {
       final barlinePositions = <double>[];
 
       // Draw each measure in this system
-      for (int measureIndex = 0; measureIndex < system.measures.length; measureIndex++) {
+      for (
+        int measureIndex = 0;
+        measureIndex < system.measures.length;
+        measureIndex++
+      ) {
         final measure = system.measures[measureIndex];
         final measureSpacing = system.spacing.measureSpacings[measureIndex];
 
@@ -480,11 +520,7 @@ class NotationPainter extends CustomPainter {
       final staffWidth = config.justifyLastBarline
           ? system.spacing.lineWidth - config.leftMargin
           : currentX - config.leftMargin - config.measureSpacing;
-      noteRenderer.staffRenderer.paint(
-        canvas,
-        staffTopLeft,
-        staffWidth,
-      );
+      noteRenderer.staffRenderer.paint(canvas, staffTopLeft, staffWidth);
 
       // Draw barlines at tracked positions
       for (int i = 0; i < system.measures.length; i++) {
@@ -501,27 +537,34 @@ class NotationPainter extends CustomPainter {
       }
     }
   }
+
   /// Paint single line (legacy mode)
   void _paintSingleLine(
-      Canvas canvas,
-      Size size,
-      NoteRenderer noteRenderer,
-      ClefRenderer clefRenderer,
-      KeySignatureRenderer keySignatureRenderer,
-      TimeSignatureRenderer timeSignatureRenderer,
-      BarlineRenderer barlineRenderer,
-      ) {
+    Canvas canvas,
+    Size size,
+    NoteRenderer noteRenderer,
+    ClefRenderer clefRenderer,
+    KeySignatureRenderer keySignatureRenderer,
+    TimeSignatureRenderer timeSignatureRenderer,
+    BarlineRenderer barlineRenderer,
+  ) {
     final staffHeight = noteRenderer.staffRenderer.height;
     final staffY = (size.height - staffHeight) / 2;
     final staffTopLeft = Offset(config.leftMargin, staffY);
 
-    double currentX = staffTopLeft.dx;
+    // Content starts one staff space to the right of the staff's left edge
+    // (where a start barline sits).
+    double currentX = staffTopLeft.dx + config.staffSpaceSize;
     final spacingEngine = config.spacingEngine;
 
     // Calculate staff width
     double finalBarlineX = currentX;
 
-    for (int measureIndex = 0; measureIndex < measures!.length; measureIndex++) {
+    for (
+      int measureIndex = 0;
+      measureIndex < measures!.length;
+      measureIndex++
+    ) {
       final measure = measures![measureIndex];
 
       if (measure.isFirstMeasure) {
@@ -530,7 +573,9 @@ class NotationPainter extends CustomPainter {
           currentX += keySignatureRenderer.getWidth(measure.keySignature);
         }
         if (config.showTimeSignature) {
-          currentX += timeSignatureRenderer.getWidth(measure.timeSignature) + config.staffSpaceSize;
+          currentX +=
+              timeSignatureRenderer.getWidth(measure.timeSignature) +
+              config.staffSpaceSize;
         }
         currentX += config.leadingSpace;
       }
@@ -540,13 +585,20 @@ class NotationPainter extends CustomPainter {
 
       final elementsByBeat = <double, List<dynamic>>{};
       for (final element in elements) {
-        final beat = element is Note ? element.startBeat : (element as Rest).startBeat;
+        final beat = element is Note
+            ? element.startBeat
+            : (element as Rest).startBeat;
         elementsByBeat.putIfAbsent(beat, () => []).add(element);
       }
 
       final sortedBeats = elementsByBeat.keys.toList()..sort();
-      final flatElements = sortedBeats.map((beat) => elementsByBeat[beat]!.first).toList();
-      final positions = spacingEngine.calculateSpacing(flatElements, startX: measureStartX);
+      final flatElements = sortedBeats
+          .map((beat) => elementsByBeat[beat]!.first)
+          .toList();
+      final positions = spacingEngine.calculateSpacing(
+        flatElements,
+        startX: measureStartX,
+      );
 
       final measureEndX = positions.isNotEmpty
           ? positions.last + config.noteWidth
@@ -556,16 +608,30 @@ class NotationPainter extends CustomPainter {
       currentX = measureEndX + config.measureSpacing;
     }
 
-    final staffWidth = finalBarlineX - staffTopLeft.dx + config.staffSpaceSize - 10;
+    final staffWidth =
+        finalBarlineX - staffTopLeft.dx + config.staffSpaceSize - 10;
     noteRenderer.staffRenderer.paint(canvas, staffTopLeft, staffWidth);
 
     // Draw measures
-    currentX = staffTopLeft.dx;
-    for (int measureIndex = 0; measureIndex < measures!.length; measureIndex++) {
+    currentX = staffTopLeft.dx + config.staffSpaceSize;
+    for (
+      int measureIndex = 0;
+      measureIndex < measures!.length;
+      measureIndex++
+    ) {
       final measure = measures![measureIndex];
       final seenPitchClasses = <int>{};
 
       if (measure.isFirstMeasure) {
+        if (measure.startBarline != null) {
+          barlineRenderer.paint(
+            canvas,
+            staffTopLeft.dx,
+            staffTopLeft.dy,
+            staffTopLeft.dy + staffHeight,
+            measure.startBarline!,
+          );
+        }
         clefRenderer.paint(canvas, currentX, staffTopLeft.dy, config.clef);
         currentX += 35 + config.staffSpaceSize;
 
@@ -581,8 +647,15 @@ class NotationPainter extends CustomPainter {
         }
 
         if (config.showTimeSignature) {
-          timeSignatureRenderer.paint(canvas, currentX, staffTopLeft.dy, measure.timeSignature);
-          currentX += timeSignatureRenderer.getWidth(measure.timeSignature) + config.staffSpaceSize;
+          timeSignatureRenderer.paint(
+            canvas,
+            currentX,
+            staffTopLeft.dy,
+            measure.timeSignature,
+          );
+          currentX +=
+              timeSignatureRenderer.getWidth(measure.timeSignature) +
+              config.staffSpaceSize;
         }
         currentX += config.leadingSpace;
       }
@@ -592,13 +665,20 @@ class NotationPainter extends CustomPainter {
 
       final elementsByBeat = <double, List<dynamic>>{};
       for (final element in elements) {
-        final beat = element is Note ? element.startBeat : (element as Rest).startBeat;
+        final beat = element is Note
+            ? element.startBeat
+            : (element as Rest).startBeat;
         elementsByBeat.putIfAbsent(beat, () => []).add(element);
       }
 
       final sortedBeats = elementsByBeat.keys.toList()..sort();
-      final flatElements = sortedBeats.map((beat) => elementsByBeat[beat]!.first).toList();
-      final positions = spacingEngine.calculateSpacing(flatElements, startX: measureStartX);
+      final flatElements = sortedBeats
+          .map((beat) => elementsByBeat[beat]!.first)
+          .toList();
+      final positions = spacingEngine.calculateSpacing(
+        flatElements,
+        startX: measureStartX,
+      );
 
       for (int i = 0; i < sortedBeats.length; i++) {
         final beat = sortedBeats[i];
@@ -620,8 +700,11 @@ class NotationPainter extends CustomPainter {
             final note = notesAtBeat.first;
             final isActive = activeNotes.contains(note);
             final pitchClass = note.pitch.midiNumber % 12;
-            final needsAccidental = measure.keySignature.needsAccidental(note.pitch);
-            final showAccidental = needsAccidental && !seenPitchClasses.contains(pitchClass);
+            final needsAccidental = measure.keySignature.needsAccidental(
+              note.pitch,
+            );
+            final showAccidental =
+                needsAccidental && !seenPitchClasses.contains(pitchClass);
 
             if (showAccidental) seenPitchClasses.add(pitchClass);
 
@@ -641,7 +724,9 @@ class NotationPainter extends CustomPainter {
 
             for (final note in notesAtBeat) {
               final pitchClass = note.pitch.midiNumber % 12;
-              final needsAccidental = measure.keySignature.needsAccidental(note.pitch);
+              final needsAccidental = measure.keySignature.needsAccidental(
+                note.pitch,
+              );
               if (needsAccidental && !seenPitchClasses.contains(pitchClass)) {
                 chordAccidentals.add(note.pitch.midiNumber);
                 seenPitchClasses.add(pitchClass);
@@ -679,20 +764,22 @@ class NotationPainter extends CustomPainter {
 
   /// Draw measure content
   void _drawMeasureContent(
-      Canvas canvas,
-      Measure measure,
-      MeasureSpacing measureSpacing,
-      Offset staffTopLeft,
-      double xOffset,
-      NoteRenderer noteRenderer,
-      ClefType clef,
-      ) {
+    Canvas canvas,
+    Measure measure,
+    MeasureSpacing measureSpacing,
+    Offset staffTopLeft,
+    double xOffset,
+    NoteRenderer noteRenderer,
+    ClefType clef,
+  ) {
     final seenPitchClasses = <int>{};
     final elements = measure.elements;
 
     final elementsByBeat = <double, List<dynamic>>{};
     for (final element in elements) {
-      final beat = element is Note ? element.startBeat : (element as Rest).startBeat;
+      final beat = element is Note
+          ? element.startBeat
+          : (element as Rest).startBeat;
       elementsByBeat.putIfAbsent(beat, () => []).add(element);
     }
 
@@ -718,8 +805,11 @@ class NotationPainter extends CustomPainter {
           final note = notesAtBeat.first;
           final isActive = activeNotes.contains(note);
           final pitchClass = note.pitch.midiNumber % 12;
-          final needsAccidental = measure.keySignature.needsAccidental(note.pitch);
-          final showAccidental = needsAccidental && !seenPitchClasses.contains(pitchClass);
+          final needsAccidental = measure.keySignature.needsAccidental(
+            note.pitch,
+          );
+          final showAccidental =
+              needsAccidental && !seenPitchClasses.contains(pitchClass);
 
           if (showAccidental) seenPitchClasses.add(pitchClass);
 
@@ -739,7 +829,9 @@ class NotationPainter extends CustomPainter {
 
           for (final note in notesAtBeat) {
             final pitchClass = note.pitch.midiNumber % 12;
-            final needsAccidental = measure.keySignature.needsAccidental(note.pitch);
+            final needsAccidental = measure.keySignature.needsAccidental(
+              note.pitch,
+            );
             if (needsAccidental && !seenPitchClasses.contains(pitchClass)) {
               chordAccidentals.add(note.pitch.midiNumber);
               seenPitchClasses.add(pitchClass);
@@ -812,7 +904,9 @@ class NotationPainter extends CustomPainter {
     // Group by beat
     final elementsByBeat = <double, List<dynamic>>{};
     for (final element in allElements) {
-      final beat = element is Note ? element.startBeat : (element as Rest).startBeat;
+      final beat = element is Note
+          ? element.startBeat
+          : (element as Rest).startBeat;
       elementsByBeat.putIfAbsent(beat, () => []).add(element);
     }
 
@@ -842,7 +936,8 @@ class NotationPainter extends CustomPainter {
           final isActive = activeNotes.contains(note);
 
           final pitchClass = note.pitch.midiNumber % 12;
-          final showAccidental = !seenPitchClasses.contains(pitchClass) &&
+          final showAccidental =
+              !seenPitchClasses.contains(pitchClass) &&
               note.pitch.accidental != Accidental.natural;
 
           if (showAccidental) {
@@ -895,6 +990,4 @@ class NotationPainter extends CustomPainter {
         oldDelegate.grandStaff != grandStaff ||
         oldDelegate.config != config;
   }
-
-
 }
