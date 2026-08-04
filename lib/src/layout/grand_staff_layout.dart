@@ -2,6 +2,7 @@
 
 import '../models/grand_staff.dart';
 import '../models/measure.dart';
+import '../models/note.dart';
 import 'spacing_engine.dart';
 import 'line_breaker.dart';
 
@@ -72,11 +73,24 @@ class GrandStaffLayout {
           .map((index) => grandStaff.lowerStaff[index])
           .toList();
 
-      // Calculate spacing (same for both staves)
-      final measureElements = line.measures.map((m) {
+      // Calculate spacing (same for both staves). The spacing engine must see
+      // the union of upper and lower staff elements per measure, keyed by beat,
+      // so that a measure containing notes on either staff gets a non-zero
+      // width. Otherwise a note on an otherwise-empty lower staff would be
+      // drawn on the shared barline.
+      final measureElements = List.generate(line.measures.length, (i) {
+        final byBeat = <double, dynamic>{};
+        for (final element
+            in [...line.measures[i].elements, ...lowerMeasures[i].elements]) {
+          final beat = element is Note
+              ? element.startBeat
+              : (element as Rest).startBeat;
+          byBeat.putIfAbsent(beat, () => element);
+        }
+        final beats = byBeat.keys.toList()..sort();
         return MeasureElements(
-          elements: m.elements,
-          measureNumber: m.number,
+          elements: beats.map((beat) => byBeat[beat]!).toList(),
+          measureNumber: line.measures[i].number,
         );
       }).toList();
 

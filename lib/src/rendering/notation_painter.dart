@@ -115,7 +115,7 @@ class NotationPainter extends CustomPainter {
           braceX,
           upperStaffY,
           lowerStaffY,
-          config.upperStaffHeight,
+          noteRenderer.staffRenderer.height,
         );
       }
 
@@ -160,14 +160,18 @@ class NotationPainter extends CustomPainter {
       // Draw shared barlines connecting both staves
       for (int i = 0; i < system.upperStaffMeasures.length; i++) {
         final measure = system.upperStaffMeasures[i];
-        final barlineX = upperBarlinePositions[i]; // Use tracked position
+        final isLastMeasure = i == system.upperStaffMeasures.length - 1;
+        // Flush the final barline to the right edge when justified
+        final barlineX = config.justifyLastBarline && isLastMeasure
+            ? system.spacing.lineWidth
+            : upperBarlinePositions[i]; // Use tracked position
 
         // Draw barline connecting both staves
         barlineRenderer.paint(
           canvas,
           barlineX,
           upperStaffY,
-          lowerStaffY + config.lowerStaffHeight,
+          lowerStaffY + noteRenderer.staffRenderer.height,
           measure.endBarline,
         );
       }
@@ -271,7 +275,9 @@ class NotationPainter extends CustomPainter {
     }
 
     // Draw staff lines with correct width
-    final staffWidth = currentX - config.leftMargin - config.measureSpacing;
+    final staffWidth = config.justifyLastBarline
+        ? lineSpacing.lineWidth - config.leftMargin
+        : currentX - config.leftMargin - config.measureSpacing;
     noteRenderer.staffRenderer.paint(
       canvas,
       staffTopLeft,
@@ -455,13 +461,19 @@ class NotationPainter extends CustomPainter {
 
         // Calculate and store barline position
         final measureEndX = measureSpacing.endX + xOffset;
-        barlinePositions.add(measureEndX);
+        final isLastMeasure = measureIndex == system.measures.length - 1;
+        final justifiedX = config.justifyLastBarline && isLastMeasure
+            ? system.spacing.lineWidth
+            : measureEndX;
+        barlinePositions.add(justifiedX);
 
         currentX = measureEndX + config.measureSpacing;
       }
 
       // Draw staff lines with correct width
-      final staffWidth = currentX - config.leftMargin - config.measureSpacing;
+      final staffWidth = config.justifyLastBarline
+          ? system.spacing.lineWidth - config.leftMargin
+          : currentX - config.leftMargin - config.measureSpacing;
       noteRenderer.staffRenderer.paint(
         canvas,
         staffTopLeft,

@@ -37,6 +37,7 @@ class NotationConfig {
   final double upperStaffHeight;
   final double lowerStaffHeight;
   final bool showBrace;
+  final bool justifyLastBarline;
 
   const NotationConfig({
     this.staffSpaceSize = 12.0,
@@ -64,6 +65,7 @@ class NotationConfig {
     this.upperStaffHeight = 40.0,
     this.lowerStaffHeight = 40.0,
     this.showBrace = true,
+    this.justifyLastBarline = true,
   });
 
   NotationConfig copyWith({
@@ -92,6 +94,7 @@ class NotationConfig {
     double? upperStaffHeight,
     double? lowerStaffHeight,
     bool? showBrace,
+    bool? justifyLastBarline,
   }) {
     return NotationConfig(
       staffSpaceSize: staffSpaceSize ?? this.staffSpaceSize,
@@ -119,6 +122,7 @@ class NotationConfig {
       upperStaffHeight: upperStaffHeight ?? this.upperStaffHeight,
       lowerStaffHeight: lowerStaffHeight ?? this.lowerStaffHeight,
       showBrace: showBrace ?? this.showBrace,
+      justifyLastBarline: justifyLastBarline ?? this.justifyLastBarline,
     );
   }
 
@@ -151,10 +155,11 @@ class NotationConfig {
               grandStaffGap == other.grandStaffGap &&
               upperStaffHeight == other.upperStaffHeight &&
               lowerStaffHeight == other.lowerStaffHeight &&
-              showBrace == other.showBrace;
+              showBrace == other.showBrace &&
+              justifyLastBarline == other.justifyLastBarline;
 
   @override
-  int get hashCode => Object.hash(
+  int get hashCode => Object.hashAll([
     staffSpaceSize,
     staffLineColor,
     noteColor,
@@ -175,7 +180,8 @@ class NotationConfig {
     systemSpacing,
     showMeasureNumbers,
     showClefOnEachSystem,
-  );
+    justifyLastBarline,
+  ]);
 }
 
 /// Widget that displays musical notation
