@@ -24,6 +24,7 @@ class NotationConfig {
   final double leftMargin;
   final double rightMargin;
   final double topMargin;
+  final double leadingSpace;
   final double measureSpacing;
   final double minMeasureWidth;
   final SpacingEngine spacingEngine;
@@ -53,6 +54,7 @@ class NotationConfig {
     this.leftMargin = 100.0,
     this.rightMargin = 20.0,
     this.topMargin = 40.0,
+    this.leadingSpace = 0.0,
     this.measureSpacing = 40.0,
     this.minMeasureWidth = 100.0,
     this.spacingEngine = SpacingPresets.normal,
@@ -83,6 +85,7 @@ class NotationConfig {
     double? leftMargin,
     double? rightMargin,
     double? topMargin,
+    double? leadingSpace,
     double? measureSpacing,
     double? minMeasureWidth,
     SpacingEngine? spacingEngine,
@@ -112,6 +115,7 @@ class NotationConfig {
       leftMargin: leftMargin ?? this.leftMargin,
       rightMargin: rightMargin ?? this.rightMargin,
       topMargin: topMargin ?? this.topMargin,
+      leadingSpace: leadingSpace ?? this.leadingSpace,
       measureSpacing: measureSpacing ?? this.measureSpacing,
       minMeasureWidth: minMeasureWidth ?? this.minMeasureWidth,
       spacingEngine: spacingEngine ?? this.spacingEngine,
@@ -147,6 +151,7 @@ class NotationConfig {
               leftMargin == other.leftMargin &&
               rightMargin == other.rightMargin &&
               topMargin == other.topMargin &&
+              leadingSpace == other.leadingSpace &&
               measureSpacing == other.measureSpacing &&
               minMeasureWidth == other.minMeasureWidth &&
               spacingEngine == other.spacingEngine &&
@@ -177,6 +182,7 @@ class NotationConfig {
     leftMargin,
     rightMargin,
     topMargin,
+    leadingSpace,
     measureSpacing,
     minMeasureWidth,
     spacingEngine,

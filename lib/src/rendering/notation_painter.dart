@@ -231,16 +231,18 @@ class NotationPainter extends CustomPainter {
       }
 
       // Time signature
-      if (config.showTimeSignature) {
-        timeSignatureRenderer.paint(
-          canvas,
-          currentX,
-          staffTopLeft.dy,
-          firstMeasure.timeSignature,
-        );
-        currentX += timeSignatureRenderer.getWidth(firstMeasure.timeSignature) + config.staffSpaceSize;
+        if (config.showTimeSignature) {
+          timeSignatureRenderer.paint(
+            canvas,
+            currentX,
+            staffTopLeft.dy,
+            firstMeasure.timeSignature,
+          );
+          currentX += timeSignatureRenderer.getWidth(firstMeasure.timeSignature) + config.staffSpaceSize;
+        }
+
+        currentX += config.leadingSpace;
       }
-    }
 
     // Draw measures and track barline positions
     for (int i = 0; i < measures.length; i++) {
@@ -426,6 +428,7 @@ class NotationPainter extends CustomPainter {
           firstMeasure.timeSignature,
         );
         currentX += timeSignatureRenderer.getWidth(firstMeasure.timeSignature) + config.staffSpaceSize;
+        currentX += config.leadingSpace;
       } else if (system.measures.isNotEmpty && config.showClefOnEachSystem) {
         clefRenderer.paint(canvas, currentX, staffTopLeft.dy, config.clef);
         currentX += 35 + config.staffSpaceSize * 0.5;
@@ -528,6 +531,7 @@ class NotationPainter extends CustomPainter {
         if (config.showTimeSignature) {
           currentX += timeSignatureRenderer.getWidth(measure.timeSignature) + config.staffSpaceSize;
         }
+        currentX += config.leadingSpace;
       }
 
       final measureStartX = currentX;
@@ -579,6 +583,7 @@ class NotationPainter extends CustomPainter {
           timeSignatureRenderer.paint(canvas, currentX, staffTopLeft.dy, measure.timeSignature);
           currentX += timeSignatureRenderer.getWidth(measure.timeSignature) + config.staffSpaceSize;
         }
+        currentX += config.leadingSpace;
       }
 
       final measureStartX = currentX;
