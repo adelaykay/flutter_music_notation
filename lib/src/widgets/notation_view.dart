@@ -44,7 +44,7 @@ class NotationConfig {
 
   const NotationConfig({
     this.staffSpaceSize = 12.0,
-    this.barlineToClefSpace = 12.0,
+    this.barlineToClefSpace = 0.0,
     this.staffLineColor = Colors.black,
     this.noteColor = Colors.black,
     this.activeNoteColor = Colors.green,
