@@ -114,7 +114,7 @@ class NotationPainter extends CustomPainter {
         final braceX =
             config.leftMargin -
             braceRenderer.getWidth(height: braceTotalHeight) -
-            config.staffSpaceSize;
+            config.staffSpaceSize / 4;
         braceRenderer.paint(
           canvas,
           braceX,
@@ -229,9 +229,9 @@ class NotationPainter extends CustomPainter {
   }) {
     final staffTopLeft = Offset(config.leftMargin, staffY);
 
-    // Content (clef etc.) starts one staff space to the right of the staff's
-    // left edge (where the start barline sits), leaving a gap to the barline.
-    double currentX = config.leftMargin + config.staffSpaceSize;
+    // Content (clef etc.) starts a configurable gap to the right of the
+    // staff's left edge (where the start barline sits).
+    double currentX = config.leftMargin + config.barlineToClefSpace;
 
     // Draw clef, key signature, time signature on first system
     if (isFirstSystem && measures.isNotEmpty) {
@@ -425,8 +425,8 @@ class NotationPainter extends CustomPainter {
       final staffY = system.yPosition;
       final staffTopLeft = Offset(config.leftMargin, staffY);
 
-      // Content starts one staff space to the right of the staff's left edge.
-      double currentX = config.leftMargin + config.staffSpaceSize;
+      // Content starts a configurable gap to the right of the staff's left edge.
+      double currentX = config.leftMargin + config.barlineToClefSpace;
 
       // Draw clef, key sig, time sig on first measure of first system
       if (system.isFirstSystem && system.measures.isNotEmpty) {
@@ -552,9 +552,9 @@ class NotationPainter extends CustomPainter {
     final staffY = (size.height - staffHeight) / 2;
     final staffTopLeft = Offset(config.leftMargin, staffY);
 
-    // Content starts one staff space to the right of the staff's left edge
+    // Content starts a configurable gap to the right of the staff's left edge
     // (where a start barline sits).
-    double currentX = staffTopLeft.dx + config.staffSpaceSize;
+    double currentX = staffTopLeft.dx + config.barlineToClefSpace;
     final spacingEngine = config.spacingEngine;
 
     // Calculate staff width
@@ -613,7 +613,7 @@ class NotationPainter extends CustomPainter {
     noteRenderer.staffRenderer.paint(canvas, staffTopLeft, staffWidth);
 
     // Draw measures
-    currentX = staffTopLeft.dx + config.staffSpaceSize;
+    currentX = staffTopLeft.dx + config.barlineToClefSpace;
     for (
       int measureIndex = 0;
       measureIndex < measures!.length;

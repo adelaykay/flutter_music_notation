@@ -13,6 +13,7 @@ import '../rendering/notation_painter.dart';
 /// Configuration for notation display
 class NotationConfig {
   final double staffSpaceSize;
+  final double barlineToClefSpace;
   final Color staffLineColor;
   final Color noteColor;
   final Color activeNoteColor;
@@ -43,6 +44,7 @@ class NotationConfig {
 
   const NotationConfig({
     this.staffSpaceSize = 12.0,
+    this.barlineToClefSpace = 12.0,
     this.staffLineColor = Colors.black,
     this.noteColor = Colors.black,
     this.activeNoteColor = Colors.green,
@@ -74,6 +76,7 @@ class NotationConfig {
 
   NotationConfig copyWith({
     double? staffSpaceSize,
+    double? barlineToClefSpace,
     Color? staffLineColor,
     Color? noteColor,
     Color? activeNoteColor,
@@ -104,6 +107,7 @@ class NotationConfig {
   }) {
     return NotationConfig(
       staffSpaceSize: staffSpaceSize ?? this.staffSpaceSize,
+      barlineToClefSpace: barlineToClefSpace ?? this.barlineToClefSpace,
       staffLineColor: staffLineColor ?? this.staffLineColor,
       noteColor: noteColor ?? this.noteColor,
       activeNoteColor: activeNoteColor ?? this.activeNoteColor,
@@ -140,6 +144,7 @@ class NotationConfig {
           other is NotationConfig &&
               runtimeType == other.runtimeType &&
               staffSpaceSize == other.staffSpaceSize &&
+              barlineToClefSpace == other.barlineToClefSpace &&
               staffLineColor == other.staffLineColor &&
               noteColor == other.noteColor &&
               activeNoteColor == other.activeNoteColor &&
@@ -171,6 +176,7 @@ class NotationConfig {
   @override
   int get hashCode => Object.hashAll([
     staffSpaceSize,
+    barlineToClefSpace,
     staffLineColor,
     noteColor,
     activeNoteColor,
