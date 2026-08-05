@@ -40,7 +40,7 @@ class NotationConfig {
   final double upperStaffHeight;
   final double lowerStaffHeight;
   final bool showBrace;
-  final bool justifyLastBarline;
+  final bool expandWidth;
 
   const NotationConfig({
     this.staffSpaceSize = 12.0,
@@ -71,7 +71,7 @@ class NotationConfig {
     this.upperStaffHeight = 40.0,
     this.lowerStaffHeight = 40.0,
     this.showBrace = true,
-    this.justifyLastBarline = true,
+    this.expandWidth = false,
   });
 
   NotationConfig copyWith({
@@ -103,7 +103,7 @@ class NotationConfig {
     double? upperStaffHeight,
     double? lowerStaffHeight,
     bool? showBrace,
-    bool? justifyLastBarline,
+    bool? expandWidth,
   }) {
     return NotationConfig(
       staffSpaceSize: staffSpaceSize ?? this.staffSpaceSize,
@@ -134,7 +134,7 @@ class NotationConfig {
       upperStaffHeight: upperStaffHeight ?? this.upperStaffHeight,
       lowerStaffHeight: lowerStaffHeight ?? this.lowerStaffHeight,
       showBrace: showBrace ?? this.showBrace,
-      justifyLastBarline: justifyLastBarline ?? this.justifyLastBarline,
+      expandWidth: expandWidth ?? this.expandWidth,
     );
   }
 
@@ -171,7 +171,7 @@ class NotationConfig {
               upperStaffHeight == other.upperStaffHeight &&
               lowerStaffHeight == other.lowerStaffHeight &&
               showBrace == other.showBrace &&
-              justifyLastBarline == other.justifyLastBarline;
+              expandWidth == other.expandWidth;
 
   @override
   int get hashCode => Object.hashAll([
@@ -198,7 +198,7 @@ class NotationConfig {
     showMeasureNumbers,
     showClefOnEachSystem,
     showTimeSignature,
-    justifyLastBarline,
+    expandWidth,
   ]);
 }
 

@@ -180,8 +180,8 @@ class NotationPainter extends CustomPainter {
       for (int i = 0; i < system.upperStaffMeasures.length; i++) {
         final measure = system.upperStaffMeasures[i];
         final isLastMeasure = i == system.upperStaffMeasures.length - 1;
-        // Flush the final barline to the right edge when justified
-        final barlineX = config.justifyLastBarline && isLastMeasure
+        // Flush the final barline to the right edge when expanding the width
+        final barlineX = config.expandWidth && isLastMeasure
             ? system.spacing.lineWidth
             : upperBarlinePositions[i]; // Use tracked position
 
@@ -304,7 +304,7 @@ class NotationPainter extends CustomPainter {
     }
 
     // Draw staff lines with correct width
-    final staffWidth = config.justifyLastBarline
+    final staffWidth = config.expandWidth
         ? lineSpacing.lineWidth - config.leftMargin
         : currentX - config.leftMargin - config.measureSpacing;
     noteRenderer.staffRenderer.paint(canvas, staffTopLeft, staffWidth);
@@ -508,16 +508,16 @@ class NotationPainter extends CustomPainter {
         // Calculate and store barline position
         final measureEndX = measureSpacing.endX + xOffset;
         final isLastMeasure = measureIndex == system.measures.length - 1;
-        final justifiedX = config.justifyLastBarline && isLastMeasure
+        final barlineX = config.expandWidth && isLastMeasure
             ? system.spacing.lineWidth
             : measureEndX;
-        barlinePositions.add(justifiedX);
+        barlinePositions.add(barlineX);
 
         currentX = measureEndX + config.measureSpacing;
       }
 
       // Draw staff lines with correct width
-      final staffWidth = config.justifyLastBarline
+      final staffWidth = config.expandWidth
           ? system.spacing.lineWidth - config.leftMargin
           : currentX - config.leftMargin - config.measureSpacing;
       noteRenderer.staffRenderer.paint(canvas, staffTopLeft, staffWidth);
