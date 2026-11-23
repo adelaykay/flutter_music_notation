@@ -28,6 +28,8 @@ export 'src/layout/spacing_engine.dart';
 export 'src/layout/collision_detector.dart';
 export 'src/layout/line_breaker.dart';
 export 'src/layout/system_layout.dart';
+export 'src/layout/grand_staff_layout.dart';
+export 'src/layout/system_prefix.dart';
 
 // Playback
 export 'src/playback/playback_controller.dart';

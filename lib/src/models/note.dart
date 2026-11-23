@@ -109,16 +109,22 @@ class Rest {
   /// The beat position where this rest starts
   final double startBeat;
 
-  const Rest({required this.duration, required this.startBeat});
+  /// The voice the rest belongs to, when a staff carries two voices: an
+  /// upper voice's rest (even voice) is drawn higher and a lower voice's
+  /// (odd voice) lower, clear of the other voice's notes. Null centres it.
+  final int? voice;
+
+  const Rest({required this.duration, required this.startBeat, this.voice});
 
   /// The beat position where this rest ends
   double get endBeat => startBeat + duration.beats;
 
   /// Create a copy with modified properties
-  Rest copyWith({NoteDuration? duration, double? startBeat}) {
+  Rest copyWith({NoteDuration? duration, double? startBeat, int? voice}) {
     return Rest(
       duration: duration ?? this.duration,
       startBeat: startBeat ?? this.startBeat,
+      voice: voice ?? this.voice,
     );
   }
 
@@ -127,10 +133,11 @@ class Rest {
       identical(this, other) ||
       other is Rest &&
           duration == other.duration &&
-          startBeat == other.startBeat;
+          startBeat == other.startBeat &&
+          voice == other.voice;
 
   @override
-  int get hashCode => Object.hash(duration, startBeat);
+  int get hashCode => Object.hash(duration, startBeat, voice);
 
   @override
   String toString() => 'Rest(${duration.type.name}, beat: $startBeat)';

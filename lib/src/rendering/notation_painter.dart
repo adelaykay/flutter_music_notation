@@ -3,7 +3,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_music_notation/src/rendering/stem_renderer.dart';
 import '../../flutter_music_notation.dart';
-import '../layout/grand_staff_layout.dart';
 import 'brace_renderer.dart';
 import 'notehead_renderer.dart';
 
@@ -76,24 +75,10 @@ class NotationPainter extends CustomPainter {
       color: config.noteColor,
     );
 
-    final grandStaffLayout = GrandStaffLayout(
-      spacingEngine: config.spacingEngine,
-      upperStaffHeight: config.upperStaffHeight,
-      lowerStaffHeight: config.lowerStaffHeight,
-      staffGap: config.grandStaffGap,
-      systemSpacing: config.systemSpacing,
-      showMeasureNumbers: config.showMeasureNumbers,
-      useSystemLayout: config.useSystemLayout,
-    );
-
-    final scoreLayout = grandStaffLayout.calculateLayout(
+    final scoreLayout = GrandStaffLayout.forConfig(
       grandStaff!,
-      pageWidth: size.width,
-      leftMargin: config.leftMargin,
-      rightMargin: config.rightMargin,
-      topMargin: config.topMargin,
-      measureSpacing: config.measureSpacing,
-      lineBreakConfig: config.lineBreakConfig,
+      config,
+      size.width,
     );
 
     for (final system in scoreLayout.systems) {
@@ -132,6 +117,30 @@ class NotationPainter extends CustomPainter {
       final upperBarlinePositions = <double>[];
       final lowerBarlinePositions = <double>[];
 
+      // The bar being played, shaded behind both staves.
+      final hl = config.highlightedMeasure;
+      if (hl != null) {
+        for (int i = 0; i < system.upperStaffMeasures.length; i++) {
+          if (system.upperStaffMeasures[i].number != hl) continue;
+          final m = system.spacing.measureSpacings[i];
+          // From just after the previous barline to this bar's barline.
+          final left = i == 0
+              ? m.startX - config.staffSpaceSize
+              : system.spacing.measureSpacings[i - 1].endX;
+          canvas.drawRect(
+            Rect.fromLTRB(
+              left,
+              upperStaffY - config.staffSpaceSize,
+              m.endX,
+              lowerStaffY +
+                  noteRenderer.staffRenderer.height +
+                  config.staffSpaceSize,
+            ),
+            Paint()..color = config.highlightColor,
+          );
+        }
+      }
+
       _paintSingleStaffWithBarlines(
         canvas,
         system.upperStaffMeasures,
@@ -147,6 +156,7 @@ class NotationPainter extends CustomPainter {
         showMeasureNumbers:
             system.showMeasureNumbers && config.showMeasureNumbers,
         barlinePositions: upperBarlinePositions,
+        spacingBeats: system.spacingBeats,
       );
 
       _paintSingleStaffWithBarlines(
@@ -163,15 +173,14 @@ class NotationPainter extends CustomPainter {
         isFirstSystem: system.isFirstSystem,
         showMeasureNumbers: false,
         barlinePositions: lowerBarlinePositions,
+        spacingBeats: system.spacingBeats,
       );
 
       for (int i = 0; i < system.upperStaffMeasures.length; i++) {
         final measure = system.upperStaffMeasures[i];
-        final isLastMeasure = i == system.upperStaffMeasures.length - 1;
-        // Flush the final barline to the right edge when expanding the width
-        final barlineX = config.expandWidth && isLastMeasure
-            ? system.spacing.lineWidth
-            : upperBarlinePositions[i]; // Use tracked position
+        // Where the bar actually ends. (Placing the last barline at the line
+        // width put it ahead of the notes whenever the line wasn't full.)
+        final barlineX = upperBarlinePositions[i];
 
         final barlineRenderer = BarlineRenderer(
           staffSpaceSize: config.staffSpaceSize,
@@ -216,6 +225,7 @@ class NotationPainter extends CustomPainter {
     required bool isFirstSystem,
     required bool showMeasureNumbers,
     required List<double> barlinePositions,
+    List<List<double>>? spacingBeats,
   }) {
     final staffTopLeft = Offset(config.leftMargin, staffY);
 
@@ -263,7 +273,7 @@ class NotationPainter extends CustomPainter {
             currentX,
             staffTopLeft.dy,
             firstMeasure.keySignature,
-            config.clef,
+            clef, // this staff's clef: the bass staff's flats sit lower
           );
           currentX +=
               keySignatureRenderer.getWidth(firstMeasure.keySignature) +
@@ -272,15 +282,24 @@ class NotationPainter extends CustomPainter {
       }
     }
 
+    // The layout reserved this prefix; start the bars exactly where it did.
+    if (lineSpacing.measureSpacings.isNotEmpty) {
+      currentX = lineSpacing.measureSpacings.first.startX;
+    }
+
     for (int i = 0; i < measures.length; i++) {
       final measure = measures[i];
       final measureSpacing = lineSpacing.measureSpacings[i];
 
       if (i == 0 && showMeasureNumbers) {
+        // Above the start of the system, clear of the first bar's notes.
         _drawMeasureNumber(
           canvas,
           measure.number,
-          Offset(currentX, staffY - config.staffSpaceSize * 2),
+          Offset(
+            config.leftMargin + config.barlineToClefSpace,
+            staffY - config.staffSpaceSize * 3,
+          ),
         );
       }
 
@@ -294,6 +313,9 @@ class NotationPainter extends CustomPainter {
         xOffset,
         noteRenderer,
         clef,
+        spacingBeats: spacingBeats != null && i < spacingBeats.length
+            ? spacingBeats[i]
+            : null,
       );
 
       final measureEndX = measureSpacing.endX + xOffset;
@@ -302,9 +324,9 @@ class NotationPainter extends CustomPainter {
       currentX = measureEndX + config.measureSpacing;
     }
 
-    // Draw staff lines with correct width
-    final staffWidth = config.expandWidth
-        ? lineSpacing.lineWidth - config.leftMargin
+    // Staff lines run to the last barline.
+    final staffWidth = barlinePositions.isNotEmpty
+        ? barlinePositions.last - config.leftMargin
         : currentX - config.leftMargin - config.measureSpacing;
     noteRenderer.staffRenderer.paint(canvas, staffTopLeft, staffWidth);
   }
@@ -768,8 +790,9 @@ class NotationPainter extends CustomPainter {
     Offset staffTopLeft,
     double xOffset,
     NoteRenderer noteRenderer,
-    ClefType clef,
-  ) {
+    ClefType clef, {
+    List<double>? spacingBeats,
+  }) {
     final elements = measure.elements;
     final accidentalNotes = measure.keySignature.notesNeedingAccidentals(
       elements.whereType<Note>(),
@@ -784,6 +807,22 @@ class NotationPainter extends CustomPainter {
     }
 
     final sortedBeats = elementsByBeat.keys.toList()..sort();
+
+    // Columns are looked up by beat. On a grand staff [spacingBeats] holds the
+    // beats of both staves, so notes at the same beat line up across staves.
+    final grid = spacingBeats ?? sortedBeats;
+    int column(double beat) {
+      final i = grid.indexOf(beat);
+      if (i >= 0) return i;
+      var best = 0;
+      for (var j = 1; j < grid.length; j++) {
+        if ((grid[j] - beat).abs() < (grid[best] - beat).abs()) best = j;
+      }
+      return best;
+    }
+
+    double xAt(double beat) =>
+        measureSpacing.positionAt(column(beat)) + xOffset;
 
     // Phase 6: Get beam groups, ties, slurs, tuplets
     final beamGroups = measure.beamGroups;
@@ -803,7 +842,7 @@ class NotationPainter extends CustomPainter {
     for (int i = 0; i < sortedBeats.length; i++) {
       final beat = sortedBeats[i];
       final elementsAtBeat = elementsByBeat[beat]!;
-      final xPosition = measureSpacing.positionAt(i) + xOffset;
+      final xPosition = xAt(beat);
 
       // Group notes by voice for SATB/multi-voice support
       final voicesAtBeat = <int, List<Note>>{};
@@ -926,9 +965,8 @@ class NotationPainter extends CustomPainter {
         final staffPositions = <StaffPosition>[];
 
         for (final note in beamNotes) {
-          final beatIndex = sortedBeats.indexOf(note.startBeat);
-          if (beatIndex >= 0) {
-            final x = measureSpacing.positionAt(beatIndex) + xOffset;
+          if (elementsByBeat.containsKey(note.startBeat)) {
+            final x = xAt(note.startBeat);
             xPositions.add(x);
 
             // Calculate staff position and notehead center
@@ -1033,12 +1071,10 @@ class NotationPainter extends CustomPainter {
     );
 
     for (final tie in ties) {
-      final startIndex = sortedBeats.indexOf(tie.startNote.startBeat);
-      final endIndex = sortedBeats.indexOf(tie.endNote.startBeat);
-
-      if (startIndex >= 0 && endIndex >= 0) {
-        final startX = measureSpacing.positionAt(startIndex) + xOffset;
-        final endX = measureSpacing.positionAt(endIndex) + xOffset;
+      if (elementsByBeat.containsKey(tie.startNote.startBeat) &&
+          elementsByBeat.containsKey(tie.endNote.startBeat)) {
+        final startX = xAt(tie.startNote.startBeat);
+        final endX = xAt(tie.endNote.startBeat);
 
         final startStaffPos = StaffPosition.forPitch(tie.startNote.pitch, clef);
         final endStaffPos = StaffPosition.forPitch(tie.endNote.pitch, clef);
@@ -1049,40 +1085,39 @@ class NotationPainter extends CustomPainter {
         final startCenter = Offset(startX, staffTopLeft.dy + startY);
         final endCenter = Offset(endX, staffTopLeft.dy + endY);
 
-        // FIXED: Inverted logic - notes BELOW middle (value < 4) curve up
-        final direction = startStaffPos.value < 4.0
-            ? CurveDirection.down
-            : CurveDirection.up;
+        final direction = _tieDirection(tie.startNote, startStaffPos);
 
         tieRenderer.paintTie(canvas, tie, startCenter, endCenter, direction);
       }
     }
 
-    // Ties that cross the barline: finish the ones arriving from the previous
-    // bar, then record the ones leaving this bar.
+    // Ties marked on notes (Note.tieToNext). A tie lands on the next note of
+    // the same pitch and voice that starts where it ends: in this bar if
+    // there is one, otherwise at the start of the next bar.
     final measureNotes = elements.whereType<Note>().toList();
     final explicitTieStarts = Set<Note>.identity()
       ..addAll(ties.map((t) => t.startNote));
+    String key(Note n) => '${clef.name}:${n.voice}:${n.pitch.midiNumber}';
     final arriving = Map.of(_pendingTies)
-      ..removeWhere((key, _) => !key.startsWith('${clef.name}:'));
-    _pendingTies.removeWhere((key, _) => key.startsWith('${clef.name}:'));
+      ..removeWhere((k, _) => !k.startsWith('${clef.name}:'));
+    _pendingTies.removeWhere((k, _) => k.startsWith('${clef.name}:'));
 
     Offset centerOf(Note note) {
-      final index = sortedBeats.indexOf(note.startBeat);
       final pos = StaffPosition.forPitch(note.pitch, clef);
       return Offset(
-        measureSpacing.positionAt(index < 0 ? 0 : index) + xOffset,
+        xAt(note.startBeat),
         staffTopLeft.dy + noteRenderer.staffRenderer.positionToY(pos),
       );
     }
 
     for (final note in measureNotes) {
       if (note.startBeat > 0.001) continue;
-      final pending = arriving['${clef.name}:${note.pitch.midiNumber}'];
+      final pending = arriving[key(note)];
       if (pending == null) continue;
       final end = centerOf(note);
       final tie = Tie(startNote: pending.note, endNote: note);
-      if ((pending.center.dy - end.dy).abs() < 0.5) {
+      if ((pending.center.dy - end.dy).abs() < 0.5 &&
+          end.dx > pending.center.dx) {
         tieRenderer.paintTie(
           canvas,
           tie,
@@ -1113,11 +1148,24 @@ class NotationPainter extends CustomPainter {
     for (final note in measureNotes) {
       if (!note.tieToNext || explicitTieStarts.contains(note)) continue;
       final pos = StaffPosition.forPitch(note.pitch, clef);
-      _pendingTies['${clef.name}:${note.pitch.midiNumber}'] = _PendingTie(
-        note,
-        centerOf(note),
-        pos.value < 4.0 ? CurveDirection.down : CurveDirection.up,
+      final direction = _tieDirection(note, pos);
+      final next = measureNotes.where(
+        (m) =>
+            m.voice == note.voice &&
+            m.pitch.midiNumber == note.pitch.midiNumber &&
+            (m.startBeat - note.endBeat).abs() < 0.001,
       );
+      if (next.isNotEmpty) {
+        tieRenderer.paintTie(
+          canvas,
+          Tie(startNote: note, endNote: next.first),
+          centerOf(note),
+          centerOf(next.first),
+          direction,
+        );
+        continue;
+      }
+      _pendingTies[key(note)] = _PendingTie(note, centerOf(note), direction);
     }
 
     // Draw slurs with CORRECTED direction logic
@@ -1131,9 +1179,8 @@ class NotationPainter extends CustomPainter {
       final staffPositions = <double>[];
 
       for (final note in slur.notes) {
-        final beatIndex = sortedBeats.indexOf(note.startBeat);
-        if (beatIndex >= 0) {
-          final x = measureSpacing.positionAt(beatIndex) + xOffset;
+        if (elementsByBeat.containsKey(note.startBeat)) {
+          final x = xAt(note.startBeat);
           final staffPos = StaffPosition.forPitch(note.pitch, clef);
           final y = noteRenderer.staffRenderer.positionToY(staffPos);
 
@@ -1167,9 +1214,8 @@ class NotationPainter extends CustomPainter {
       final staffPositions = <double>[];
 
       for (final note in tuplet.notes) {
-        final beatIndex = sortedBeats.indexOf(note.startBeat);
-        if (beatIndex >= 0) {
-          final x = measureSpacing.positionAt(beatIndex) + xOffset;
+        if (elementsByBeat.containsKey(note.startBeat)) {
+          final x = xAt(note.startBeat);
           final staffPos = StaffPosition.forPitch(note.pitch, clef);
           final y = noteRenderer.staffRenderer.positionToY(staffPos);
 
@@ -1304,6 +1350,20 @@ class NotationPainter extends CustomPainter {
         oldDelegate.measures != measures ||
         oldDelegate.grandStaff != grandStaff ||
         oldDelegate.config != config;
+  }
+}
+
+/// Which side a tie curves to. With two voices on a staff (explicit stems),
+/// the upper voice's ties go above and the lower voice's below, so they never
+/// cross. Otherwise the tie follows the note's position on the staff.
+CurveDirection _tieDirection(Note note, StaffPosition pos) {
+  switch (note.stemDirection) {
+    case StemDirection.up:
+      return CurveDirection.up;
+    case StemDirection.down:
+      return CurveDirection.down;
+    default:
+      return pos.value < 4.0 ? CurveDirection.down : CurveDirection.up;
   }
 }
 

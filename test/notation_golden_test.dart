@@ -571,4 +571,107 @@ void main() {
       matchesGoldenFile('goldens/performed_grand_staff.png'),
     );
   });
+
+  testWidgets('Hymn in four parts on narrow systems', (tester) async {
+    // Two voices per staff with stems up and down, rests that belong to a
+    // voice, ties inside a bar and across a bar, a playing bar shaded, and
+    // systems broken to fit a phone-width page.
+    final boundaryKey = GlobalKey();
+    addTearDown(tester.view.reset);
+    tester.view.devicePixelRatio = 1.0;
+    tester.view.physicalSize = const Size(420, 900);
+    const key = KeySignature(accidentals: -2);
+    const time = TimeSignature(beats: 3, beatUnit: 4);
+    Note n(
+      int midi,
+      NoteDuration d,
+      double beat,
+      int voice, {
+      bool tie = false,
+    }) => Note(
+      pitch: Pitch.fromMidiNumber(midi, preferredAccidental: Accidental.flat),
+      duration: d,
+      startBeat: beat,
+      voice: voice,
+      stemDirection: voice.isEven ? StemDirection.up : StemDirection.down,
+      tieToNext: tie,
+    );
+    const q = NoteDuration.quarter(),
+        h = NoteDuration.half(),
+        dh = NoteDuration.dottedHalf(),
+        e = NoteDuration.eighth();
+    final upper = <Measure>[], lower = <Measure>[];
+    for (var b = 0; b < 6; b++) {
+      upper.add(
+        Measure(
+          number: b,
+          timeSignature: time,
+          keySignature: key,
+          notes: [
+            if (b == 2) ...[
+              n(74, q, 0, 0, tie: true),
+              n(74, e, 1, 0),
+              n(72, e, 1.5, 0),
+              n(70, q, 2, 0),
+            ] else ...[
+              n(70 + b % 3, h, 0, 0),
+              n(72, q, 2, 0, tie: b == 3),
+            ],
+            n(65, h, 0, 1),
+            if (b != 4) n(67, q, 2, 1),
+          ],
+          rests: [
+            if (b == 4)
+              const Rest(
+                duration: NoteDuration.quarter(),
+                startBeat: 2,
+                voice: 1,
+              ),
+          ],
+          endBarline: b == 5 ? BarlineType.final_ : BarlineType.single,
+        ),
+      );
+      lower.add(
+        Measure(
+          number: b,
+          timeSignature: time,
+          keySignature: key,
+          notes: [n(62, q, 0, 2), n(63, h, 1, 2), n(46 + b % 2, dh, 0, 3)],
+          endBarline: b == 5 ? BarlineType.final_ : BarlineType.single,
+        ),
+      );
+    }
+    await tester.pumpWidget(
+      MaterialApp(
+        debugShowCheckedModeBanner: false,
+        home: Scaffold(
+          backgroundColor: Colors.white,
+          body: Align(
+            alignment: Alignment.topLeft,
+            child: RepaintBoundary(
+              key: boundaryKey,
+              child: SizedBox(
+                width: 400,
+                child: NotationView(
+                  grandStaff: GrandStaff(upperStaff: upper, lowerStaff: lower),
+                  config: const NotationConfig(
+                    staffSpaceSize: 8,
+                    leftMargin: 22,
+                    rightMargin: 16,
+                    padding: EdgeInsets.zero,
+                    useSystemLayout: true,
+                    highlightedMeasure: 3,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+    await expectLater(
+      find.byKey(boundaryKey),
+      matchesGoldenFile('goldens/hymn_narrow_systems.png'),
+    );
+  });
 }

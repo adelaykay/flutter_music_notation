@@ -5,6 +5,31 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.0] - 2026-11-23
+
+Grand staff engraving for hymns and other four-part music, driven by the
+eChoir Library app's staff view.
+
+### Fixed
+- **Systems no longer run past the right edge.** System layout now reserves room for the clef, key signature and time signature that open each system (`systemPrefixWidth`), and measures each bar with both staves at the configured staff size.
+- **Notes on the two staves line up.** Within a bar, notes were placed by their index among their own staff's beats, while spacing was computed over both staves together; a staff whose notes moved at different times drew them in the wrong columns. Notes, beams, ties, slurs and tuplets are now placed by beat on the shared grid.
+- `Note.tieToNext` ties to the next note of the same pitch and voice that starts where it ends, inside the bar if there is one (previously only a note at the start of the next bar was considered, so a tie inside a bar landed on an unrelated note).
+- Ties on a staff with two voices follow the stems: upper voice above, lower voice below. Short ties are shallow arcs that clear the noteheads instead of "v" shapes through them.
+- `maxMeasuresPerLine` applies to every system, including the last.
+- The bass staff's key signature on later systems was drawn with the treble clef's positions.
+- With `expandWidth`, the final barline is drawn where the bar ends; the last system is justified instead of having its barline moved ahead of the notes.
+- Bar numbers sit above the start of the system rather than on the first note's stem.
+- A `clamp` in proportional spacing could throw when a bar's glyphs needed more than `maxSpacing`.
+
+### Changed
+- Spacing values are given at a 12 px staff space (`SpacingEngine.referenceStaffSpace`) and scale with `staffSpaceSize`, so a smaller staff is also narrower. Output at the default 12 px is unchanged.
+
+### Added
+- `NotationView` sizes a grand staff in system layout to its content when `height` is null.
+- `GrandStaffLayout.forConfig` (now exported) lays out a grand staff exactly as it is painted, e.g. to size a view.
+- `Rest.voice`: on a staff with two voices, an upper voice's rest is drawn higher and a lower voice's lower.
+- `NotationConfig.highlightedMeasure` and `highlightColor` to shade a bar, e.g. the one playing.
+
 ## [0.3.0] - 2026-11-23
 
 ### Added

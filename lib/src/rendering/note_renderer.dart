@@ -310,12 +310,21 @@ class NoteRenderer {
     required Offset staffTopLeft,
     required double xPosition,
   }) {
-    // Draw rest symbol
-    restRenderer.paint(canvas, staffTopLeft, xPosition, rest.duration.type);
+    // A voice's rest moves two spaces up (upper voice) or down (lower voice).
+    final v = rest.voice;
+    final shift = v == null ? 0.0 : (v.isEven ? -2 : 2) * staffSpaceSize;
+    restRenderer.paint(
+      canvas,
+      staffTopLeft,
+      xPosition,
+      rest.duration.type,
+      shift: shift,
+    );
 
     // Draw dots if needed
     if (rest.duration.dots > 0) {
-      final restY = staffTopLeft.dy + (staffSpaceSize * 2); // Middle of staff
+      final restY =
+          staffTopLeft.dy + (staffSpaceSize * 2) + shift; // Middle of staff
       dotRenderer.paintRestDots(
         canvas,
         Offset(xPosition, restY),

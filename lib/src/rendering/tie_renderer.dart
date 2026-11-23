@@ -23,15 +23,23 @@ class TieRenderer {
     // Calculate attachment points (edges of noteheads)
     final noteheadWidth = StaffUnits.noteheadWidth.toPixels(staffSpaceSize);
 
+    // A tie starts just past the notehead, a little to its curved side, so it
+    // runs beside the heads rather than through them.
+    final lift = staffSpaceSize * 0.35 * (direction == CurveDirection.up ? -1 : 1);
     final startPoint = Offset(
-      startNoteheadCenter.dx + noteheadWidth / 1.3,
-      startNoteheadCenter.dy,
+      startNoteheadCenter.dx + noteheadWidth * 0.55,
+      startNoteheadCenter.dy + lift,
     );
 
-    final endPoint = Offset(
-      endNoteheadCenter.dx - noteheadWidth / 1.3,
-      endNoteheadCenter.dy,
+    var endPoint = Offset(
+      endNoteheadCenter.dx - noteheadWidth * 0.55,
+      endNoteheadCenter.dy + lift,
     );
+    // Notes set close together still get a visible tie.
+    final minLength = staffSpaceSize * 1.2;
+    if (endPoint.dx - startPoint.dx < minLength) {
+      endPoint = Offset(startPoint.dx + minLength, endPoint.dy);
+    }
 
     _drawCurve(canvas, startPoint, endPoint, direction, true);
   }
@@ -85,10 +93,18 @@ class TieRenderer {
     final horizontalDistance = (end.dx - start.dx).abs();
 
     // Calculate curvature
-    final curvature = CurveCalculator.calculateCurvature(
+    var curvature = CurveCalculator.calculateCurvature(
       horizontalDistance,
       isTie: isTie,
     );
+    // A tie's arch grows with its length: a short tie is a shallow arc, not a
+    // "v". Capped by the staff size so a long one stays flat.
+    if (isTie) {
+      curvature = (horizontalDistance * 0.28).clamp(
+        staffSpaceSize * 0.35,
+        staffSpaceSize * 1.1,
+      );
+    }
 
     // Calculate control points
     final controlPoints = CurveCalculator.calculateBezierControlPoints(
@@ -127,14 +143,16 @@ class TieRenderer {
 
     final offsetMultiplier = direction == CurveDirection.up ? 1 : -1;
     final thickPath = Path();
-    thickPath.moveTo(start.dx, start.dy + (2 * offsetMultiplier));
+    // The thick middle of the curve, scaled with the staff.
+    final thick = staffSpaceSize * 0.15 * offsetMultiplier;
+    thickPath.moveTo(start.dx, start.dy);
     thickPath.cubicTo(
       controlPoints[0].dx,
-      controlPoints[0].dy + (2 * offsetMultiplier),
+      controlPoints[0].dy + thick,
       controlPoints[1].dx,
-      controlPoints[1].dy + (2 * offsetMultiplier),
+      controlPoints[1].dy + thick,
       end.dx,
-      end.dy + (2 * offsetMultiplier),
+      end.dy,
     );
 
     canvas.drawPath(thickPath, thicknessPaint);

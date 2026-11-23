@@ -8,6 +8,7 @@ import '../geometry/staff_position.dart';
 import '../playback/playback_controller.dart';
 import '../layout/spacing_engine.dart';
 import '../layout/line_breaker.dart';
+import '../layout/grand_staff_layout.dart';
 import '../rendering/notation_painter.dart';
 
 /// Configuration for notation display
@@ -46,6 +47,12 @@ class NotationConfig {
   final bool enableTieDetection;
   final bool expandWidth;
 
+  /// The bar to shade (by [Measure.number]), e.g. the one playing now.
+  final int? highlightedMeasure;
+
+  /// The shade behind [highlightedMeasure].
+  final Color highlightColor;
+
   const NotationConfig({
     this.staffSpaceSize = 12.0,
     this.barlineToClefSpace = 0.0,
@@ -80,6 +87,8 @@ class NotationConfig {
     this.clefNoteMargin = 20.0,
     this.enableTieDetection = false,
     this.expandWidth = false,
+    this.highlightedMeasure,
+    this.highlightColor = const Color(0x33FFC107),
   });
 
   NotationConfig copyWith({
@@ -116,6 +125,9 @@ class NotationConfig {
     double? clefNoteMargin,
     bool? enableTieDetection,
     bool? expandWidth,
+    int? highlightedMeasure,
+    bool clearHighlight = false,
+    Color? highlightColor,
   }) {
     return NotationConfig(
       staffSpaceSize: staffSpaceSize ?? this.staffSpaceSize,
@@ -152,6 +164,10 @@ class NotationConfig {
       clefNoteMargin: clefNoteMargin ?? this.clefNoteMargin,
       enableTieDetection: enableTieDetection ?? this.enableTieDetection,
       expandWidth: expandWidth ?? this.expandWidth,
+      highlightedMeasure: clearHighlight
+          ? null
+          : highlightedMeasure ?? this.highlightedMeasure,
+      highlightColor: highlightColor ?? this.highlightColor,
     );
   }
 
@@ -192,7 +208,9 @@ class NotationConfig {
           enableBeaming == other.enableBeaming &&
           showKeySignatureOnEachSystem == other.showKeySignatureOnEachSystem &&
           clefNoteMargin == other.clefNoteMargin &&
-          enableTieDetection == other.enableTieDetection;
+          enableTieDetection == other.enableTieDetection &&
+          highlightedMeasure == other.highlightedMeasure &&
+          highlightColor == other.highlightColor;
 
   @override
   int get hashCode => Object.hashAll([
@@ -229,6 +247,8 @@ class NotationConfig {
     showKeySignatureOnEachSystem,
     clefNoteMargin,
     enableTieDetection,
+    highlightedMeasure,
+    highlightColor,
   ]);
 }
 
@@ -333,33 +353,62 @@ class _NotationViewState extends State<NotationView>
 
   @override
   Widget build(BuildContext context) {
+    // A grand staff in system layout with no height given: lay it out at the
+    // available width and take exactly the height it needs.
+    final grand = widget.grandStaff;
+    if (grand != null &&
+        widget.config.useSystemLayout &&
+        widget.config.height == null) {
+      return LayoutBuilder(
+        builder: (context, constraints) {
+          final width = widget.config.width ?? constraints.maxWidth;
+          final inner = width - widget.config.padding.horizontal;
+          final layout = GrandStaffLayout.forConfig(
+            grand,
+            widget.config,
+            inner,
+          );
+          // Room under the last system for low ledger lines and stems.
+          final height =
+              layout.totalHeight +
+              widget.config.staffSpaceSize * 4 +
+              widget.config.padding.vertical;
+          return _buildWith(
+            widget.config.copyWith(width: width, height: height),
+          );
+        },
+      );
+    }
+    return _buildWith(widget.config);
+  }
+
+  Widget _buildWith(NotationConfig config) {
     // Calculate height and width based on content type
-    double? effectiveHeight = widget.config.height;
-    double? effectiveWidth = widget.config.width;
+    double? effectiveHeight = config.height;
+    double? effectiveWidth = config.width;
 
     if (effectiveHeight == null) {
       if (widget.grandStaff != null) {
         // Grand staff: two staves + gap
         final measuresCount = widget.grandStaff!.measureCount;
-        final estimatedSystems = widget.config.useSystemLayout
+        final estimatedSystems = config.useSystemLayout
             ? (measuresCount / 3).ceil()
             : 1;
         final singleStaffHeight =
-            widget.config.staffSpaceSize * 4; // 5 lines = 4 spaces
+            config.staffSpaceSize * 4; // 5 lines = 4 spaces
         final systemHeight =
-            singleStaffHeight + widget.config.grandStaffGap + singleStaffHeight;
+            singleStaffHeight + config.grandStaffGap + singleStaffHeight;
         effectiveHeight =
-            widget.config.topMargin +
-            (estimatedSystems * (systemHeight + widget.config.systemSpacing)) +
-            widget.config.topMargin;
-      } else if (widget.config.useSystemLayout && widget.measures != null) {
+            config.topMargin +
+            (estimatedSystems * (systemHeight + config.systemSpacing)) +
+            config.topMargin;
+      } else if (config.useSystemLayout && widget.measures != null) {
         // Multi-line single staff
         final measuresCount = widget.measures!.length;
         final estimatedSystems = (measuresCount / 4).ceil();
         effectiveHeight =
-            widget.config.topMargin +
-            (estimatedSystems *
-                (widget.config.systemHeight + widget.config.systemSpacing));
+            config.topMargin +
+            (estimatedSystems * (config.systemHeight + config.systemSpacing));
       } else {
         // Single line or legacy mode
         effectiveHeight = 200;
@@ -367,18 +416,18 @@ class _NotationViewState extends State<NotationView>
     }
 
     // Estimate width for single-line scrollable content
-    if (effectiveWidth == null && !widget.config.useSystemLayout) {
+    if (effectiveWidth == null && !config.useSystemLayout) {
       if (widget.measures != null) {
         // Estimate 150-200px per measure for single line
         effectiveWidth =
-            widget.config.leftMargin +
+            config.leftMargin +
             (widget.measures!.length * 180.0) +
-            widget.config.rightMargin;
+            config.rightMargin;
       } else if (widget.grandStaff != null) {
         effectiveWidth =
-            widget.config.leftMargin +
+            config.leftMargin +
             (widget.grandStaff!.measureCount * 180.0) +
-            widget.config.rightMargin;
+            config.rightMargin;
       }
     }
 
@@ -388,7 +437,7 @@ class _NotationViewState extends State<NotationView>
         grandStaff: widget.grandStaff,
         notes: widget.notes,
         rests: widget.rests,
-        config: widget.config,
+        config: config,
         activeNotes: widget.playbackController?.activeNotes ?? const {},
       ),
       size: Size(effectiveWidth ?? double.infinity, effectiveHeight),
@@ -416,12 +465,12 @@ class _NotationViewState extends State<NotationView>
     Widget result = Container(
       width: effectiveWidth,
       height: effectiveHeight,
-      padding: widget.config.padding,
+      padding: config.padding,
       child: content,
     );
 
     // If width is estimated and large, wrap in SingleChildScrollView
-    if (effectiveWidth != null && !widget.config.useSystemLayout) {
+    if (effectiveWidth != null && !config.useSystemLayout) {
       return SingleChildScrollView(
         scrollDirection: Axis.horizontal,
         child: result,

@@ -17,8 +17,9 @@ class RestRenderer {
     Canvas canvas,
     Offset staffTopLeft,
     double xPosition,
-    DurationType durationType,
-  ) {
+    DurationType durationType, {
+    double shift = 0,
+  }) {
     final glyph = GlyphProvider.getRestGlyph(durationType);
     final size = _getRestSize(durationType);
 
@@ -29,7 +30,8 @@ class RestRenderer {
     final restY =
         staffTopLeft.dy +
         (staffSpaceSize * 2) +
-        yOffset; // Middle line + offset
+        yOffset + // Middle line + offset
+        shift;
 
     final x = xPosition - textPainter.width / 2;
     final y = restY - textPainter.height / 2;

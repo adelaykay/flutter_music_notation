@@ -22,6 +22,13 @@ class SpacingEngine {
   /// Whether to use proportional spacing (true) or uniform spacing (false)
   final bool proportional;
 
+  /// The staff space the spacing values are given at. At other staff sizes
+  /// they scale with the staff, so a smaller staff is also narrower.
+  static const double referenceStaffSpace = 12.0;
+
+  static double _k(double staffSpaceSize) =>
+      staffSpaceSize / referenceStaffSpace;
+
   const SpacingEngine({
     this.baseSpacing = 40.0,
     this.minSpacing = 20.0,
@@ -81,7 +88,7 @@ class SpacingEngine {
     } else if (current is Rest) {
       gap = CollisionDetector.calculateRestWidthStatic(current, staffSpaceSize);
     } else {
-      gap = minSpacing;
+      gap = minSpacing * _k(staffSpaceSize);
     }
     if (next is Note && withAccidentals.contains(next)) {
       gap +=
@@ -121,7 +128,8 @@ class SpacingEngine {
         withAccidentals,
         staffSpaceSize,
       );
-      currentX += max(baseSpacing, needed + minSpacing * 0.5);
+      final k = _k(staffSpaceSize);
+      currentX += max(baseSpacing * k, needed + minSpacing * k * 0.5);
     }
 
     return positions;
@@ -143,8 +151,10 @@ class SpacingEngine {
       return 1.0;
     }).toList();
 
+    final k = _k(staffSpaceSize);
+
     // Calculate spacing weights based on duration
-    final spacingWeights = _calculateSpacingWeights(durations);
+    final spacingWeights = _calculateSpacingWeights(durations, baseSpacing * k);
 
     // Determine scaling factor if we have a target width
     double scaleFactor = 1.0;
@@ -155,7 +165,7 @@ class SpacingEngine {
       if (idealTotalWidth > 0) {
         // availableWidth is the width of this run of elements, measured from
         // startX (not an absolute end position).
-        final usableWidth = availableWidth - minSpacing;
+        final usableWidth = availableWidth - minSpacing * k;
         scaleFactor = (usableWidth / idealTotalWidth).clamp(0.3, 3.0);
       }
     }
@@ -180,9 +190,11 @@ class SpacingEngine {
           staffSpaceSize,
         );
 
-        final spacing = (spacingWeights[i] * scaleFactor).clamp(
+        // At least room for the glyphs; at most maxSpacing unless the
+        // glyphs need more (clamp would throw if they did).
+        final spacing = max(
           visualMinWidth + staffSpaceSize * 0.5,
-          maxSpacing,
+          min(spacingWeights[i] * scaleFactor, maxSpacing * k),
         );
         currentX += spacing;
       }
@@ -193,7 +205,7 @@ class SpacingEngine {
 
   /// Calculate spacing weights based on note durations
   /// Uses a logarithmic scale to prevent extreme spacing differences
-  List<double> _calculateSpacingWeights(List<double> durations) {
+  List<double> _calculateSpacingWeights(List<double> durations, double base) {
     final weights = <double>[];
 
     for (int i = 0; i < durations.length; i++) {
@@ -210,7 +222,7 @@ class SpacingEngine {
 
       // Logarithmic scaling: log2(duration + 1) * baseSpacing
       // This prevents whole notes from taking 32x the space of 32nd notes
-      final weight = _log2(avgDuration + 1) * baseSpacing;
+      final weight = _log2(avgDuration + 1) * base;
 
       weights.add(weight);
     }
@@ -247,7 +259,7 @@ class SpacingEngine {
     );
 
     // Calculate actual end position - DETERMINED BY LAST NOTE WIDTH
-    double lastNoteWidth = minSpacing;
+    double lastNoteWidth = minSpacing * _k(staffSpaceSize);
     if (elements.isNotEmpty) {
       final lastElement = elements.last;
       if (lastElement is Note) {
@@ -257,14 +269,14 @@ class SpacingEngine {
               keySignature.needsAccidental(lastElement.pitch),
               staffSpaceSize,
             ) +
-            minSpacing * 0.5;
+            minSpacing * _k(staffSpaceSize) * 0.5;
       } else if (lastElement is Rest) {
         lastNoteWidth =
             CollisionDetector.calculateRestWidthStatic(
               lastElement,
               staffSpaceSize,
             ) +
-            minSpacing * 0.5;
+            minSpacing * _k(staffSpaceSize) * 0.5;
       }
     }
 
@@ -285,7 +297,7 @@ class SpacingEngine {
     ClefType clef = ClefType.treble,
     KeySignature keySignature = KeySignature.cMajor,
   }) {
-    if (elements.isEmpty) return minSpacing;
+    if (elements.isEmpty) return minSpacing * _k(staffSpaceSize);
 
     final positions = calculateSpacing(
       elements,
@@ -296,10 +308,10 @@ class SpacingEngine {
       keySignature: keySignature,
     );
 
-    if (positions.isEmpty) return minSpacing;
+    if (positions.isEmpty) return minSpacing * _k(staffSpaceSize);
 
     // Last note width for the end of bar
-    double lastNoteWidth = minSpacing;
+    double lastNoteWidth = minSpacing * _k(staffSpaceSize);
     final lastElement = elements.last;
     if (lastElement is Note) {
       lastNoteWidth =
@@ -308,7 +320,7 @@ class SpacingEngine {
             keySignature.needsAccidental(lastElement.pitch),
             staffSpaceSize,
           ) +
-          minSpacing * 0.5;
+          minSpacing * _k(staffSpaceSize) * 0.5;
     }
 
     return positions.last + lastNoteWidth;
