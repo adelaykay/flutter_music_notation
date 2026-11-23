@@ -30,10 +30,26 @@ List<Measure> _createLongPiece() {
       timeSignature: TimeSignature.fourFour,
       keySignature: KeySignature.cFlatMajor,
       notes: [
-        Note(pitch: Pitch(noteName: NoteName.C, octave: 4), duration: const NoteDuration.quarter(), startBeat: 0.0),
-        Note(pitch: Pitch(noteName: NoteName.D, octave: 4), duration: const NoteDuration.quarter(), startBeat: 1.0),
-        Note(pitch: Pitch(noteName: NoteName.E, octave: 4), duration: const NoteDuration.quarter(), startBeat: 2.0),
-        Note(pitch: Pitch(noteName: NoteName.F, octave: 4), duration: const NoteDuration.quarter(), startBeat: 3.0),
+        Note(
+          pitch: Pitch(noteName: NoteName.C, octave: 4),
+          duration: const NoteDuration.quarter(),
+          startBeat: 0.0,
+        ),
+        Note(
+          pitch: Pitch(noteName: NoteName.D, octave: 4),
+          duration: const NoteDuration.quarter(),
+          startBeat: 1.0,
+        ),
+        Note(
+          pitch: Pitch(noteName: NoteName.E, octave: 4),
+          duration: const NoteDuration.quarter(),
+          startBeat: 2.0,
+        ),
+        Note(
+          pitch: Pitch(noteName: NoteName.F, octave: 4),
+          duration: const NoteDuration.quarter(),
+          startBeat: 3.0,
+        ),
       ],
       endBarline: BarlineType.single,
     ),
@@ -42,10 +58,26 @@ List<Measure> _createLongPiece() {
       timeSignature: TimeSignature.fourFour,
       keySignature: KeySignature.cFlatMajor,
       notes: [
-        Note(pitch: Pitch(noteName: NoteName.G, octave: 4), duration: const NoteDuration.quarter(), startBeat: 0.0),
-        Note(pitch: Pitch(noteName: NoteName.A, octave: 4), duration: const NoteDuration.quarter(), startBeat: 1.0),
-        Note(pitch: Pitch(noteName: NoteName.B, octave: 4), duration: const NoteDuration.quarter(), startBeat: 2.0),
-        Note(pitch: Pitch(noteName: NoteName.C, octave: 5), duration: const NoteDuration.quarter(), startBeat: 3.0),
+        Note(
+          pitch: Pitch(noteName: NoteName.G, octave: 4),
+          duration: const NoteDuration.quarter(),
+          startBeat: 0.0,
+        ),
+        Note(
+          pitch: Pitch(noteName: NoteName.A, octave: 4),
+          duration: const NoteDuration.quarter(),
+          startBeat: 1.0,
+        ),
+        Note(
+          pitch: Pitch(noteName: NoteName.B, octave: 4),
+          duration: const NoteDuration.quarter(),
+          startBeat: 2.0,
+        ),
+        Note(
+          pitch: Pitch(noteName: NoteName.C, octave: 5),
+          duration: const NoteDuration.quarter(),
+          startBeat: 3.0,
+        ),
       ],
       endBarline: BarlineType.single,
     ),
@@ -54,12 +86,36 @@ List<Measure> _createLongPiece() {
       timeSignature: TimeSignature.fourFour,
       keySignature: KeySignature.cFlatMajor,
       notes: [
-        Note(pitch: Pitch(noteName: NoteName.C, octave: 5), duration: const NoteDuration.eighth(), startBeat: 0.0),
-        Note(pitch: Pitch(noteName: NoteName.B, octave: 4), duration: const NoteDuration.eighth(), startBeat: 0.5),
-        Note(pitch: Pitch(noteName: NoteName.A, octave: 4), duration: const NoteDuration.eighth(), startBeat: 1.0),
-        Note(pitch: Pitch(noteName: NoteName.G, octave: 4), duration: const NoteDuration.eighth(), startBeat: 1.5),
-        Note(pitch: Pitch(noteName: NoteName.F, octave: 4), duration: const NoteDuration.quarter(), startBeat: 2.0),
-        Note(pitch: Pitch(noteName: NoteName.E, octave: 4), duration: const NoteDuration.quarter(), startBeat: 3.0),
+        Note(
+          pitch: Pitch(noteName: NoteName.C, octave: 5),
+          duration: const NoteDuration.eighth(),
+          startBeat: 0.0,
+        ),
+        Note(
+          pitch: Pitch(noteName: NoteName.B, octave: 4),
+          duration: const NoteDuration.eighth(),
+          startBeat: 0.5,
+        ),
+        Note(
+          pitch: Pitch(noteName: NoteName.A, octave: 4),
+          duration: const NoteDuration.eighth(),
+          startBeat: 1.0,
+        ),
+        Note(
+          pitch: Pitch(noteName: NoteName.G, octave: 4),
+          duration: const NoteDuration.eighth(),
+          startBeat: 1.5,
+        ),
+        Note(
+          pitch: Pitch(noteName: NoteName.F, octave: 4),
+          duration: const NoteDuration.quarter(),
+          startBeat: 2.0,
+        ),
+        Note(
+          pitch: Pitch(noteName: NoteName.E, octave: 4),
+          duration: const NoteDuration.quarter(),
+          startBeat: 3.0,
+        ),
       ],
       endBarline: BarlineType.single,
     ),
@@ -68,8 +124,16 @@ List<Measure> _createLongPiece() {
       timeSignature: TimeSignature.fourFour,
       keySignature: KeySignature.cFlatMajor,
       notes: [
-        Note(pitch: Pitch(noteName: NoteName.D, octave: 4), duration: const NoteDuration.half(), startBeat: 0.0),
-        Note(pitch: Pitch(noteName: NoteName.C, octave: 4), duration: const NoteDuration.half(), startBeat: 2.0),
+        Note(
+          pitch: Pitch(noteName: NoteName.D, octave: 4),
+          duration: const NoteDuration.half(),
+          startBeat: 0.0,
+        ),
+        Note(
+          pitch: Pitch(noteName: NoteName.C, octave: 4),
+          duration: const NoteDuration.half(),
+          startBeat: 2.0,
+        ),
       ],
       endBarline: BarlineType.double_,
     ),
@@ -78,10 +142,26 @@ List<Measure> _createLongPiece() {
       timeSignature: TimeSignature.fourFour,
       keySignature: KeySignature.cFlatMajor,
       notes: [
-        Note(pitch: Pitch(noteName: NoteName.E, octave: 4), duration: const NoteDuration.quarter(), startBeat: 0.0),
-        Note(pitch: Pitch(noteName: NoteName.F, octave: 4), duration: const NoteDuration.quarter(), startBeat: 1.0),
-        Note(pitch: Pitch(noteName: NoteName.G, octave: 4), duration: const NoteDuration.quarter(), startBeat: 2.0),
-        Note(pitch: Pitch(noteName: NoteName.A, octave: 4), duration: const NoteDuration.quarter(), startBeat: 3.0),
+        Note(
+          pitch: Pitch(noteName: NoteName.E, octave: 4),
+          duration: const NoteDuration.quarter(),
+          startBeat: 0.0,
+        ),
+        Note(
+          pitch: Pitch(noteName: NoteName.F, octave: 4),
+          duration: const NoteDuration.quarter(),
+          startBeat: 1.0,
+        ),
+        Note(
+          pitch: Pitch(noteName: NoteName.G, octave: 4),
+          duration: const NoteDuration.quarter(),
+          startBeat: 2.0,
+        ),
+        Note(
+          pitch: Pitch(noteName: NoteName.A, octave: 4),
+          duration: const NoteDuration.quarter(),
+          startBeat: 3.0,
+        ),
       ],
       endBarline: BarlineType.single,
     ),
@@ -90,7 +170,11 @@ List<Measure> _createLongPiece() {
       timeSignature: TimeSignature.fourFour,
       keySignature: KeySignature.cFlatMajor,
       notes: [
-        Note(pitch: Pitch(noteName: NoteName.G, octave: 4), duration: const NoteDuration.whole(), startBeat: 0.0),
+        Note(
+          pitch: Pitch(noteName: NoteName.G, octave: 4),
+          duration: const NoteDuration.whole(),
+          startBeat: 0.0,
+        ),
       ],
       endBarline: BarlineType.single,
     ),
@@ -99,10 +183,26 @@ List<Measure> _createLongPiece() {
       timeSignature: TimeSignature.fourFour,
       keySignature: KeySignature.cFlatMajor,
       notes: [
-        Note(pitch: Pitch(noteName: NoteName.F, octave: 4), duration: const NoteDuration.quarter(), startBeat: 0.0),
-        Note(pitch: Pitch(noteName: NoteName.E, octave: 4), duration: const NoteDuration.quarter(), startBeat: 1.0),
-        Note(pitch: Pitch(noteName: NoteName.D, octave: 4), duration: const NoteDuration.quarter(), startBeat: 2.0),
-        Note(pitch: Pitch(noteName: NoteName.C, octave: 4), duration: const NoteDuration.quarter(), startBeat: 3.0),
+        Note(
+          pitch: Pitch(noteName: NoteName.F, octave: 4),
+          duration: const NoteDuration.quarter(),
+          startBeat: 0.0,
+        ),
+        Note(
+          pitch: Pitch(noteName: NoteName.E, octave: 4),
+          duration: const NoteDuration.quarter(),
+          startBeat: 1.0,
+        ),
+        Note(
+          pitch: Pitch(noteName: NoteName.D, octave: 4),
+          duration: const NoteDuration.quarter(),
+          startBeat: 2.0,
+        ),
+        Note(
+          pitch: Pitch(noteName: NoteName.C, octave: 4),
+          duration: const NoteDuration.quarter(),
+          startBeat: 3.0,
+        ),
       ],
       endBarline: BarlineType.single,
     ),
@@ -111,7 +211,11 @@ List<Measure> _createLongPiece() {
       timeSignature: TimeSignature.fourFour,
       keySignature: KeySignature.cFlatMajor,
       notes: [
-        Note(pitch: Pitch(noteName: NoteName.C, octave: 4), duration: const NoteDuration.whole(), startBeat: 0.0),
+        Note(
+          pitch: Pitch(noteName: NoteName.C, octave: 4),
+          duration: const NoteDuration.whole(),
+          startBeat: 0.0,
+        ),
       ],
       endBarline: BarlineType.final_,
     ),
@@ -125,10 +229,26 @@ List<Measure> _createMaryHadALittleLamb() {
       timeSignature: TimeSignature.fourFour,
       keySignature: KeySignature.cFlatMajor,
       notes: [
-        Note(pitch: Pitch(noteName: NoteName.E, octave: 4), duration: const NoteDuration.quarter(), startBeat: 0.0),
-        Note(pitch: Pitch(noteName: NoteName.D, octave: 4), duration: const NoteDuration.quarter(), startBeat: 1.0),
-        Note(pitch: Pitch(noteName: NoteName.C, octave: 4), duration: const NoteDuration.quarter(), startBeat: 2.0),
-        Note(pitch: Pitch(noteName: NoteName.D, octave: 4), duration: const NoteDuration.quarter(), startBeat: 3.0),
+        Note(
+          pitch: Pitch(noteName: NoteName.E, octave: 4),
+          duration: const NoteDuration.quarter(),
+          startBeat: 0.0,
+        ),
+        Note(
+          pitch: Pitch(noteName: NoteName.D, octave: 4),
+          duration: const NoteDuration.quarter(),
+          startBeat: 1.0,
+        ),
+        Note(
+          pitch: Pitch(noteName: NoteName.C, octave: 4),
+          duration: const NoteDuration.quarter(),
+          startBeat: 2.0,
+        ),
+        Note(
+          pitch: Pitch(noteName: NoteName.D, octave: 4),
+          duration: const NoteDuration.quarter(),
+          startBeat: 3.0,
+        ),
       ],
     ),
     Measure(
@@ -136,38 +256,68 @@ List<Measure> _createMaryHadALittleLamb() {
       timeSignature: TimeSignature.fourFour,
       keySignature: KeySignature.cFlatMajor,
       notes: [
-        Note(pitch: Pitch(noteName: NoteName.E, octave: 4), duration: const NoteDuration.quarter(), startBeat: 0.0),
-        Note(pitch: Pitch(noteName: NoteName.E, octave: 4), duration: const NoteDuration.quarter(), startBeat: 1.0),
-        Note(pitch: Pitch(noteName: NoteName.E, octave: 4), duration: const NoteDuration.quarter(), startBeat: 2.0),
+        Note(
+          pitch: Pitch(noteName: NoteName.E, octave: 4),
+          duration: const NoteDuration.quarter(),
+          startBeat: 0.0,
+        ),
+        Note(
+          pitch: Pitch(noteName: NoteName.E, octave: 4),
+          duration: const NoteDuration.quarter(),
+          startBeat: 1.0,
+        ),
+        Note(
+          pitch: Pitch(noteName: NoteName.E, octave: 4),
+          duration: const NoteDuration.quarter(),
+          startBeat: 2.0,
+        ),
       ],
-      rests: [
-        Rest(duration: const NoteDuration.quarter(), startBeat: 3.0),
-      ],
+      rests: [Rest(duration: const NoteDuration.quarter(), startBeat: 3.0)],
     ),
     Measure(
       number: 2,
       timeSignature: TimeSignature.fourFour,
       keySignature: KeySignature.cFlatMajor,
       notes: [
-        Note(pitch: Pitch(noteName: NoteName.D, octave: 4), duration: const NoteDuration.quarter(), startBeat: 0.0),
-        Note(pitch: Pitch(noteName: NoteName.D, octave: 4), duration: const NoteDuration.quarter(), startBeat: 1.0),
-        Note(pitch: Pitch(noteName: NoteName.D, accidental: Accidental.sharp, octave: 4), duration: const NoteDuration.quarter(), startBeat: 2.0),
+        Note(
+          pitch: Pitch(noteName: NoteName.D, octave: 4),
+          duration: const NoteDuration.quarter(),
+          startBeat: 0.0,
+        ),
+        Note(
+          pitch: Pitch(noteName: NoteName.D, octave: 4),
+          duration: const NoteDuration.quarter(),
+          startBeat: 1.0,
+        ),
+        Note(
+          pitch: Pitch(
+            noteName: NoteName.D,
+            accidental: Accidental.sharp,
+            octave: 4,
+          ),
+          duration: const NoteDuration.quarter(),
+          startBeat: 2.0,
+        ),
       ],
-      rests: [
-        Rest(duration: const NoteDuration.quarter(), startBeat: 3.0),
-      ],
+      rests: [Rest(duration: const NoteDuration.quarter(), startBeat: 3.0)],
     ),
     Measure(
       number: 3,
       timeSignature: TimeSignature.fourFour,
       keySignature: KeySignature.cFlatMajor,
       notes: [
-        Note(pitch: Pitch(noteName: NoteName.E, octave: 4), duration: const NoteDuration.quarter(), startBeat: 0.0),
-        Note(pitch: Pitch(noteName: NoteName.G, octave: 4), duration: const NoteDuration.half(), startBeat: 1.0),
+        Note(
+          pitch: Pitch(noteName: NoteName.E, octave: 4),
+          duration: const NoteDuration.quarter(),
+          startBeat: 0.0,
+        ),
+        Note(
+          pitch: Pitch(noteName: NoteName.G, octave: 4),
+          duration: const NoteDuration.half(),
+          startBeat: 1.0,
+        ),
       ],
-      rests: [
-        Rest(duration: const NoteDuration.quarter(), startBeat: 3.0),
-      ],
+      rests: [Rest(duration: const NoteDuration.quarter(), startBeat: 3.0)],
       endBarline: BarlineType.final_,
     ),
   ];
@@ -251,6 +401,57 @@ Future<void> _pumpGolden(
   );
 }
 
+/// A short piano performance as it would arrive from a keyboard: timing
+/// wobble, a held legato key, a note held across the barline, a pause, and
+/// the raised leading note of A minor.
+MidiData _performedPiece() {
+  const bpm = 90.0;
+  const msPerBeat = 60000 / bpm;
+  final wobble = [
+    0.03,
+    -0.04,
+    0.02,
+    -0.02,
+    0.05,
+    -0.03,
+    0.01,
+    0.04,
+    -0.05,
+    0.02,
+  ];
+  var w = 0;
+  MidiNote n(int midi, double start, double length) {
+    final a = wobble[w++ % wobble.length], b = wobble[w++ % wobble.length];
+    return MidiNote(
+      midiNumber: midi,
+      velocity: 80,
+      startTime: ((start + a) * msPerBeat).round(),
+      endTime: ((start + length + b) * msPerBeat).round(),
+    );
+  }
+
+  return MidiData(
+    notes: [
+      // right hand
+      n(76, 0, 1.15),
+      n(74, 1, 1.1),
+      n(72, 2, 0.5),
+      n(71, 2.5, 0.5),
+      n(72, 3, 2), // tied over the bar
+      n(76, 5, 0.5), n(77, 5.5, 0.5), n(76, 6, 1), n(68, 7, 1),
+      n(69, 8, 3), // then a rest
+      // left hand
+      n(45, 0, 2), n(52, 0, 2), n(45, 2, 2), n(52, 2, 2),
+      n(50, 4, 4), n(53, 4, 4),
+      n(45, 8, 4), n(52, 8, 4),
+    ],
+    keySignatureSharps: 0,
+    keySignatureIsMinor: true,
+    beatsPerMinute: bpm,
+    ticksPerQuarterNote: 480,
+  );
+}
+
 void main() {
   setUpAll(_loadNotationFonts);
 
@@ -331,6 +532,43 @@ void main() {
       measures: _createMaryHadALittleLamb(),
       useSystemLayout: true,
       showMeasureNumbers: true,
+    );
+  });
+
+  testWidgets('Performed MIDI on a grand staff', (tester) async {
+    final boundaryKey = GlobalKey();
+    addTearDown(tester.view.reset);
+    tester.view.devicePixelRatio = 1.0;
+    tester.view.physicalSize = const Size(1200, 500);
+    final grandStaff = MidiToNotation(
+      midiData: _performedPiece(),
+    ).toGrandStaff();
+    await tester.pumpWidget(
+      MaterialApp(
+        debugShowCheckedModeBanner: false,
+        home: Scaffold(
+          backgroundColor: Colors.white,
+          body: Align(
+            alignment: Alignment.topLeft,
+            child: RepaintBoundary(
+              key: boundaryKey,
+              child: NotationView(
+                grandStaff: grandStaff,
+                config: const NotationConfig(
+                  width: 1100,
+                  height: 400,
+                  useSystemLayout: true,
+                  enableBeaming: true,
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+    await expectLater(
+      find.byKey(boundaryKey),
+      matchesGoldenFile('goldens/performed_grand_staff.png'),
     );
   });
 }

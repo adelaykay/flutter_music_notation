@@ -115,15 +115,15 @@ class StaffPosition {
   static double _calculateSteps(Pitch reference, Pitch target) {
     // Calculate steps based on note names and octaves
     final octaveDiff = target.octave - reference.octave;
-    final noteSteps = target.noteName.positionInOctave - reference.noteName.positionInOctave;
+    final noteSteps =
+        target.noteName.positionInOctave - reference.noteName.positionInOctave;
 
     return (octaveDiff * 7) + noteSteps.toDouble();
   }
 
   @override
   bool operator ==(Object other) =>
-      identical(this, other) ||
-          other is StaffPosition && value == other.value;
+      identical(this, other) || other is StaffPosition && value == other.value;
 
   @override
   int get hashCode => value.hashCode;
@@ -134,8 +134,8 @@ class StaffPosition {
 
 /// Types of musical clefs
 enum ClefType {
-  treble,  // G clef (2nd line from bottom is G4)
-  bass,    // F clef (2nd line from top is F3)
-  alto,    // C clef on middle line (middle line is C4)
-  tenor,   // C clef on 4th line (4th line is C4)
+  treble, // G clef (2nd line from bottom is G4)
+  bass, // F clef (2nd line from top is F3)
+  alto, // C clef on middle line (middle line is C4)
+  tenor, // C clef on 4th line (4th line is C4)
 }

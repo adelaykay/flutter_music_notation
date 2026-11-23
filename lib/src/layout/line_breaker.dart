@@ -18,22 +18,17 @@ class LineBreaker {
 
   /// Break a list of measures into lines
   List<LineOfMeasures> breakIntoLines(
-      List<Measure> measures, {
-        required double startX,
-        required double measureSpacing,
-      }) {
+    List<Measure> measures, {
+    required double startX,
+    required double measureSpacing,
+  }) {
     if (measures.isEmpty) return [];
 
     final lines = <LineOfMeasures>[];
     int currentIndex = 0;
 
     while (currentIndex < measures.length) {
-      final line = _createLine(
-        measures,
-        currentIndex,
-        startX,
-        measureSpacing,
-      );
+      final line = _createLine(measures, currentIndex, startX, measureSpacing);
 
       lines.add(line);
       currentIndex += line.measures.length;
@@ -44,11 +39,11 @@ class LineBreaker {
 
   /// Create a single line starting from the given measure index
   LineOfMeasures _createLine(
-      List<Measure> allMeasures,
-      int startIndex,
-      double startX,
-      double measureSpacing,
-      ) {
+    List<Measure> allMeasures,
+    int startIndex,
+    double startX,
+    double measureSpacing,
+  ) {
     final availableWidth = targetLineWidth - startX;
     final lineMeasures = <Measure>[];
     double currentWidth = 0;
@@ -66,7 +61,9 @@ class LineBreaker {
       );
 
       // Check if adding this measure would exceed line width
-      final totalWidth = currentWidth + measureWidth +
+      final totalWidth =
+          currentWidth +
+          measureWidth +
           (lineMeasures.isNotEmpty ? measureSpacing : 0);
 
       // Be more aggressive - allow up to 95% of available width
@@ -113,11 +110,11 @@ class LineBreaker {
   /// Calculate optimal line breaks using a greedy algorithm
   /// This version tries to minimize raggedness (uneven line lengths)
   List<LineOfMeasures> breakWithMinimalRaggedness(
-      List<Measure> measures, {
-        required bool useSystemLayout,
-        required double startX,
-        required double measureSpacing,
-      }) {
+    List<Measure> measures, {
+    required bool useSystemLayout,
+    required double startX,
+    required double measureSpacing,
+  }) {
     if (measures.isEmpty) return [];
 
     final availableWidth = targetLineWidth - startX;
@@ -144,12 +141,14 @@ class LineBreaker {
         useSystemLayout,
       );
 
-      lines.add(LineOfMeasures(
-        measures: lineResult.measures,
-        lineNumber: lines.length,
-        startX: startX,
-        targetWidth: targetLineWidth,
-      ));
+      lines.add(
+        LineOfMeasures(
+          measures: lineResult.measures,
+          lineNumber: lines.length,
+          startX: startX,
+          targetWidth: targetLineWidth,
+        ),
+      );
 
       currentIndex += lineResult.measures.length;
     }
@@ -159,13 +158,13 @@ class LineBreaker {
 
   /// Find the optimal point to break a line
   _LineBreakResult _findOptimalLineBreak(
-      List<Measure> allMeasures,
-      List<double> measureWidths,
-      int startIndex,
-      double availableWidth,
-      double measureSpacing,
-      bool useSystemLayout,
-      ) {
+    List<Measure> allMeasures,
+    List<double> measureWidths,
+    int startIndex,
+    double availableWidth,
+    double measureSpacing,
+    bool useSystemLayout,
+  ) {
     double currentWidth = 0;
     int bestBreakPoint = startIndex + 1;
     double bestRaggedness = double.infinity;
@@ -212,10 +211,10 @@ class LineBreaker {
 
   /// Break lines at explicit break points
   List<LineOfMeasures> breakAtExplicitPoints(
-      List<Measure> measures,
-      List<int> breakPoints, {
-        required double startX,
-      }) {
+    List<Measure> measures,
+    List<int> breakPoints, {
+    required double startX,
+  }) {
     if (measures.isEmpty) return [];
 
     final lines = <LineOfMeasures>[];
@@ -231,12 +230,14 @@ class LineBreaker {
 
       final lineMeasures = measures.sublist(currentIndex, breakPoint);
 
-      lines.add(LineOfMeasures(
-        measures: lineMeasures,
-        lineNumber: lines.length,
-        startX: startX,
-        targetWidth: targetLineWidth,
-      ));
+      lines.add(
+        LineOfMeasures(
+          measures: lineMeasures,
+          lineNumber: lines.length,
+          startX: startX,
+          targetWidth: targetLineWidth,
+        ),
+      );
 
       currentIndex = breakPoint;
     }

@@ -15,11 +15,11 @@ class TupletRenderer {
 
   /// Paint a tuplet bracket with number
   void paintTuplet(
-      Canvas canvas,
-      TupletBracket tuplet,
-      List<Offset> notePositions,
-      TupletDirection direction,
-      ) {
+    Canvas canvas,
+    TupletBracket tuplet,
+    List<Offset> notePositions,
+    TupletDirection direction,
+  ) {
     if (notePositions.length < 2) return;
 
     final startPos = notePositions.first;
@@ -40,21 +40,15 @@ class TupletRenderer {
 
     // Draw bracket if needed
     if (tuplet.shouldDrawBracket) {
-      _drawBracket(
-        canvas,
-        startPos.dx,
-        endPos.dx,
-        bracketY,
-        direction,
-      );
+      _drawBracket(canvas, startPos.dx, endPos.dx, bracketY, direction);
     }
   }
 
   /// Calculate Y position for the bracket
   double _calculateBracketY(
-      List<Offset> notePositions,
-      TupletDirection direction,
-      ) {
+    List<Offset> notePositions,
+    TupletDirection direction,
+  ) {
     if (direction == TupletDirection.above) {
       // Find highest note
       final highestY = notePositions
@@ -76,13 +70,13 @@ class TupletRenderer {
 
   /// Draw the tuplet number
   void _drawNumber(
-      Canvas canvas,
-      String text,
-      double startX,
-      double endX,
-      double y,
-      TupletDirection direction,
-      ) {
+    Canvas canvas,
+    String text,
+    double startX,
+    double endX,
+    double y,
+    TupletDirection direction,
+  ) {
     final textPainter = TextPainter(
       text: TextSpan(
         text: text,
@@ -110,12 +104,12 @@ class TupletRenderer {
 
   /// Draw the bracket
   void _drawBracket(
-      Canvas canvas,
-      double startX,
-      double endX,
-      double y,
-      TupletDirection direction,
-      ) {
+    Canvas canvas,
+    double startX,
+    double endX,
+    double y,
+    TupletDirection direction,
+  ) {
     final paint = Paint()
       ..color = color
       ..strokeWidth = 1.5
@@ -146,11 +140,11 @@ class TupletRenderer {
   /// Paint a tuplet number only (no bracket)
   /// Used for beamed tuplets
   void paintTupletNumber(
-      Canvas canvas,
-      TupletBracket tuplet,
-      List<Offset> notePositions,
-      TupletDirection direction,
-      ) {
+    Canvas canvas,
+    TupletBracket tuplet,
+    List<Offset> notePositions,
+    TupletDirection direction,
+  ) {
     if (notePositions.length < 2) return;
 
     final startPos = notePositions.first;
@@ -171,12 +165,12 @@ class TupletRenderer {
 
   /// Paint nested tuplets
   void paintNestedTuplet(
-      Canvas canvas,
-      NestedTuplet nestedTuplet,
-      Map<TupletBracket, List<Offset>> tupletPositions,
-      TupletDirection outerDirection,
-      TupletDirection innerDirection,
-      ) {
+    Canvas canvas,
+    NestedTuplet nestedTuplet,
+    Map<TupletBracket, List<Offset>> tupletPositions,
+    TupletDirection outerDirection,
+    TupletDirection innerDirection,
+  ) {
     // Draw outer tuplet
     final outerPositions = tupletPositions[nestedTuplet.outerTuplet];
     if (outerPositions != null) {
@@ -192,12 +186,7 @@ class TupletRenderer {
     for (final innerTuplet in nestedTuplet.innerTuplets) {
       final innerPositions = tupletPositions[innerTuplet];
       if (innerPositions != null) {
-        paintTuplet(
-          canvas,
-          innerTuplet,
-          innerPositions,
-          innerDirection,
-        );
+        paintTuplet(canvas, innerTuplet, innerPositions, innerDirection);
       }
     }
   }
@@ -205,10 +194,10 @@ class TupletRenderer {
   /// Calculate optimal spacing for tuplet notes
   /// Tuplet notes should be visually evenly spaced
   List<double> calculateTupletSpacing(
-      TupletBracket tuplet,
-      double startX,
-      double availableWidth,
-      ) {
+    TupletBracket tuplet,
+    double startX,
+    double availableWidth,
+  ) {
     final noteCount = tuplet.notes.length;
     final spacing = availableWidth / (noteCount - 1);
 
@@ -222,16 +211,16 @@ class TupletRenderer {
 
   /// Paint a tuplet with custom styling (for special cases)
   void paintCustomTuplet(
-      Canvas canvas,
-      TupletBracket tuplet,
-      List<Offset> notePositions,
-      TupletDirection direction, {
-        Color? numberColor,
-        Color? bracketColor,
-        double? fontSize,
-        bool italic = true,
-        bool bold = true,
-      }) {
+    Canvas canvas,
+    TupletBracket tuplet,
+    List<Offset> notePositions,
+    TupletDirection direction, {
+    Color? numberColor,
+    Color? bracketColor,
+    double? fontSize,
+    bool italic = true,
+    bool bold = true,
+  }) {
     if (notePositions.length < 2) return;
 
     final startPos = notePositions.first;
@@ -286,11 +275,11 @@ class TupletRenderer {
 
   /// Draw a tuplet ratio (e.g., "3:2" instead of just "3")
   void paintTupletRatio(
-      Canvas canvas,
-      TupletBracket tuplet,
-      List<Offset> notePositions,
-      TupletDirection direction,
-      ) {
+    Canvas canvas,
+    TupletBracket tuplet,
+    List<Offset> notePositions,
+    TupletDirection direction,
+  ) {
     if (notePositions.length < 2) return;
 
     final startPos = notePositions.first;
@@ -298,7 +287,8 @@ class TupletRenderer {
     final bracketY = _calculateBracketY(notePositions, direction);
 
     // Draw ratio text
-    final ratioText = '${tuplet.tuplet.actualNotes}:${tuplet.tuplet.normalNotes}';
+    final ratioText =
+        '${tuplet.tuplet.actualNotes}:${tuplet.tuplet.normalNotes}';
 
     final textPainter = TextPainter(
       text: TextSpan(

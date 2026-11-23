@@ -17,11 +17,11 @@ class NoteheadRenderer {
 
   /// Paint a notehead at the given center position
   void paint(
-      Canvas canvas,
-      Offset center, {
-        required bool filled,
-        bool isActive = false,
-      }) {
+    Canvas canvas,
+    Offset center, {
+    required bool filled,
+    bool isActive = false,
+  }) {
     final width = StaffUnits.noteheadWidth.toPixels(staffSpaceSize);
     final height = StaffUnits.noteheadHeight.toPixels(staffSpaceSize);
 
@@ -80,10 +80,6 @@ class NoteheadRenderer {
     final width = StaffUnits.noteheadWidth.toPixels(staffSpaceSize);
     final height = StaffUnits.noteheadHeight.toPixels(staffSpaceSize);
 
-    return Rect.fromCenter(
-      center: center,
-      width: width,
-      height: height,
-    );
+    return Rect.fromCenter(center: center, width: width, height: height);
   }
 }

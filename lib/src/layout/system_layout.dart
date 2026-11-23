@@ -18,14 +18,14 @@ class SystemLayout {
 
   /// Calculate complete layout for all measures
   ScoreLayout calculateLayout(
-      List<Measure> measures, {
-        required double pageWidth,
-        required double leftMargin,
-        required double rightMargin,
-        required double topMargin,
-        required double measureSpacing,
-        LineBreakConfig? lineBreakConfig,
-      }) {
+    List<Measure> measures, {
+    required double pageWidth,
+    required double leftMargin,
+    required double rightMargin,
+    required double topMargin,
+    required double measureSpacing,
+    LineBreakConfig? lineBreakConfig,
+  }) {
     if (measures.isEmpty) {
       return const ScoreLayout(systems: [], totalHeight: 0);
     }
@@ -41,19 +41,20 @@ class SystemLayout {
       maxMeasuresPerLine: lineBreakConfig?.maxMeasuresPerLine ?? 6,
     );
 
-    final lines = lineBreakConfig?.strategy == LineBreakStrategy.explicit &&
-        lineBreakConfig?.explicitBreakPoints != null
+    final lines =
+        lineBreakConfig?.strategy == LineBreakStrategy.explicit &&
+            lineBreakConfig?.explicitBreakPoints != null
         ? lineBreaker.breakAtExplicitPoints(
-      measures,
-      lineBreakConfig!.explicitBreakPoints!,
-      startX: leftMargin,
-    )
+            measures,
+            lineBreakConfig!.explicitBreakPoints!,
+            startX: leftMargin,
+          )
         : lineBreaker.breakWithMinimalRaggedness(
-      measures,
-      startX: leftMargin,
-      measureSpacing: measureSpacing,
-      useSystemLayout: true,
-    );
+            measures,
+            startX: leftMargin,
+            measureSpacing: measureSpacing,
+            useSystemLayout: true,
+          );
 
     // Create systems from lines
     final systems = <SystemInfo>[];
@@ -80,39 +81,38 @@ class SystemLayout {
         isLastLine: i == lines.length - 1,
       );
 
-      systems.add(SystemInfo(
-        measures: line.measures,
-        systemNumber: i,
-        yPosition: currentY,
-        height: systemHeight,
-        spacing: lineSpacing,
-        showClef: i == 0, // Show clef only on first system
-        showMeasureNumbers: showMeasureNumbers,
-      ));
+      systems.add(
+        SystemInfo(
+          measures: line.measures,
+          systemNumber: i,
+          yPosition: currentY,
+          height: systemHeight,
+          spacing: lineSpacing,
+          showClef: i == 0, // Show clef only on first system
+          showMeasureNumbers: showMeasureNumbers,
+        ),
+      );
 
       currentY += systemHeight + systemSpacing;
     }
 
     final totalHeight = currentY - systemSpacing + topMargin;
 
-    return ScoreLayout(
-      systems: systems,
-      totalHeight: totalHeight,
-    );
+    return ScoreLayout(systems: systems, totalHeight: totalHeight);
   }
 
   /// Calculate layout for a single page
   PageLayout calculatePageLayout(
-      List<Measure> measures, {
-        required double pageWidth,
-        required double pageHeight,
-        required double leftMargin,
-        required double rightMargin,
-        required double topMargin,
-        required double bottomMargin,
-        required double measureSpacing,
-        LineBreakConfig? lineBreakConfig,
-      }) {
+    List<Measure> measures, {
+    required double pageWidth,
+    required double pageHeight,
+    required double leftMargin,
+    required double rightMargin,
+    required double topMargin,
+    required double bottomMargin,
+    required double measureSpacing,
+    LineBreakConfig? lineBreakConfig,
+  }) {
     final scoreLayout = calculateLayout(
       measures,
       pageWidth: pageWidth,
@@ -146,16 +146,16 @@ class SystemLayout {
 
   /// Calculate layout across multiple pages
   List<PageLayout> calculateMultiPageLayout(
-      List<Measure> measures, {
-        required double pageWidth,
-        required double pageHeight,
-        required double leftMargin,
-        required double rightMargin,
-        required double topMargin,
-        required double bottomMargin,
-        required double measureSpacing,
-        LineBreakConfig? lineBreakConfig,
-      }) {
+    List<Measure> measures, {
+    required double pageWidth,
+    required double pageHeight,
+    required double leftMargin,
+    required double rightMargin,
+    required double topMargin,
+    required double bottomMargin,
+    required double measureSpacing,
+    LineBreakConfig? lineBreakConfig,
+  }) {
     final scoreLayout = calculateLayout(
       measures,
       pageWidth: pageWidth,
@@ -178,12 +178,14 @@ class SystemLayout {
       if (currentPageHeight + systemTotalHeight > availableHeight &&
           currentPageSystems.isNotEmpty) {
         // Start a new page
-        pages.add(PageLayout(
-          systems: currentPageSystems,
-          pageNumber: pages.length,
-          width: pageWidth,
-          height: pageHeight,
-        ));
+        pages.add(
+          PageLayout(
+            systems: currentPageSystems,
+            pageNumber: pages.length,
+            width: pageWidth,
+            height: pageHeight,
+          ),
+        );
 
         currentPageSystems = [];
         currentPageHeight = 0;
@@ -195,12 +197,14 @@ class SystemLayout {
 
     // Add the last page
     if (currentPageSystems.isNotEmpty) {
-      pages.add(PageLayout(
-        systems: currentPageSystems,
-        pageNumber: pages.length,
-        width: pageWidth,
-        height: pageHeight,
-      ));
+      pages.add(
+        PageLayout(
+          systems: currentPageSystems,
+          pageNumber: pages.length,
+          width: pageWidth,
+          height: pageHeight,
+        ),
+      );
     }
 
     return pages;
@@ -212,10 +216,7 @@ class ScoreLayout {
   final List<SystemInfo> systems;
   final double totalHeight;
 
-  const ScoreLayout({
-    required this.systems,
-    required this.totalHeight,
-  });
+  const ScoreLayout({required this.systems, required this.totalHeight});
 
   /// Get system at a specific index
   SystemInfo? getSystem(int index) {
@@ -269,8 +270,7 @@ class SystemInfo {
   }
 
   /// First measure number in this system
-  int get firstMeasureNumber =>
-      measures.isNotEmpty ? measures.first.number : 0;
+  int get firstMeasureNumber => measures.isNotEmpty ? measures.first.number : 0;
 
   /// Last measure number in this system
   int get lastMeasureNumber => measures.isNotEmpty ? measures.last.number : 0;

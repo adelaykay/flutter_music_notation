@@ -10,19 +10,15 @@ class FlagRenderer {
   final double staffSpaceSize;
   final Color color;
 
-  const FlagRenderer({
-    required this.staffSpaceSize,
-    this.color = Colors.black,
-  });
+  const FlagRenderer({required this.staffSpaceSize, this.color = Colors.black});
 
   /// Paint flag(s) on a note stem
   void paint(
-      Canvas canvas,
-      Offset stemEnd, {
-        required StemDirection direction,
-        required DurationType durationType,
-      }) {
-
+    Canvas canvas,
+    Offset stemEnd, {
+    required StemDirection direction,
+    required DurationType durationType,
+  }) {
     if (!_needsFlag(durationType)) return;
 
     final flagCount = _getFlagCount(durationType);
@@ -33,11 +29,11 @@ class FlagRenderer {
 
   /// Paint flags using Bravura font glyphs
   void _paintFlagsWithGlyphs(
-      Canvas canvas,
-      Offset stemEnd,
-      StemDirection direction,
-      int flagCount,
-      ) {
+    Canvas canvas,
+    Offset stemEnd,
+    StemDirection direction,
+    int flagCount,
+  ) {
     final size = staffSpaceSize * 3.0;
 
     // SMuFL codes for flags
@@ -56,7 +52,9 @@ class FlagRenderer {
     ];
 
     // Choose appropriate glyph based on direction and count
-    final glyphList = direction == StemDirection.up ? upFlagGlyphs : downFlagGlyphs;
+    final glyphList = direction == StemDirection.up
+        ? upFlagGlyphs
+        : downFlagGlyphs;
     final glyphIndex = (flagCount - 1).clamp(0, glyphList.length - 1);
     final glyph = glyphList[glyphIndex];
 

@@ -99,12 +99,14 @@ class MidiParser {
               // Velocity 0 is equivalent to Note Off
               final startTime = activeNotes.remove(note);
               if (startTime != null) {
-                notes.add(MidiNote(
-                  midiNumber: note,
-                  velocity: 64,
-                  startTime: startTime,
-                  endTime: timeMs,
-                ));
+                notes.add(
+                  MidiNote(
+                    midiNumber: note,
+                    velocity: 64,
+                    startTime: startTime,
+                    endTime: timeMs,
+                  ),
+                );
               }
             }
           } else if (statusType == 0x80) {
@@ -122,12 +124,14 @@ class MidiParser {
 
             final startTime = activeNotes.remove(note);
             if (startTime != null) {
-              notes.add(MidiNote(
-                midiNumber: note,
-                velocity: velocity,
-                startTime: startTime,
-                endTime: timeMs,
-              ));
+              notes.add(
+                MidiNote(
+                  midiNumber: note,
+                  velocity: velocity,
+                  startTime: startTime,
+                  endTime: timeMs,
+                ),
+              );
             }
           } else if (statusType == 0xB0 || statusType == 0xE0) {
             // Control Change or Pitch Bend - skip 2 bytes
@@ -149,9 +153,10 @@ class MidiParser {
             if (metaType == 0x51 && length == 3) {
               // Tempo change (0x51)
               if (offset + 3 <= bytes.length) {
-                microsecondsPerQuarterNote = (bytes[offset] << 16) |
-                (bytes[offset + 1] << 8) |
-                bytes[offset + 2];
+                microsecondsPerQuarterNote =
+                    (bytes[offset] << 16) |
+                    (bytes[offset + 1] << 8) |
+                    bytes[offset + 2];
 
                 // Convert to BPM
                 beatsPerMinute = 60000000.0 / microsecondsPerQuarterNote;
@@ -224,10 +229,32 @@ class MidiParser {
 
     // Krumhansl-Schmuckler key profiles
     const majorProfile = [
-      6.35, 2.23, 3.48, 2.33, 4.38, 4.09, 2.52, 5.19, 2.39, 3.66, 2.29, 2.88
+      6.35,
+      2.23,
+      3.48,
+      2.33,
+      4.38,
+      4.09,
+      2.52,
+      5.19,
+      2.39,
+      3.66,
+      2.29,
+      2.88,
     ];
     const minorProfile = [
-      6.33, 2.68, 3.52, 5.38, 2.60, 3.53, 2.54, 4.75, 3.98, 2.69, 3.34, 3.17
+      6.33,
+      2.68,
+      3.52,
+      5.38,
+      2.60,
+      3.53,
+      2.54,
+      4.75,
+      3.98,
+      2.69,
+      3.34,
+      3.17,
     ];
 
     double maxCorrelation = -1.0;
@@ -238,11 +265,15 @@ class MidiParser {
     for (int key = 0; key < 12; key++) {
       // Test major
       double majorCorr = _calculateCorrelation(
-          pitchClassCounts, _rotateProfile(majorProfile, key));
+        pitchClassCounts,
+        _rotateProfile(majorProfile, key),
+      );
 
       // Test minor
       double minorCorr = _calculateCorrelation(
-          pitchClassCounts, _rotateProfile(minorProfile, key));
+        pitchClassCounts,
+        _rotateProfile(minorProfile, key),
+      );
 
       if (majorCorr > maxCorrelation) {
         maxCorrelation = majorCorr;
@@ -293,14 +324,34 @@ class MidiParser {
   static int _pitchClassToSharps(int pitchClass, bool isMinor) {
     if (isMinor) {
       const minorSharps = {
-        9: 0, 4: 1, 11: 2, 6: 3, 1: 4, 8: 5, 3: 6,
-        10: -2, 5: -4, 0: -3, 7: -2, 2: -1,
+        9: 0,
+        4: 1,
+        11: 2,
+        6: 3,
+        1: 4,
+        8: 5,
+        3: 6,
+        10: -2,
+        5: -4,
+        0: -3,
+        7: -2,
+        2: -1,
       };
       return minorSharps[pitchClass] ?? 0;
     } else {
       const majorSharps = {
-        0: 0, 7: 1, 2: 2, 9: 3, 4: 4, 11: 5, 6: 6,
-        1: -5, 8: -4, 3: -3, 10: -2, 5: -1,
+        0: 0,
+        7: 1,
+        2: 2,
+        9: 3,
+        4: 4,
+        11: 5,
+        6: 6,
+        1: -5,
+        8: -4,
+        3: -3,
+        10: -2,
+        5: -1,
       };
       return majorSharps[pitchClass] ?? 0;
     }
@@ -312,15 +363,15 @@ class MidiParser {
 
   static int _readInt32(Uint8List bytes, int offset) {
     return (bytes[offset] << 24) |
-    (bytes[offset + 1] << 16) |
-    (bytes[offset + 2] << 8) |
-    bytes[offset + 3];
+        (bytes[offset + 1] << 16) |
+        (bytes[offset + 2] << 8) |
+        bytes[offset + 3];
   }
 
   static ({int value, int offset}) _readVariableLength(
-      Uint8List bytes,
-      int offset,
-      ) {
+    Uint8List bytes,
+    int offset,
+  ) {
     int value = 0;
     int byte;
 
@@ -334,11 +385,12 @@ class MidiParser {
   }
 
   static int _ticksToMilliseconds(
-      int ticks,
-      int ticksPerBeat,
-      int microsecondsPerQuarterNote,
-      ) {
-    final millisecondsPerTick = microsecondsPerQuarterNote / ticksPerBeat / 1000;
+    int ticks,
+    int ticksPerBeat,
+    int microsecondsPerQuarterNote,
+  ) {
+    final millisecondsPerTick =
+        microsecondsPerQuarterNote / ticksPerBeat / 1000;
     return (ticks * millisecondsPerTick).round();
   }
 }

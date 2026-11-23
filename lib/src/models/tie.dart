@@ -15,11 +15,7 @@ class Tie {
   /// Direction of the tie curve (above or below noteheads)
   final CurveDirection? direction;
 
-  const Tie({
-    required this.startNote,
-    required this.endNote,
-    this.direction,
-  });
+  const Tie({required this.startNote, required this.endNote, this.direction});
 
   /// Validate that this is a valid tie
   /// Ties must connect notes of the same pitch
@@ -51,14 +47,15 @@ class Tie {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-          other is Tie &&
-              startNote == other.startNote &&
-              endNote == other.endNote &&
-              direction == other.direction;
+      other is Tie &&
+          startNote == other.startNote &&
+          endNote == other.endNote &&
+          direction == other.direction;
 
   @override
   int get hashCode => Object.hash(startNote, endNote, direction);
 
   @override
-  String toString() => 'Tie(${startNote.pitch}, ${startNote.startBeat} → ${endNote.endBeat})';
+  String toString() =>
+      'Tie(${startNote.pitch}, ${startNote.startBeat} → ${endNote.endBeat})';
 }

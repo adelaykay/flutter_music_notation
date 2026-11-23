@@ -2,7 +2,7 @@ class MidiNote {
   final int midiNumber;
   final int velocity;
   final int startTime; // milliseconds
-  final int endTime;   // milliseconds
+  final int endTime; // milliseconds
 
   const MidiNote({
     required this.midiNumber,

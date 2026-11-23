@@ -18,22 +18,24 @@ class GrandStaffLayout {
     this.lowerStaffHeight = 40.0,
     this.staffGap = 60.0,
     this.systemSpacing = 80.0,
-    this.showMeasureNumbers = true, this.useSystemLayout = false,
+    this.showMeasureNumbers = true,
+    this.useSystemLayout = false,
   });
 
   /// Total height of one grand staff system (both staves + gap)
-  double get totalSystemHeight => upperStaffHeight + staffGap + lowerStaffHeight;
+  double get totalSystemHeight =>
+      upperStaffHeight + staffGap + lowerStaffHeight;
 
   /// Calculate complete layout for a grand staff score
   GrandStaffScoreLayout calculateLayout(
-      GrandStaff grandStaff, {
-        required double pageWidth,
-        required double leftMargin,
-        required double rightMargin,
-        required double topMargin,
-        required double measureSpacing,
-        LineBreakConfig? lineBreakConfig,
-      }) {
+    GrandStaff grandStaff, {
+    required double pageWidth,
+    required double leftMargin,
+    required double rightMargin,
+    required double topMargin,
+    required double measureSpacing,
+    LineBreakConfig? lineBreakConfig,
+  }) {
     if (grandStaff.isEmpty) {
       return const GrandStaffScoreLayout(systems: [], totalHeight: 0);
     }
@@ -45,13 +47,16 @@ class GrandStaffLayout {
       spacingEngine: spacingEngine,
       targetLineWidth: availableWidth,
       minMeasuresPerLine: lineBreakConfig?.minMeasuresPerLine ?? 2,
-      maxMeasuresPerLine: useSystemLayout ? lineBreakConfig?.maxMeasuresPerLine ?? 6 : double.infinity,
+      maxMeasuresPerLine: useSystemLayout
+          ? lineBreakConfig?.maxMeasuresPerLine ?? 6
+          : double.infinity,
     );
 
     final lines = lineBreaker.breakWithMinimalRaggedness(
       grandStaff.upperStaff,
       startX: leftMargin,
-      measureSpacing: measureSpacing, useSystemLayout: useSystemLayout,
+      measureSpacing: measureSpacing,
+      useSystemLayout: useSystemLayout,
     );
 
     // Create grand staff systems
@@ -60,10 +65,12 @@ class GrandStaffLayout {
 
     for (int i = 0; i < lines.length; i++) {
       final line = lines[i];
-      final measureIndices = List.generate(
-        line.measures.length,
-            (index) => line.measures[index].number,
-      );
+      // Position of each bar in the upper staff (bar numbers need not start
+      // at 0, so they cannot be used as indices).
+      final measureIndices = [
+        for (final m in line.measures)
+          grandStaff.upperStaff.indexWhere((u) => identical(u, m)),
+      ];
 
       // Get corresponding lower staff measures
       final lowerMeasures = measureIndices
@@ -77,8 +84,10 @@ class GrandStaffLayout {
       // drawn on the shared barline.
       final measureElements = List.generate(line.measures.length, (i) {
         final byBeat = <double, dynamic>{};
-        for (final element
-            in [...line.measures[i].elements, ...lowerMeasures[i].elements]) {
+        for (final element in [
+          ...line.measures[i].elements,
+          ...lowerMeasures[i].elements,
+        ]) {
           final beat = element is Note
               ? element.startBeat
               : (element as Rest).startBeat;
@@ -101,29 +110,30 @@ class GrandStaffLayout {
         isLastLine: i == lines.length - 1,
       );
 
-      systems.add(GrandStaffSystemInfo(
-        upperStaffMeasures: line.measures,
-        lowerStaffMeasures: lowerMeasures,
-        systemNumber: i,
-        yPosition: currentY,
-        upperStaffHeight: upperStaffHeight,
-        lowerStaffHeight: lowerStaffHeight,
-        staffGap: staffGap,
-        spacing: lineSpacing,
-        showClef: i == 0,
-        showMeasureNumbers: showMeasureNumbers,
-        instrumentName: i == 0 ? grandStaff.instrumentName : grandStaff.instrumentAbbreviation,
-      ));
+      systems.add(
+        GrandStaffSystemInfo(
+          upperStaffMeasures: line.measures,
+          lowerStaffMeasures: lowerMeasures,
+          systemNumber: i,
+          yPosition: currentY,
+          upperStaffHeight: upperStaffHeight,
+          lowerStaffHeight: lowerStaffHeight,
+          staffGap: staffGap,
+          spacing: lineSpacing,
+          showClef: i == 0,
+          showMeasureNumbers: showMeasureNumbers,
+          instrumentName: i == 0
+              ? grandStaff.instrumentName
+              : grandStaff.instrumentAbbreviation,
+        ),
+      );
 
       currentY += totalSystemHeight + systemSpacing;
     }
 
     final totalHeight = currentY - systemSpacing + topMargin;
 
-    return GrandStaffScoreLayout(
-      systems: systems,
-      totalHeight: totalHeight,
-    );
+    return GrandStaffScoreLayout(systems: systems, totalHeight: totalHeight);
   }
 }
 

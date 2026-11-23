@@ -9,13 +9,17 @@ class TimeSignature {
   /// 2 = half note, 4 = quarter note, 8 = eighth note, etc.
   final int beatUnit;
 
-  const TimeSignature({
-    required this.beats,
-    required this.beatUnit,
-  }) : assert(beats > 0, 'Beats must be positive'),
-        assert(beatUnit == 1 || beatUnit == 2 || beatUnit == 4 ||
-            beatUnit == 8 || beatUnit == 16 || beatUnit == 32,
-        'Beat unit must be 1, 2, 4, 8, 16, or 32');
+  const TimeSignature({required this.beats, required this.beatUnit})
+    : assert(beats > 0, 'Beats must be positive'),
+      assert(
+        beatUnit == 1 ||
+            beatUnit == 2 ||
+            beatUnit == 4 ||
+            beatUnit == 8 ||
+            beatUnit == 16 ||
+            beatUnit == 32,
+        'Beat unit must be 1, 2, 4, 8, 16, or 32',
+      );
 
   /// Common time signatures
   static const fourFour = TimeSignature(beats: 4, beatUnit: 4);
@@ -52,9 +56,9 @@ class TimeSignature {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-          other is TimeSignature &&
-              beats == other.beats &&
-              beatUnit == other.beatUnit;
+      other is TimeSignature &&
+          beats == other.beats &&
+          beatUnit == other.beatUnit;
 
   @override
   int get hashCode => Object.hash(beats, beatUnit);

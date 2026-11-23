@@ -2,14 +2,14 @@
 
 /// Represents the type of note duration
 enum DurationType {
-  maxima(8.0),         // 8 whole notes
-  long(4.0),           // 4 whole notes (rarely used)
-  breve(2.0),          // 2 whole notes (double whole note)
-  whole(1.0),          // Whole note (semibreve)
-  half(0.5),           // Half note (minim)
-  quarter(0.25),       // Quarter note (crotchet)
-  eighth(0.125),       // Eighth note (quaver)
-  sixteenth(0.0625),   // Sixteenth note (semiquaver)
+  maxima(8.0), // 8 whole notes
+  long(4.0), // 4 whole notes (rarely used)
+  breve(2.0), // 2 whole notes (double whole note)
+  whole(1.0), // Whole note (semibreve)
+  half(0.5), // Half note (minim)
+  quarter(0.25), // Quarter note (crotchet)
+  eighth(0.125), // Eighth note (quaver)
+  sixteenth(0.0625), // Sixteenth note (semiquaver)
   thirtySecond(0.03125), // 32nd note (demisemiquaver)
   sixtyFourth(0.015625); // 64th note (hemidemisemiquaver)
 
@@ -19,7 +19,8 @@ enum DurationType {
   final double baseBeats;
 
   /// Whether this duration needs a stem
-  bool get needsStem => this != DurationType.whole && this != DurationType.breve;
+  bool get needsStem =>
+      this != DurationType.whole && this != DurationType.breve;
 
   /// Whether this duration needs flags (if not beamed)
   bool get needsFlag => index >= DurationType.eighth.index;
@@ -70,10 +71,11 @@ class Tuplet {
   /// Number of notes that would normally occupy the space (e.g., 2 in a triplet)
   final int normalNotes;
 
-  const Tuplet({
-    required this.actualNotes,
-    required this.normalNotes,
-  }) : assert(actualNotes > 0 && normalNotes > 0, 'Tuplet values must be positive');
+  const Tuplet({required this.actualNotes, required this.normalNotes})
+    : assert(
+        actualNotes > 0 && normalNotes > 0,
+        'Tuplet values must be positive',
+      );
 
   /// Common tuplet: triplet (3 in the time of 2)
   static const triplet = Tuplet(actualNotes: 3, normalNotes: 2);
@@ -90,9 +92,9 @@ class Tuplet {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-          other is Tuplet &&
-              actualNotes == other.actualNotes &&
-              normalNotes == other.normalNotes;
+      other is Tuplet &&
+          actualNotes == other.actualNotes &&
+          normalNotes == other.normalNotes;
 
   @override
   int get hashCode => Object.hash(actualNotes, normalNotes);
@@ -112,23 +114,41 @@ class NoteDuration {
   /// Optional tuplet modification
   final Tuplet? tuplet;
 
-  const NoteDuration({
-    required this.type,
-    this.dots = 0,
-    this.tuplet,
-  }) : assert(dots >= 0 && dots <= 2, 'Dots must be 0, 1, or 2');
+  const NoteDuration({required this.type, this.dots = 0, this.tuplet})
+    : assert(dots >= 0 && dots <= 2, 'Dots must be 0, 1, or 2');
 
   /// Common durations (convenience constructors)
-  const NoteDuration.whole() : type = DurationType.whole, dots = 0, tuplet = null;
+  const NoteDuration.whole()
+    : type = DurationType.whole,
+      dots = 0,
+      tuplet = null;
   const NoteDuration.half() : type = DurationType.half, dots = 0, tuplet = null;
-  const NoteDuration.quarter() : type = DurationType.quarter, dots = 0, tuplet = null;
-  const NoteDuration.eighth() : type = DurationType.eighth, dots = 0, tuplet = null;
-  const NoteDuration.sixteenth() : type = DurationType.sixteenth, dots = 0, tuplet = null;
+  const NoteDuration.quarter()
+    : type = DurationType.quarter,
+      dots = 0,
+      tuplet = null;
+  const NoteDuration.eighth()
+    : type = DurationType.eighth,
+      dots = 0,
+      tuplet = null;
+  const NoteDuration.sixteenth()
+    : type = DurationType.sixteenth,
+      dots = 0,
+      tuplet = null;
 
   /// Dotted durations
-  const NoteDuration.dottedHalf() : type = DurationType.half, dots = 1, tuplet = null;
-  const NoteDuration.dottedQuarter() : type = DurationType.quarter, dots = 1, tuplet = null;
-  const NoteDuration.dottedEighth() : type = DurationType.eighth, dots = 1, tuplet = null;
+  const NoteDuration.dottedHalf()
+    : type = DurationType.half,
+      dots = 1,
+      tuplet = null;
+  const NoteDuration.dottedQuarter()
+    : type = DurationType.quarter,
+      dots = 1,
+      tuplet = null;
+  const NoteDuration.dottedEighth()
+    : type = DurationType.eighth,
+      dots = 1,
+      tuplet = null;
 
   /// Calculate total duration in quarter notes
   /// A quarter note = 1.0
@@ -164,11 +184,7 @@ class NoteDuration {
   bool get isFilledNotehead => type.isFilledNotehead;
 
   /// Create a copy with modified properties
-  NoteDuration copyWith({
-    DurationType? type,
-    int? dots,
-    Tuplet? tuplet,
-  }) {
+  NoteDuration copyWith({DurationType? type, int? dots, Tuplet? tuplet}) {
     return NoteDuration(
       type: type ?? this.type,
       dots: dots ?? this.dots,
@@ -179,10 +195,10 @@ class NoteDuration {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-          other is NoteDuration &&
-              type == other.type &&
-              dots == other.dots &&
-              tuplet == other.tuplet;
+      other is NoteDuration &&
+          type == other.type &&
+          dots == other.dots &&
+          tuplet == other.tuplet;
 
   @override
   int get hashCode => Object.hash(type, dots, tuplet);

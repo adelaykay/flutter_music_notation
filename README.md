@@ -7,19 +7,15 @@ A professional music notation rendering library for Flutter that displays standa
 
 ## Features
 
-✅ **Complete Phase 3 Implementation**
-- 🎼 All standard clefs (Treble, Bass, Alto, Tenor)
-- 🎵 All key signatures (C Major through C♭ Major, 15 keys)
-- 🎶 All time signatures (4/4, 3/4, 6/8, 2/2, etc.)
-- 🎹 Professional note rendering with proper engraving standards
-- 🎪 Rest symbols for all durations
-- ⚫ Dotted notes (single and double dots)
-- 📊 Flag rendering for eighth notes and shorter
-- 📏 Ledger lines for notes above/below staff
-- 🎯 Multiple barline types (single, double, final)
-- 🎨 Beautiful SMuFL-compliant glyphs using Bravura font
-- ⚡ 60fps playback with real-time note highlighting (from Phase 2)
-- 🎸 Chord support with intelligent stem direction
+- 🎼 All standard clefs (treble, bass, alto, tenor) and all 15 major and minor key signatures
+- 🎶 Time signatures with SMuFL glyphs, including common and cut time
+- 🎹 Notes, rests, dots, ledger lines, chords and barlines engraved with the Bravura font
+- ♯ Accidentals that follow real engraving rules: by letter name, carried through the bar, with naturals where needed
+- 📏 Proportional spacing, automatic line breaks and a ragged final line
+- 🎹 Grand staff (piano) with brace and shared spacing across both staves
+- 🔗 Beams, ties (including across barlines and line breaks), slurs and tuplets
+- 🎧 MIDI import: from a `.mid` file or live keyboard input to clean notation, with quantization, rests, ties, chords, key-aware spelling and key estimation
+- ⚡ Playback with real-time note highlighting
 
 ## Screenshots
 
@@ -311,6 +307,39 @@ class _MyMusicPlayerState extends State<MyMusicPlayer> {
 }
 ```
 
+## From MIDI
+
+Turn a `.mid` file or notes recorded from a keyboard into notation:
+
+```dart
+final midi = MidiData(
+  notes: recordedNotes, // MidiNote(midiNumber, velocity, startTime ms, endTime ms)
+  timeSignatureNumerator: 4,
+  timeSignatureDenominator: 4,
+  beatsPerMinute: 96,
+  ticksPerQuarterNote: 480,
+);
+final converter = MidiToNotation(midiData: midi);
+
+// Piano: notes from middle C up go to the upper staff.
+NotationView(grandStaff: converter.toGrandStaff(), config: const NotationConfig(useSystemLayout: true));
+
+// Or a single staff in the clef that suits the music.
+NotationView(
+  measures: converter.toSingleStaff(),
+  config: NotationConfig(clef: converter.suggestedClef(), useSystemLayout: true),
+);
+```
+
+The converter:
+- picks the coarsest rhythmic grid that explains the playing, so small timing wobbles don't turn into tiny note values (or pass `gridResolution` yourself)
+- trims the silence before the first bar, groups notes pressed together into chords and trims legato overlaps
+- fills every gap with rests, so each bar adds up
+- splits notes at barlines and beats and joins the pieces with ties
+- spells pitches from the key (F♯ in G major, C♭ in C♭ major, G♯ as the leading note of A minor)
+
+For a recording with no key, `converter.estimateKey()` suggests one. Pass its `accidentals` and `isMinor` as `keySignatureSharps` and `keySignatureIsMinor`.
+
 ## Configuration
 
 Customize the notation appearance:
@@ -319,15 +348,19 @@ Customize the notation appearance:
 NotationView(
   measures: measures,
   config: NotationConfig(
-    staffSpaceSize: 14.0,         // Size of staff space (default: 12)
-    staffLineColor: Colors.black, // Staff line color
-    noteColor: Colors.black,      // Note color
-    activeNoteColor: Colors.green, // Color for active notes during playback
-    clef: ClefType.treble,        // Which clef to use
-    noteWidth: 50.0,              // Horizontal spacing between notes
-    leftMargin: 80.0,             // Left padding for clef/signatures
-    measureSpacing: 30.0,         // Space between measures
-    width: 400.0,                 // Width of the notation container
+    staffSpaceSize: 14.0,          // Size of a staff space (default: 12)
+    staffLineColor: Colors.black,
+    noteColor: Colors.black,
+    activeNoteColor: Colors.green, // Notes during playback
+    clef: ClefType.treble,
+    useSystemLayout: true,         // Wrap onto multiple lines
+    enableBeaming: true,           // Beam eighths and shorter
+    showTimeSignature: true,       // Hide the time signature with false
+    showKeySignatureOnEachSystem: true,
+    expandWidth: false,            // Stretch the staff to the full width
+    leadingSpace: 0.0,             // Extra space before the first note
+    barlineToClefSpace: 0.0,       // Space between the start barline and the clef
+    width: 400.0,
   ),
 )
 ```
@@ -354,35 +387,13 @@ flutter run
 
 ## Roadmap
 
-### Phase 4: Layout & Spacing Engine (In Progress)
-- Proportional spacing based on note duration
-- Collision detection for accidentals
-- Multi-measure layout with automatic line breaks
-- Performance optimization
+Done: core engraving, layout and spacing, grand staff, beams, ties, slurs, tuplets and MIDI import.
 
-### Phase 5: Grand Staff (Piano)
-- Two-staff system for piano notation
-- Brace rendering
-- Synchronized measures
-
-### Phase 6: Advanced Features
-- Beaming for eighth notes and shorter
-- Ties and slurs with Bezier curves
-- Tuplets (triplets, quintuplets, etc.)
-- Dynamics markings (f, p, crescendo)
-- Articulations (staccato, accent, fermata)
-
-### Phase 7: MIDI Integration
-- Complete MIDI file parsing
-- Intelligent quantization
-- Voice separation
-- Full MIDI-to-notation conversion
-
-### Phase 8: Polish & Release 1.0
-- Comprehensive test coverage (80%+)
-- Performance optimization
-- Complete API documentation
-- Tutorial videos
+Next:
+- Dynamics (f, p, hairpins) and articulations (staccato, accent, fermata)
+- Two voices on one staff (e.g. a held bass note under a moving line)
+- Triplet detection in MIDI input
+- Smarter hand split for piano input
 
 ## Architecture
 
@@ -410,8 +421,8 @@ Models → Geometry → Layout → Rendering → Widgets
 
 ## Requirements
 
-- Flutter 3.0 or higher
-- Dart 3.0 or higher
+- Flutter 3.35 or higher
+- Dart 3.9 or higher
 
 ## Contributing
 
@@ -434,6 +445,10 @@ flutter test
 cd example
 flutter run
 ```
+
+## Contributors
+
+- **Julien Bourgeois** ([@Julien5](https://github.com/Julien5)): `showTimeSignature`, `expandWidth`, `leadingSpace`, `barlineToClefSpace`, start barlines, the grand staff brace and spacing fix, and the golden tests.
 
 ## License
 

@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.3.0] - 2026-11-23
 
 ### Added
 - Layout options contributed by **Julien Bourgeois** ([@Julien5](https://github.com/Julien5)). All are opt-in, and the defaults keep existing output unchanged:
@@ -17,7 +17,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Golden tests for the example layouts (Julien Bourgeois), now rendered with the real music font
 - `KeySignature.accidentalFor(letter)` and `KeySignature.notesNeedingAccidentals(notes)`
 
+- **MIDI import rewritten** for live keyboard input and files:
+  - picks the coarsest rhythmic grid that explains the playing (the old detector always chose the finest grid, turning timing wobbles into tiny note values)
+  - fills gaps with rests so every bar adds up, and keeps silent bars as whole-bar rests
+  - splits notes at barlines and beats and ties the pieces; ties are drawn across barlines and line breaks
+  - groups notes pressed together into chords and trims legato overlaps
+  - trims silence before the first bar
+  - spells pitches from the key, including C♭ major and the raised leading note in minor keys
+  - `MidiToNotation.suggestedClef()`, `MidiToNotation.estimateKey()`, `MidiToNotation.spell()` and a `splitPoint` for `toGrandStaff()`
+- `Note.tieToNext` for ties that cross a barline
+
 ### Changed
+- Bars produced from MIDI are numbered from 1
+- Requires Flutter 3.35 / Dart 3.9
 - The key signature is repeated at the start of every system by default (`showKeySignatureOnEachSystem: true`), as in standard engraving
 - A short final system is left ragged instead of being stretched across the full width
 - Time signatures use the SMuFL time-signature glyphs from the bundled font
@@ -32,6 +44,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Grand staff brace rendering (Julien Bourgeois)
 - Grand staff spacing considers notes on both staves, so a note on an otherwise empty lower staff is no longer drawn on the barline (Julien Bourgeois)
 - MIDI files whose header chunk is longer than 6 bytes are parsed correctly
+- `toSingleStaff(clefPreference:)` was ignored; use `suggestedClef()` for the matching clef
+- Grand staff layout no longer assumes bar numbers start at 0
 
 ## [0.2.0] - 2025-11-06
 

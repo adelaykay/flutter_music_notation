@@ -9,18 +9,10 @@ class ClefRenderer {
   final double staffSpaceSize;
   final Color color;
 
-  const ClefRenderer({
-    required this.staffSpaceSize,
-    this.color = Colors.black,
-  });
+  const ClefRenderer({required this.staffSpaceSize, this.color = Colors.black});
 
   /// Paint a clef symbol
-  void paint(
-      Canvas canvas,
-      double x,
-      double staffTopY,
-      ClefType clefType,
-      ) {
+  void paint(Canvas canvas, double x, double staffTopY, ClefType clefType) {
     switch (clefType) {
       case ClefType.treble:
         _drawTrebleClef(canvas, x, staffTopY);
@@ -106,7 +98,9 @@ class ClefRenderer {
 
     final glyphCode = clefType == ClefType.treble
         ? GlyphProvider.trebleClef
-        : (clefType == ClefType.bass ? GlyphProvider.bassClef : GlyphProvider.altoClef);
+        : (clefType == ClefType.bass
+              ? GlyphProvider.bassClef
+              : GlyphProvider.altoClef);
 
     final glyph = GlyphProvider.getGlyph(glyphCode, size, color: color);
     return glyph.width;

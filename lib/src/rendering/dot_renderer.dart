@@ -9,19 +9,16 @@ class DotRenderer {
   final double staffSpaceSize;
   final Color color;
 
-  const DotRenderer({
-    required this.staffSpaceSize,
-    this.color = Colors.black,
-  });
+  const DotRenderer({required this.staffSpaceSize, this.color = Colors.black});
 
   /// Paint dot(s) after a note
   /// Dots are placed to the right of the notehead
   void paintNoteDots(
-      Canvas canvas,
-      Offset noteheadCenter,
-      StaffPosition staffPosition,
-      int dotCount,
-      ) {
+    Canvas canvas,
+    Offset noteheadCenter,
+    StaffPosition staffPosition,
+    int dotCount,
+  ) {
     if (dotCount == 0) return;
 
     final radius = StaffUnits.dotRadius.toPixels(staffSpaceSize);
@@ -53,11 +50,7 @@ class DotRenderer {
   }
 
   /// Paint dot(s) after a rest
-  void paintRestDots(
-      Canvas canvas,
-      Offset restCenter,
-      int dotCount,
-      ) {
+  void paintRestDots(Canvas canvas, Offset restCenter, int dotCount) {
     if (dotCount == 0) return;
 
     final radius = StaffUnits.dotRadius.toPixels(staffSpaceSize);
@@ -72,10 +65,7 @@ class DotRenderer {
 
     // Draw each dot
     for (int i = 0; i < dotCount; i++) {
-      final dotCenter = Offset(
-        restCenter.dx + xOffset,
-        restCenter.dy,
-      );
+      final dotCenter = Offset(restCenter.dx + xOffset, restCenter.dy);
 
       canvas.drawCircle(dotCenter, radius, paint);
 

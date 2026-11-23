@@ -9,19 +9,16 @@ class RestRenderer {
   final double staffSpaceSize;
   final Color color;
 
-  const RestRenderer({
-    required this.staffSpaceSize,
-    this.color = Colors.black,
-  });
+  const RestRenderer({required this.staffSpaceSize, this.color = Colors.black});
 
   /// Paint a rest symbol
   /// Rests are positioned relative to the staff middle
   void paint(
-      Canvas canvas,
-      Offset staffTopLeft,
-      double xPosition,
-      DurationType durationType,
-      ) {
+    Canvas canvas,
+    Offset staffTopLeft,
+    double xPosition,
+    DurationType durationType,
+  ) {
     final glyph = GlyphProvider.getRestGlyph(durationType);
     final size = _getRestSize(durationType);
 
@@ -29,7 +26,10 @@ class RestRenderer {
 
     // Calculate Y position based on rest type
     final yOffset = _getRestYOffset(durationType);
-    final restY = staffTopLeft.dy + (staffSpaceSize * 2) + yOffset; // Middle line + offset
+    final restY =
+        staffTopLeft.dy +
+        (staffSpaceSize * 2) +
+        yOffset; // Middle line + offset
 
     final x = xPosition - textPainter.width / 2;
     final y = restY - textPainter.height / 2;
@@ -63,17 +63,17 @@ class RestRenderer {
   double _getRestYOffset(DurationType type) {
     switch (type) {
       case DurationType.whole:
-      // Whole rest hangs from 4th line (below middle)
+        // Whole rest hangs from 4th line (below middle)
         return -staffSpaceSize * 0.5;
       case DurationType.half:
-      // Half rest sits on middle line
+        // Half rest sits on middle line
         return staffSpaceSize * 0.5;
       case DurationType.quarter:
       case DurationType.eighth:
       case DurationType.sixteenth:
       case DurationType.thirtySecond:
       case DurationType.sixtyFourth:
-      // These rests are centered on staff
+        // These rests are centered on staff
         return 0;
       case DurationType.breve:
       case DurationType.long:

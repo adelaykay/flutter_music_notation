@@ -45,7 +45,11 @@ class StaffRenderer {
   }
 
   /// Paint ledger lines for a note at the given position
-  void paintLedgerLines(Canvas canvas, Offset noteCenter, StaffPosition position) {
+  void paintLedgerLines(
+    Canvas canvas,
+    Offset noteCenter,
+    StaffPosition position,
+  ) {
     final ledgerPositions = position.getLedgerLinePositions();
     if (ledgerPositions.isEmpty) return;
 
@@ -59,7 +63,10 @@ class StaffRenderer {
     final lineWidth = noteheadWidth + (2 * extension);
 
     for (final ledgerPos in ledgerPositions) {
-      final y = positionToY(StaffPosition(ledgerPos.toDouble())) + noteCenter.dy - positionToY(position);
+      final y =
+          positionToY(StaffPosition(ledgerPos.toDouble())) +
+          noteCenter.dy -
+          positionToY(position);
       canvas.drawLine(
         Offset(noteCenter.dx - lineWidth / 2, y),
         Offset(noteCenter.dx + lineWidth / 2, y),

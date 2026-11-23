@@ -12,11 +12,11 @@ class KeySignature {
   /// Whether this is a minor key (vs major)
   final bool isMinor;
 
-  const KeySignature({
-    required this.accidentals,
-    this.isMinor = false,
-  }) : assert(accidentals >= -7 && accidentals <= 7,
-  'Accidentals must be between -7 and +7');
+  const KeySignature({required this.accidentals, this.isMinor = false})
+    : assert(
+        accidentals >= -7 && accidentals <= 7,
+        'Accidentals must be between -7 and +7',
+      );
 
   /// Common key signatures
   static const cMajor = KeySignature(accidentals: 0);
@@ -64,7 +64,6 @@ class KeySignature {
   static const cFlatMajor = KeySignature(accidentals: -7);
   static const aFlatMinor = KeySignature(accidentals: -7, isMinor: true);
 
-
   /// Get the name of this key
   String get name {
     const majorKeys = ['C', 'G', 'D', 'A', 'E', 'B', 'F♯', 'C♯'];
@@ -107,10 +106,30 @@ class KeySignature {
   /// The accidental this key signature applies to [letter]
   /// (e.g. F → sharp in G major, B → flat in F major, natural otherwise).
   Accidental accidentalFor(NoteName letter) {
-    const sharpOrder = [NoteName.F, NoteName.C, NoteName.G, NoteName.D, NoteName.A, NoteName.E, NoteName.B];
-    const flatOrder = [NoteName.B, NoteName.E, NoteName.A, NoteName.D, NoteName.G, NoteName.C, NoteName.F];
-    if (accidentals > 0 && sharpOrder.take(accidentals).contains(letter)) return Accidental.sharp;
-    if (accidentals < 0 && flatOrder.take(-accidentals).contains(letter)) return Accidental.flat;
+    const sharpOrder = [
+      NoteName.F,
+      NoteName.C,
+      NoteName.G,
+      NoteName.D,
+      NoteName.A,
+      NoteName.E,
+      NoteName.B,
+    ];
+    const flatOrder = [
+      NoteName.B,
+      NoteName.E,
+      NoteName.A,
+      NoteName.D,
+      NoteName.G,
+      NoteName.C,
+      NoteName.F,
+    ];
+    if (accidentals > 0 && sharpOrder.take(accidentals).contains(letter)) {
+      return Accidental.sharp;
+    }
+    if (accidentals < 0 && flatOrder.take(-accidentals).contains(letter)) {
+      return Accidental.flat;
+    }
     return Accidental.natural;
   }
 
@@ -118,7 +137,8 @@ class KeySignature {
   /// key. Key signatures alter letter names, so this compares the pitch's own
   /// accidental with the one the key gives its letter: F♯ in G major needs
   /// none, F♮ in G major needs a natural.
-  bool needsAccidental(Pitch pitch) => pitch.accidental != accidentalFor(pitch.noteName);
+  bool needsAccidental(Pitch pitch) =>
+      pitch.accidental != accidentalFor(pitch.noteName);
 
   /// Which of [notes] (one bar) need a written accidental, following standard
   /// engraving: an accidental lasts until the end of the bar for that letter
@@ -129,7 +149,9 @@ class KeySignature {
     final ordered = notes.toList()
       ..sort((a, b) {
         final byBeat = a.startBeat.compareTo(b.startBeat);
-        return byBeat != 0 ? byBeat : a.pitch.midiNumber.compareTo(b.pitch.midiNumber);
+        return byBeat != 0
+            ? byBeat
+            : a.pitch.midiNumber.compareTo(b.pitch.midiNumber);
       });
     final current = <(NoteName, int), Accidental>{};
     final result = Set<Note>.identity();
@@ -151,9 +173,9 @@ class KeySignature {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-          other is KeySignature &&
-              accidentals == other.accidentals &&
-              isMinor == other.isMinor;
+      other is KeySignature &&
+          accidentals == other.accidentals &&
+          isMinor == other.isMinor;
 
   @override
   int get hashCode => Object.hash(accidentals, isMinor);

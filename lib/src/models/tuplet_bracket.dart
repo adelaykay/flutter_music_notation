@@ -72,7 +72,8 @@ class TupletBracket {
     if (direction != null) return direction!;
 
     // Average position (4.0 is middle line)
-    final avgPosition = staffPositions.reduce((a, b) => a + b) / staffPositions.length;
+    final avgPosition =
+        staffPositions.reduce((a, b) => a + b) / staffPositions.length;
 
     // Place bracket opposite to where notes are
     return avgPosition > 4.0 ? TupletDirection.above : TupletDirection.below;
@@ -81,12 +82,12 @@ class TupletBracket {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-          other is TupletBracket &&
-              _listEquals(notes, other.notes) &&
-              tuplet == other.tuplet &&
-              showBracket == other.showBracket &&
-              direction == other.direction &&
-              showRatio == other.showRatio;
+      other is TupletBracket &&
+          _listEquals(notes, other.notes) &&
+          tuplet == other.tuplet &&
+          showBracket == other.showBracket &&
+          direction == other.direction &&
+          showRatio == other.showRatio;
 
   bool _listEquals(List<Note> a, List<Note> b) {
     if (a.length != b.length) return false;
@@ -142,10 +143,12 @@ class TupletHelper {
         } else {
           // Save previous group if exists
           if (currentGroup.length >= 2 && currentTuplet != null) {
-            tupletBrackets.add(TupletBracket(
-              notes: List.from(currentGroup),
-              tuplet: currentTuplet,
-            ));
+            tupletBrackets.add(
+              TupletBracket(
+                notes: List.from(currentGroup),
+                tuplet: currentTuplet,
+              ),
+            );
           }
 
           // Start new group
@@ -155,10 +158,12 @@ class TupletHelper {
       } else {
         // No tuplet - save previous group if exists
         if (currentGroup.length >= 2 && currentTuplet != null) {
-          tupletBrackets.add(TupletBracket(
-            notes: List.from(currentGroup),
-            tuplet: currentTuplet,
-          ));
+          tupletBrackets.add(
+            TupletBracket(
+              notes: List.from(currentGroup),
+              tuplet: currentTuplet,
+            ),
+          );
         }
         currentGroup = [];
         currentTuplet = null;
@@ -167,10 +172,9 @@ class TupletHelper {
 
     // Save final group if exists
     if (currentGroup.length >= 2 && currentTuplet != null) {
-      tupletBrackets.add(TupletBracket(
-        notes: currentGroup,
-        tuplet: currentTuplet,
-      ));
+      tupletBrackets.add(
+        TupletBracket(notes: currentGroup, tuplet: currentTuplet),
+      );
     }
 
     return tupletBrackets;
@@ -178,10 +182,10 @@ class TupletHelper {
 
   /// Create a triplet bracket for notes
   static TupletBracket createTriplet(
-      List<Note> notes, {
-        bool showBracket = true,
-        TupletDirection? direction,
-      }) {
+    List<Note> notes, {
+    bool showBracket = true,
+    TupletDirection? direction,
+  }) {
     return TupletBracket(
       notes: notes,
       tuplet: triplet,
@@ -192,10 +196,10 @@ class TupletHelper {
 
   /// Create a quintuplet bracket
   static TupletBracket createQuintuplet(
-      List<Note> notes, {
-        bool showBracket = true,
-        TupletDirection? direction,
-      }) {
+    List<Note> notes, {
+    bool showBracket = true,
+    TupletDirection? direction,
+  }) {
     return TupletBracket(
       notes: notes,
       tuplet: quintuplet,
@@ -232,10 +236,7 @@ class NestedTuplet {
   /// Inner tuplet brackets
   final List<TupletBracket> innerTuplets;
 
-  const NestedTuplet({
-    required this.outerTuplet,
-    required this.innerTuplets,
-  });
+  const NestedTuplet({required this.outerTuplet, required this.innerTuplets});
 
   /// Whether this nested tuplet is valid
   bool isValid() {
@@ -250,5 +251,6 @@ class NestedTuplet {
   }
 
   @override
-  String toString() => 'NestedTuplet(outer: ${outerTuplet.displayText}, inner: ${innerTuplets.length})';
+  String toString() =>
+      'NestedTuplet(outer: ${outerTuplet.displayText}, inner: ${innerTuplets.length})';
 }

@@ -10,18 +10,15 @@ class SlurRenderer {
   final double staffSpaceSize;
   final Color color;
 
-  const SlurRenderer({
-    required this.staffSpaceSize,
-    this.color = Colors.black,
-  });
+  const SlurRenderer({required this.staffSpaceSize, this.color = Colors.black});
 
   /// Paint a slur over multiple notes
   void paintSlur(
-      Canvas canvas,
-      Slur slur,
-      List<Offset> noteheadCenters,
-      CurveDirection direction,
-      ) {
+    Canvas canvas,
+    Slur slur,
+    List<Offset> noteheadCenters,
+    CurveDirection direction,
+  ) {
     if (noteheadCenters.length < 2) return;
 
     final startCenter = noteheadCenters.first;
@@ -64,11 +61,11 @@ class SlurRenderer {
 
   /// Paint a phrase marking (longer, more gradual slur)
   void paintPhraseMarking(
-      Canvas canvas,
-      Slur slur,
-      List<Offset> noteheadCenters,
-      CurveDirection direction,
-      ) {
+    Canvas canvas,
+    Slur slur,
+    List<Offset> noteheadCenters,
+    CurveDirection direction,
+  ) {
     if (noteheadCenters.length < 2) return;
 
     final startCenter = noteheadCenters.first;
@@ -86,10 +83,10 @@ class SlurRenderer {
 
   /// Calculate where slur attaches to a notehead
   Offset _calculateSlurAttachment(
-      Offset noteheadCenter,
-      CurveDirection direction,
-      bool isStart,
-      ) {
+    Offset noteheadCenter,
+    CurveDirection direction,
+    bool isStart,
+  ) {
     final noteheadWidth = StaffUnits.noteheadWidth.toPixels(staffSpaceSize);
     final noteheadHeight = StaffUnits.noteheadHeight.toPixels(staffSpaceSize);
 
@@ -111,11 +108,11 @@ class SlurRenderer {
 
   /// Check if slur would collide with middle notes
   bool _wouldCollideWithMiddleNotes(
-      Offset start,
-      Offset end,
-      List<Offset> middleNotes,
-      CurveDirection direction,
-      ) {
+    Offset start,
+    Offset end,
+    List<Offset> middleNotes,
+    CurveDirection direction,
+  ) {
     if (middleNotes.isEmpty) return false;
 
     final clearance = staffSpaceSize * 1.5;
@@ -129,13 +126,13 @@ class SlurRenderer {
 
   /// Draw the slur curve
   void _drawCurve(
-      Canvas canvas,
-      Offset start,
-      Offset end,
-      CurveDirection direction,
-      double curvature,
-      SlurType type,
-      ) {
+    Canvas canvas,
+    Offset start,
+    Offset end,
+    CurveDirection direction,
+    double curvature,
+    SlurType type,
+  ) {
     // Calculate control points
     final controlPoints = CurveCalculator.calculateBezierControlPoints(
       start,
@@ -195,14 +192,14 @@ class SlurRenderer {
 
   /// Paint a slur that spans across systems
   void paintSystemSpanningSlur(
-      Canvas canvas,
-      SystemSpanningSlur slur,
-      List<Offset> firstSystemNotes,
-      List<Offset> secondSystemNotes,
-      double firstSystemRightEdge,
-      double secondSystemLeftEdge,
-      CurveDirection direction,
-      ) {
+    Canvas canvas,
+    SystemSpanningSlur slur,
+    List<Offset> firstSystemNotes,
+    List<Offset> secondSystemNotes,
+    double firstSystemRightEdge,
+    double secondSystemLeftEdge,
+    CurveDirection direction,
+  ) {
     // Draw first part (to system edge)
     if (firstSystemNotes.isNotEmpty) {
       final startPoint = _calculateSlurAttachment(
@@ -217,12 +214,22 @@ class SlurRenderer {
         isTie: false,
       );
 
-      _drawCurve(canvas, startPoint, endPoint, direction, curvature, slur.originalSlur.type);
+      _drawCurve(
+        canvas,
+        startPoint,
+        endPoint,
+        direction,
+        curvature,
+        slur.originalSlur.type,
+      );
     }
 
     // Draw second part (from system edge)
     if (secondSystemNotes.isNotEmpty) {
-      final startPoint = Offset(secondSystemLeftEdge, secondSystemNotes.first.dy);
+      final startPoint = Offset(
+        secondSystemLeftEdge,
+        secondSystemNotes.first.dy,
+      );
       final endPoint = _calculateSlurAttachment(
         secondSystemNotes.last,
         direction,
@@ -234,7 +241,14 @@ class SlurRenderer {
         isTie: false,
       );
 
-      _drawCurve(canvas, startPoint, endPoint, direction, curvature, slur.originalSlur.type);
+      _drawCurve(
+        canvas,
+        startPoint,
+        endPoint,
+        direction,
+        curvature,
+        slur.originalSlur.type,
+      );
     }
   }
 }

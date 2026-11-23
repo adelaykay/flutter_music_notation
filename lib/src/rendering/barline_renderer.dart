@@ -16,12 +16,12 @@ class BarlineRenderer {
 
   /// Paint a barline
   void paint(
-      Canvas canvas,
-      double x,
-      double topY,
-      double bottomY,
-      BarlineType type,
-      ) {
+    Canvas canvas,
+    double x,
+    double topY,
+    double bottomY,
+    BarlineType type,
+  ) {
     switch (type) {
       case BarlineType.single:
         _drawSingleBarline(canvas, x, topY, bottomY);
@@ -45,29 +45,32 @@ class BarlineRenderer {
   }
 
   /// Draw a single barline
-  void _drawSingleBarline(Canvas canvas, double x, double topY, double bottomY) {
+  void _drawSingleBarline(
+    Canvas canvas,
+    double x,
+    double topY,
+    double bottomY,
+  ) {
     final paint = Paint()
       ..color = color
       ..strokeWidth = StaffUnits.barlineThickness.toPixels(staffSpaceSize)
       ..style = PaintingStyle.stroke;
 
-    canvas.drawLine(
-      Offset(x, topY),
-      Offset(x, bottomY),
-      paint,
-    );
+    canvas.drawLine(Offset(x, topY), Offset(x, bottomY), paint);
   }
 
   /// Draw a double barline (or final barline with thick line)
   void _drawDoubleBarline(
-      Canvas canvas,
-      double x,
-      double topY,
-      double bottomY, {
-        required bool isFinal,
-      }) {
+    Canvas canvas,
+    double x,
+    double topY,
+    double bottomY, {
+    required bool isFinal,
+  }) {
     final thinThickness = StaffUnits.barlineThickness.toPixels(staffSpaceSize);
-    final thickThickness = StaffUnits.thickBarlineThickness.toPixels(staffSpaceSize);
+    final thickThickness = StaffUnits.thickBarlineThickness.toPixels(
+      staffSpaceSize,
+    );
     final spacing = staffSpaceSize * 0.4;
 
     if (isFinal) {
@@ -116,14 +119,16 @@ class BarlineRenderer {
 
   /// Draw a repeat barline (with dots)
   void _drawRepeatBarline(
-      Canvas canvas,
-      double x,
-      double topY,
-      double bottomY, {
-        required bool isStart,
-      }) {
+    Canvas canvas,
+    double x,
+    double topY,
+    double bottomY, {
+    required bool isStart,
+  }) {
     final thinThickness = StaffUnits.barlineThickness.toPixels(staffSpaceSize);
-    final thickThickness = StaffUnits.thickBarlineThickness.toPixels(staffSpaceSize);
+    final thickThickness = StaffUnits.thickBarlineThickness.toPixels(
+      staffSpaceSize,
+    );
     final spacing = staffSpaceSize * 0.4;
 
     // Draw barlines (thick on the side closest to content)
@@ -170,7 +175,9 @@ class BarlineRenderer {
       ..style = PaintingStyle.fill;
 
     final staffMiddle = (topY + bottomY) / 2;
-    final dotX = isStart ? x + spacing + staffSpaceSize * 0.3 : x - spacing - staffSpaceSize * 0.3;
+    final dotX = isStart
+        ? x + spacing + staffSpaceSize * 0.3
+        : x - spacing - staffSpaceSize * 0.3;
 
     // Two dots, in spaces above and below middle line
     canvas.drawCircle(
@@ -186,7 +193,12 @@ class BarlineRenderer {
   }
 
   /// Draw a dashed barline
-  void _drawDashedBarline(Canvas canvas, double x, double topY, double bottomY) {
+  void _drawDashedBarline(
+    Canvas canvas,
+    double x,
+    double topY,
+    double bottomY,
+  ) {
     final paint = Paint()
       ..color = color
       ..strokeWidth = StaffUnits.barlineThickness.toPixels(staffSpaceSize)
@@ -198,11 +210,7 @@ class BarlineRenderer {
     double currentY = topY;
     while (currentY < bottomY) {
       final endY = (currentY + dashHeight).clamp(topY, bottomY);
-      canvas.drawLine(
-        Offset(x, currentY),
-        Offset(x, endY),
-        paint,
-      );
+      canvas.drawLine(Offset(x, currentY), Offset(x, endY), paint);
       currentY += dashHeight + gapHeight;
     }
   }

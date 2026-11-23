@@ -12,18 +12,15 @@ class BeamRenderer {
   final double staffSpaceSize;
   final Color color;
 
-  const BeamRenderer({
-    required this.staffSpaceSize,
-    this.color = Colors.black,
-  });
+  const BeamRenderer({required this.staffSpaceSize, this.color = Colors.black});
 
   /// Paint a beam group
   void paintBeamGroup(
-      Canvas canvas,
-      BeamGroup beamGroup,
-      List<Offset> stemEndPositions,
-      StemDirection stemDirection,
-      ) {
+    Canvas canvas,
+    BeamGroup beamGroup,
+    List<Offset> stemEndPositions,
+    StemDirection stemDirection,
+  ) {
     if (beamGroup.beams.isEmpty || stemEndPositions.length < 2) return;
 
     // Paint primary beam
@@ -51,23 +48,18 @@ class BeamRenderer {
           stemDirection,
         );
       } else {
-        _paintBeam(
-          canvas,
-          stemEndPositions,
-          offset,
-          stemDirection,
-        );
+        _paintBeam(canvas, stemEndPositions, offset, stemDirection);
       }
     }
   }
 
   /// Paint a full beam connecting all notes
   void _paintBeam(
-      Canvas canvas,
-      List<Offset> stemEndPositions,
-      double verticalOffset,
-      StemDirection stemDirection,
-      ) {
+    Canvas canvas,
+    List<Offset> stemEndPositions,
+    double verticalOffset,
+    StemDirection stemDirection,
+  ) {
     if (stemEndPositions.length < 2) return;
 
     final beamThickness = StaffUnits.beamThickness.toPixels(staffSpaceSize);
@@ -108,12 +100,12 @@ class BeamRenderer {
 
   /// Paint a partial beam (for fractional beaming)
   void _paintPartialBeam(
-      Canvas canvas,
-      List<Offset> allStemEnds,
-      List<int> noteIndices,
-      double verticalOffset,
-      StemDirection stemDirection,
-      ) {
+    Canvas canvas,
+    List<Offset> allStemEnds,
+    List<int> noteIndices,
+    double verticalOffset,
+    StemDirection stemDirection,
+  ) {
     if (noteIndices.length < 2) {
       // Single note partial beam (hook)
       _paintBeamHook(
@@ -133,12 +125,12 @@ class BeamRenderer {
 
   /// Paint a beam hook (for single partial beam)
   void _paintBeamHook(
-      Canvas canvas,
-      Offset stemEnd,
-      double verticalOffset,
-      StemDirection stemDirection,
-      bool hookLeft,
-      ) {
+    Canvas canvas,
+    Offset stemEnd,
+    double verticalOffset,
+    StemDirection stemDirection,
+    bool hookLeft,
+  ) {
     final beamThickness = StaffUnits.beamThickness.toPixels(staffSpaceSize);
     final hookLength = staffSpaceSize * 0.8;
 
@@ -185,11 +177,11 @@ class BeamRenderer {
   /// Calculate optimal beam positions for a group of notes
   /// This is the KEY method - it calculates stem ends WITH proper slope
   List<Offset> calculateStemEnds(
-      List<Note> notes,
-      List<Offset> noteheadCenters,
-      List<StaffPosition> staffPositions,
-      StemDirection stemDirection,
-      ) {
+    List<Note> notes,
+    List<Offset> noteheadCenters,
+    List<StaffPosition> staffPositions,
+    StemDirection stemDirection,
+  ) {
     if (notes.isEmpty) return [];
 
     final stemLength = StaffUnits.stemLength.toPixels(staffSpaceSize);
@@ -228,10 +220,10 @@ class BeamRenderer {
   /// Adjust stem ends to create proper beam slope
   /// This is where the magic happens!
   List<Offset> _adjustForBeamSlope(
-      List<Offset> stemEnds,
-      List<StaffPosition> staffPositions,
-      StemDirection stemDirection,
-      ) {
+    List<Offset> stemEnds,
+    List<StaffPosition> staffPositions,
+    StemDirection stemDirection,
+  ) {
     if (stemEnds.length < 2) return stemEnds;
 
     // Get Y positions of noteheads (not stem ends)
@@ -254,7 +246,9 @@ class BeamRenderer {
     final rawSlope = (noteheadYDiff * staffSpaceSize / 2) / horizontalDistance;
 
     // For stems down, we need to invert the visual slope since stems go down
-    final adjustedSlope = stemDirection == StemDirection.down ? -rawSlope : rawSlope;
+    final adjustedSlope = stemDirection == StemDirection.down
+        ? -rawSlope
+        : rawSlope;
 
     // Limit slope to reasonable angles (approximately ±15 degrees)
     const maxSlope = 1.5;
@@ -263,7 +257,8 @@ class BeamRenderer {
     // If notes are relatively flat, make beam horizontal
     if (noteheadYDiff.abs() <= 1) {
       // Notes within one staff position - use horizontal beam
-      final averageY = stemEnds.map((p) => p.dy).reduce((a, b) => a + b) / stemEnds.length;
+      final averageY =
+          stemEnds.map((p) => p.dy).reduce((a, b) => a + b) / stemEnds.length;
       return stemEnds.map((p) => Offset(p.dx, averageY)).toList();
     }
 
@@ -287,10 +282,10 @@ class BeamRenderer {
 
   /// Ensure all stems meet minimum length requirements
   List<Offset> _ensureMinimumStemLengths(
-      List<Offset> slopedEnds,
-      List<Offset> originalEnds,
-      StemDirection stemDirection,
-      ) {
+    List<Offset> slopedEnds,
+    List<Offset> originalEnds,
+    StemDirection stemDirection,
+  ) {
     final minStemLength = StaffUnits.stemLength.toPixels(staffSpaceSize) * 0.8;
     final adjustedEnds = <Offset>[];
 
@@ -324,10 +319,10 @@ class BeamRenderer {
 
   /// Calculate which notes should be beamed together
   static List<BeamGroup> calculateBeamGroups(
-      List<Note> notes,
-      int beatsPerMeasure,
-      int beatUnit,
-      ) {
+    List<Note> notes,
+    int beatsPerMeasure,
+    int beatUnit,
+  ) {
     return BeamGroupCalculator.calculateBeamGroups(
       notes,
       beatsPerMeasure,

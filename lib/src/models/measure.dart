@@ -36,6 +36,7 @@ class Measure {
 
   /// Tuplet brackets in this measure (optional - auto-detected if null)
   final List<TupletBracket>? tuplets;
+
   /// Type of barline at the beginning of this measure (e.g. a left barline
   /// after the brace on a grand staff). `null` means no start barline.
   final BarlineType? startBarline;
@@ -88,10 +89,7 @@ class Measure {
         // Check if notes are the same pitch and consecutive
         if (note1.pitch == note2.pitch &&
             (note2.startBeat - note1.endBeat).abs() < 0.01) {
-          detectedTies.add(Tie(
-            startNote: note1,
-            endNote: note2,
-          ));
+          detectedTies.add(Tie(startNote: note1, endNote: note2));
         }
       }
     }
@@ -103,7 +101,6 @@ class Measure {
   List<Tie> get explicitTiesInMeasure {
     return ties ?? [];
   }
-
 
   /// Get tuplets for this measure (auto-detect if not provided)
   List<TupletBracket> get tupletsInMeasure {
@@ -164,10 +161,10 @@ class Measure {
 
 /// Types of barlines
 enum BarlineType {
-  single,      // Regular barline (|)
-  double_,     // Double barline (||)
-  final_,      // Final barline (||)
+  single, // Regular barline (|)
+  double_, // Double barline (||)
+  final_, // Final barline (||)
   repeatStart, // Repeat start (|:)
-  repeatEnd,   // Repeat end (:|)
-  dashed,      // Dashed barline (for partial measures)
+  repeatEnd, // Repeat end (:|)
+  dashed, // Dashed barline (for partial measures)
 }

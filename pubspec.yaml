@@ -1,13 +1,13 @@
 name: flutter_music_notation
 description: "A professional music notation rendering library for Flutter with MIDI support and synchronized playback."
-version: 0.2.0
+version: 0.3.0
 homepage: https://github.com/adelaykay/flutter_music_notation
 repository: https://github.com/adelaykay/flutter_music_notation
 issue_tracker: https://github.com/adelaykay/flutter_music_notation/issues
 
 environment:
   sdk: ^3.9.2
-  flutter: ">=1.17.0"
+  flutter: ">=3.35.0"
 
 dependencies:
   flutter:

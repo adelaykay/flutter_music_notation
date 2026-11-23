@@ -11,9 +11,7 @@ import '../rendering/stem_renderer.dart';
 class CollisionDetector {
   final double staffSpaceSize;
 
-  const CollisionDetector({
-    required this.staffSpaceSize,
-  });
+  const CollisionDetector({required this.staffSpaceSize});
 
   /// Check if two rectangles collide
   bool rectanglesCollide(Rect a, Rect b, {double padding = 2.0}) {
@@ -23,10 +21,10 @@ class CollisionDetector {
   /// Calculate accidental placement for a chord to avoid collisions
   /// Returns X offset for each note's accidental
   Map<int, double> resolveChordAccidentals(
-      List<Note> notes,
-      ClefType clef,
-      double baseX,
-      ) {
+    List<Note> notes,
+    ClefType clef,
+    double baseX,
+  ) {
     final offsets = <int, double>{};
 
     // Sort notes by pitch (low to high)
@@ -47,7 +45,9 @@ class CollisionDetector {
 
     // Stack accidentals to avoid collisions
     final accidentalWidth = StaffUnits.accidentalWidth.toPixels(staffSpaceSize);
-    final accidentalHeight = StaffUnits.accidentalHeight.toPixels(staffSpaceSize);
+    final accidentalHeight = StaffUnits.accidentalHeight.toPixels(
+      staffSpaceSize,
+    );
     final minVerticalGap = staffSpaceSize * 0.5;
 
     // Track occupied vertical spaces
@@ -94,7 +94,8 @@ class CollisionDetector {
           // Add to this column
           occupiedColumns.putIfAbsent(column, () => []).add(accidentalRect);
           // Calculate X offset
-          offsets[midiNumber] = -(column + 1) * (accidentalWidth + staffSpaceSize * 0.3);
+          offsets[midiNumber] =
+              -(column + 1) * (accidentalWidth + staffSpaceSize * 0.3);
         } else {
           column++;
         }
@@ -110,15 +111,12 @@ class CollisionDetector {
   }
 
   /// Calculate optimal stem direction for a chord to minimize collisions
-  StemDirection calculateOptimalStemDirection(
-      List<StaffPosition> positions,
-      ) {
+  StemDirection calculateOptimalStemDirection(List<StaffPosition> positions) {
     if (positions.isEmpty) return StemDirection.up;
 
     // Calculate average position (4 is middle line)
-    final avgPosition = positions
-        .map((p) => p.value)
-        .reduce((a, b) => a + b) /
+    final avgPosition =
+        positions.map((p) => p.value).reduce((a, b) => a + b) /
         positions.length;
 
     // Notes above middle line should have stems down
@@ -129,9 +127,9 @@ class CollisionDetector {
   /// Detect if noteheads in a chord should be offset horizontally
   /// (for seconds - notes one step apart)
   ChordNoteheadOffsets calculateChordNoteheadOffsets(
-      List<Note> notes,
-      ClefType clef,
-      ) {
+    List<Note> notes,
+    ClefType clef,
+  ) {
     final offsets = <int, double>{};
 
     // Sort notes by pitch
@@ -161,10 +159,7 @@ class CollisionDetector {
   }
 
   /// Calculate bounding box for a note at a given position
-  Rect getNoteheadBounds(
-      double centerX,
-      double centerY,
-      ) {
+  Rect getNoteheadBounds(double centerX, double centerY) {
     final width = StaffUnits.noteheadWidth.toPixels(staffSpaceSize);
     final height = StaffUnits.noteheadHeight.toPixels(staffSpaceSize);
 
@@ -176,10 +171,7 @@ class CollisionDetector {
   }
 
   /// Calculate bounding box for an accidental
-  Rect getAccidentalBounds(
-      double centerX,
-      double centerY,
-      ) {
+  Rect getAccidentalBounds(double centerX, double centerY) {
     final width = StaffUnits.accidentalWidth.toPixels(staffSpaceSize);
     final height = StaffUnits.accidentalHeight.toPixels(staffSpaceSize);
 
@@ -191,20 +183,17 @@ class CollisionDetector {
   }
 
   /// Check if two notes are close enough to potentially collide
-  bool notesAreAdjacent(
-      StaffPosition pos1,
-      StaffPosition pos2,
-      ) {
+  bool notesAreAdjacent(StaffPosition pos1, StaffPosition pos2) {
     return (pos1.value - pos2.value).abs() <= 1.0;
   }
 
   /// Calculate total width occupied by a note including accidentals and dots
   /// This is crucial for proper spacing
   static double calculateNoteWidthStatic(
-      Note note,
-      bool showAccidental,
-      double staffSpaceSize,
-      ) {
+    Note note,
+    bool showAccidental,
+    double staffSpaceSize,
+  ) {
     double width = StaffUnits.noteheadWidth.toPixels(staffSpaceSize);
 
     // Add accidental width if needed
@@ -220,7 +209,9 @@ class CollisionDetector {
 
     // Add dot width if needed
     if (note.duration.dots > 0) {
-      width += StaffUnits.dotSpacing.toPixels(staffSpaceSize) * (note.duration.dots + 1);
+      width +=
+          StaffUnits.dotSpacing.toPixels(staffSpaceSize) *
+          (note.duration.dots + 1);
     }
 
     return width;
@@ -233,7 +224,9 @@ class CollisionDetector {
 
     // Add dot width if needed
     if (rest.duration.dots > 0) {
-      width += StaffUnits.dotSpacing.toPixels(staffSpaceSize) * (rest.duration.dots + 1);
+      width +=
+          StaffUnits.dotSpacing.toPixels(staffSpaceSize) *
+          (rest.duration.dots + 1);
     }
 
     return width;
@@ -241,10 +234,7 @@ class CollisionDetector {
 
   /// Calculate total width occupied by a note including accidentals and dots
   /// This is crucial for proper spacing
-  double calculateNoteWidth(
-      Note note,
-      bool showAccidental,
-      ) {
+  double calculateNoteWidth(Note note, bool showAccidental) {
     return calculateNoteWidthStatic(note, showAccidental, staffSpaceSize);
   }
 
@@ -256,12 +246,12 @@ class CollisionDetector {
   /// Calculate minimum horizontal spacing needed between two elements
   /// to avoid collision - NOW ACCOUNTS FOR ACCIDENTALS AND DOTS
   double calculateMinimumSpacing(
-      dynamic element1,
-      dynamic element2,
-      ClefType clef,
-      bool element1ShowsAccidental,
-      bool element2ShowsAccidental,
-      ) {
+    dynamic element1,
+    dynamic element2,
+    ClefType clef,
+    bool element1ShowsAccidental,
+    bool element2ShowsAccidental,
+  ) {
     // Base minimum spacing
     double minSpacing = StaffUnits.minimumNoteSpacing.toPixels(staffSpaceSize);
 
@@ -282,7 +272,9 @@ class CollisionDetector {
     }
 
     // Use the larger of the two widths as baseline
-    final maxWidth = element1Width > element2Width ? element1Width : element2Width;
+    final maxWidth = element1Width > element2Width
+        ? element1Width
+        : element2Width;
 
     // Minimum spacing is at least half of the wider element
     minSpacing = (maxWidth * 0.5).clamp(minSpacing, double.infinity);
@@ -306,9 +298,7 @@ class ChordNoteheadOffsets {
   /// Map of MIDI number -> horizontal offset
   final Map<int, double> offsets;
 
-  const ChordNoteheadOffsets({
-    required this.offsets,
-  });
+  const ChordNoteheadOffsets({required this.offsets});
 
   /// Get offset for a specific note (returns 0 if not offset)
   double getOffset(int midiNumber) {
@@ -351,7 +341,11 @@ class ElementPositionTracker {
   }
 
   /// Check if a new element would collide with existing elements
-  CollisionResult checkCollision(String id, Rect bounds, {double padding = 2.0}) {
+  CollisionResult checkCollision(
+    String id,
+    Rect bounds, {
+    double padding = 2.0,
+  }) {
     final collisions = <String>[];
 
     for (final entry in _elements.entries) {

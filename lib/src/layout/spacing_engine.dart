@@ -3,7 +3,7 @@
 import 'dart:math';
 
 import '../models/note.dart';
- import '../models/key_signature.dart';
+import '../models/key_signature.dart';
 import '../geometry/staff_position.dart';
 import 'collision_detector.dart';
 
@@ -32,13 +32,13 @@ class SpacingEngine {
   /// Calculate spacing for a list of elements (notes/rests)
   /// Returns a list of X positions for each element
   List<double> calculateSpacing(
-      List<dynamic> elements, {
-        required double startX,
-        double? availableWidth,
-        double staffSpaceSize = 12.0,
-        ClefType clef = ClefType.treble,
-        KeySignature keySignature = KeySignature.cMajor,
-      }) {
+    List<dynamic> elements, {
+    required double startX,
+    double? availableWidth,
+    double staffSpaceSize = 12.0,
+    ClefType clef = ClefType.treble,
+    KeySignature keySignature = KeySignature.cMajor,
+  }) {
     if (elements.isEmpty) return [];
 
     if (!proportional) {
@@ -65,37 +65,62 @@ class SpacingEngine {
   /// [current] (notehead, dots, flag) plus the accidental drawn to the left of
   /// [next], if it shows one. Accidentals follow the bar rules of
   /// [KeySignature.notesNeedingAccidentals].
-  double _gapNeeded(dynamic current, dynamic next, Set<Note> withAccidentals, double staffSpaceSize) {
+  double _gapNeeded(
+    dynamic current,
+    dynamic next,
+    Set<Note> withAccidentals,
+    double staffSpaceSize,
+  ) {
     double gap;
     if (current is Note) {
-      gap = CollisionDetector.calculateNoteWidthStatic(current, false, staffSpaceSize);
+      gap = CollisionDetector.calculateNoteWidthStatic(
+        current,
+        false,
+        staffSpaceSize,
+      );
     } else if (current is Rest) {
       gap = CollisionDetector.calculateRestWidthStatic(current, staffSpaceSize);
     } else {
       gap = minSpacing;
     }
     if (next is Note && withAccidentals.contains(next)) {
-      gap += CollisionDetector.calculateNoteWidthStatic(next, true, staffSpaceSize) -
-          CollisionDetector.calculateNoteWidthStatic(next, false, staffSpaceSize);
+      gap +=
+          CollisionDetector.calculateNoteWidthStatic(
+            next,
+            true,
+            staffSpaceSize,
+          ) -
+          CollisionDetector.calculateNoteWidthStatic(
+            next,
+            false,
+            staffSpaceSize,
+          );
     }
     return gap;
   }
 
   /// Calculate uniform spacing (equal distance between all elements)
   List<double> _calculateUniformSpacing(
-      List<dynamic> elements,
-      double startX, {
-        double staffSpaceSize = 12.0,
-        KeySignature keySignature = KeySignature.cMajor,
-      }) {
+    List<dynamic> elements,
+    double startX, {
+    double staffSpaceSize = 12.0,
+    KeySignature keySignature = KeySignature.cMajor,
+  }) {
     final positions = <double>[];
-    final withAccidentals = keySignature.notesNeedingAccidentals(elements.whereType<Note>());
+    final withAccidentals = keySignature.notesNeedingAccidentals(
+      elements.whereType<Note>(),
+    );
     double currentX = startX;
 
     for (int i = 0; i < elements.length; i++) {
       positions.add(currentX);
       final next = i < elements.length - 1 ? elements[i + 1] : null;
-      final needed = _gapNeeded(elements[i], next, withAccidentals, staffSpaceSize);
+      final needed = _gapNeeded(
+        elements[i],
+        next,
+        withAccidentals,
+        staffSpaceSize,
+      );
       currentX += max(baseSpacing, needed + minSpacing * 0.5);
     }
 
@@ -105,12 +130,12 @@ class SpacingEngine {
   /// Calculate proportional spacing based on note durations
   /// Longer notes get more space
   List<double> _calculateProportionalSpacing(
-      List<dynamic> elements,
-      double startX,
-      double? availableWidth, {
-        double staffSpaceSize = 12.0,
-        KeySignature keySignature = KeySignature.cMajor,
-      }) {
+    List<dynamic> elements,
+    double startX,
+    double? availableWidth, {
+    double staffSpaceSize = 12.0,
+    KeySignature keySignature = KeySignature.cMajor,
+  }) {
     // Calculate duration for each element
     final durations = elements.map((e) {
       if (e is Note) return e.duration.beats;
@@ -124,7 +149,9 @@ class SpacingEngine {
     // Determine scaling factor if we have a target width
     double scaleFactor = 1.0;
     if (availableWidth != null) {
-      final idealTotalWidth = spacingWeights.isEmpty ? 0 : spacingWeights.reduce((a, b) => a + b);
+      final idealTotalWidth = spacingWeights.isEmpty
+          ? 0
+          : spacingWeights.reduce((a, b) => a + b);
       if (idealTotalWidth > 0) {
         // availableWidth is the width of this run of elements, measured from
         // startX (not an absolute end position).
@@ -135,7 +162,9 @@ class SpacingEngine {
 
     // Calculate actual positions
     final positions = <double>[];
-    final withAccidentals = keySignature.notesNeedingAccidentals(elements.whereType<Note>());
+    final withAccidentals = keySignature.notesNeedingAccidentals(
+      elements.whereType<Note>(),
+    );
     double currentX = startX;
 
     for (int i = 0; i < elements.length; i++) {
@@ -144,11 +173,17 @@ class SpacingEngine {
       // Add spacing before next element
       if (i < elements.length - 1) {
         // Minimum width so this element and the next one's accidental fit
-        final visualMinWidth =
-            _gapNeeded(elements[i], elements[i + 1], withAccidentals, staffSpaceSize);
+        final visualMinWidth = _gapNeeded(
+          elements[i],
+          elements[i + 1],
+          withAccidentals,
+          staffSpaceSize,
+        );
 
-        final spacing = (spacingWeights[i] * scaleFactor)
-            .clamp(visualMinWidth + staffSpaceSize * 0.5, maxSpacing);
+        final spacing = (spacingWeights[i] * scaleFactor).clamp(
+          visualMinWidth + staffSpaceSize * 0.5,
+          maxSpacing,
+        );
         currentX += spacing;
       }
     }
@@ -185,13 +220,13 @@ class SpacingEngine {
 
   /// Calculate spacing for a measure with proper distribution
   MeasureSpacing calculateMeasureSpacing(
-      List<dynamic> elements,
-      double startX,
-      double measureWidth, {
-        double staffSpaceSize = 12.0,
-        ClefType clef = ClefType.treble,
-        KeySignature keySignature = KeySignature.cMajor,
-      }) {
+    List<dynamic> elements,
+    double startX,
+    double measureWidth, {
+    double staffSpaceSize = 12.0,
+    ClefType clef = ClefType.treble,
+    KeySignature keySignature = KeySignature.cMajor,
+  }) {
     if (elements.isEmpty) {
       return MeasureSpacing(
         positions: [],
@@ -216,22 +251,24 @@ class SpacingEngine {
     if (elements.isNotEmpty) {
       final lastElement = elements.last;
       if (lastElement is Note) {
-        lastNoteWidth = CollisionDetector.calculateNoteWidthStatic(
-          lastElement,
-          keySignature.needsAccidental(lastElement.pitch),
-          staffSpaceSize,
-        ) + minSpacing * 0.5;
+        lastNoteWidth =
+            CollisionDetector.calculateNoteWidthStatic(
+              lastElement,
+              keySignature.needsAccidental(lastElement.pitch),
+              staffSpaceSize,
+            ) +
+            minSpacing * 0.5;
       } else if (lastElement is Rest) {
-        lastNoteWidth = CollisionDetector.calculateRestWidthStatic(
-          lastElement,
-          staffSpaceSize,
-        ) + minSpacing * 0.5;
+        lastNoteWidth =
+            CollisionDetector.calculateRestWidthStatic(
+              lastElement,
+              staffSpaceSize,
+            ) +
+            minSpacing * 0.5;
       }
     }
 
-    final endX = positions.isNotEmpty
-        ? positions.last + lastNoteWidth
-        : startX;
+    final endX = positions.isNotEmpty ? positions.last + lastNoteWidth : startX;
 
     return MeasureSpacing(
       positions: positions,
@@ -243,11 +280,11 @@ class SpacingEngine {
 
   /// Calculate minimum width needed for a measure
   double calculateMinimumMeasureWidth(
-      List<dynamic> elements, {
-        double staffSpaceSize = 12.0,
-        ClefType clef = ClefType.treble,
-        KeySignature keySignature = KeySignature.cMajor,
-      }) {
+    List<dynamic> elements, {
+    double staffSpaceSize = 12.0,
+    ClefType clef = ClefType.treble,
+    KeySignature keySignature = KeySignature.cMajor,
+  }) {
     if (elements.isEmpty) return minSpacing;
 
     final positions = calculateSpacing(
@@ -265,11 +302,13 @@ class SpacingEngine {
     double lastNoteWidth = minSpacing;
     final lastElement = elements.last;
     if (lastElement is Note) {
-      lastNoteWidth = CollisionDetector.calculateNoteWidthStatic(
-        lastElement,
-        keySignature.needsAccidental(lastElement.pitch),
-        staffSpaceSize,
-      ) + minSpacing * 0.5;
+      lastNoteWidth =
+          CollisionDetector.calculateNoteWidthStatic(
+            lastElement,
+            keySignature.needsAccidental(lastElement.pitch),
+            staffSpaceSize,
+          ) +
+          minSpacing * 0.5;
     }
 
     return positions.last + lastNoteWidth;
@@ -285,13 +324,13 @@ class SpacingEngine {
 
   /// Calculate spacing for multiple measures on a line
   LineSpacing calculateLineSpacing(
-      List<MeasureElements> measures,
-      double startX,
-      double lineWidth,
-      double measureSpacing, {
-        double staffSpaceSize = 12.0,
-        bool isLastLine = false,
-      }) {
+    List<MeasureElements> measures,
+    double startX,
+    double lineWidth,
+    double measureSpacing, {
+    double staffSpaceSize = 12.0,
+    bool isLastLine = false,
+  }) {
     final measureSpacings = <MeasureSpacing>[];
     double currentX = startX;
 
@@ -306,8 +345,10 @@ class SpacingEngine {
     }).toList();
 
     // Calculate total minimum width needed
-    final totalMinWidth = minWidths.isEmpty ? 0 : minWidths.reduce((a, b) => a + b) +
-        (measures.length - 1) * measureSpacing;
+    final totalMinWidth = minWidths.isEmpty
+        ? 0
+        : minWidths.reduce((a, b) => a + b) +
+              (measures.length - 1) * measureSpacing;
 
     // Calculate available width for distribution
     final availableWidth = lineWidth - startX;

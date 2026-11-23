@@ -24,9 +24,9 @@ class GrandStaff {
     this.instrumentName,
     this.instrumentAbbreviation,
   }) : assert(
-  upperStaff.length == lowerStaff.length,
-  'Upper and lower staves must have the same number of measures',
-  );
+         upperStaff.length == lowerStaff.length,
+         'Upper and lower staves must have the same number of measures',
+       );
 
   /// Number of measures in the grand staff
   int get measureCount => upperStaff.length;
@@ -47,7 +47,7 @@ class GrandStaff {
   List<GrandStaffMeasurePair> get measurePairs {
     return List.generate(
       measureCount,
-          (index) => GrandStaffMeasurePair(
+      (index) => GrandStaffMeasurePair(
         upper: upperStaff[index],
         lower: lowerStaff[index],
       ),
@@ -86,18 +86,19 @@ class GrandStaff {
       upperStaff: upperStaff ?? this.upperStaff,
       lowerStaff: lowerStaff ?? this.lowerStaff,
       instrumentName: instrumentName ?? this.instrumentName,
-      instrumentAbbreviation: instrumentAbbreviation ?? this.instrumentAbbreviation,
+      instrumentAbbreviation:
+          instrumentAbbreviation ?? this.instrumentAbbreviation,
     );
   }
 
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-          other is GrandStaff &&
-              _listEquals(upperStaff, other.upperStaff) &&
-              _listEquals(lowerStaff, other.lowerStaff) &&
-              instrumentName == other.instrumentName &&
-              instrumentAbbreviation == other.instrumentAbbreviation;
+      other is GrandStaff &&
+          _listEquals(upperStaff, other.upperStaff) &&
+          _listEquals(lowerStaff, other.lowerStaff) &&
+          instrumentName == other.instrumentName &&
+          instrumentAbbreviation == other.instrumentAbbreviation;
 
   bool _listEquals(List<Measure> a, List<Measure> b) {
     if (a.length != b.length) return false;
@@ -125,13 +126,11 @@ class GrandStaffMeasurePair {
   final Measure upper;
   final Measure lower;
 
-  GrandStaffMeasurePair({
-    required this.upper,
-    required this.lower,
-  }) : assert(
-  upper.number == lower.number,
-  'Upper and lower measures must have the same measure number',
-  );
+  GrandStaffMeasurePair({required this.upper, required this.lower})
+    : assert(
+        upper.number == lower.number,
+        'Upper and lower measures must have the same measure number',
+      );
 
   /// Measure number (same for both)
   int get measureNumber => upper.number;
@@ -148,9 +147,9 @@ class GrandStaffMeasurePair {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-          other is GrandStaffMeasurePair &&
-              upper == other.upper &&
-              lower == other.lower;
+      other is GrandStaffMeasurePair &&
+          upper == other.upper &&
+          lower == other.lower;
 
   @override
   int get hashCode => Object.hash(upper, lower);
@@ -182,25 +181,29 @@ class GrandStaffFactory {
   }) {
     final upperMeasures = List.generate(
       measureCount,
-          (index) => Measure(
+      (index) => Measure(
         number: index,
         timeSignature: timeSignature,
         keySignature: keySignature,
         notes: const [],
         rests: const [],
-        endBarline: index == measureCount - 1 ? BarlineType.final_ : BarlineType.single,
+        endBarline: index == measureCount - 1
+            ? BarlineType.final_
+            : BarlineType.single,
       ),
     );
 
     final lowerMeasures = List.generate(
       measureCount,
-          (index) => Measure(
+      (index) => Measure(
         number: index,
         timeSignature: timeSignature,
         keySignature: keySignature,
         notes: const [],
         rests: const [],
-        endBarline: index == measureCount - 1 ? BarlineType.final_ : BarlineType.single,
+        endBarline: index == measureCount - 1
+            ? BarlineType.final_
+            : BarlineType.single,
       ),
     );
 
@@ -233,9 +236,6 @@ class GrandStaffFactory {
       lowerMeasures.add(measure.copyWith(notes: lowerNotes));
     }
 
-    return GrandStaff(
-      upperStaff: upperMeasures,
-      lowerStaff: lowerMeasures,
-    );
+    return GrandStaff(upperStaff: upperMeasures, lowerStaff: lowerMeasures);
   }
 }

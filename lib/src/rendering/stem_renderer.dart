@@ -12,18 +12,15 @@ class StemRenderer {
   final double staffSpaceSize;
   final Color color;
 
-  const StemRenderer({
-    required this.staffSpaceSize,
-    this.color = Colors.black,
-  });
+  const StemRenderer({required this.staffSpaceSize, this.color = Colors.black});
 
   /// Paint a stem from the notehead and return the stem end position
   Offset paint(
-      Canvas canvas,
-      Offset noteheadCenter, {
-        required StemDirection direction,
-        bool isActive = false,
-      }) {
+    Canvas canvas,
+    Offset noteheadCenter, {
+    required StemDirection direction,
+    bool isActive = false,
+  }) {
     if (direction == StemDirection.none) return noteheadCenter;
 
     final thickness = StaffUnits.stemThickness.toPixels(staffSpaceSize);
@@ -41,11 +38,17 @@ class StemRenderer {
 
     if (direction == StemDirection.up) {
       // Stem attaches to right side of notehead, goes up
-      stemStart = Offset(noteheadCenter.dx + noteheadWidth / 2, noteheadCenter.dy);
+      stemStart = Offset(
+        noteheadCenter.dx + noteheadWidth / 2,
+        noteheadCenter.dy,
+      );
       stemEnd = Offset(stemStart.dx, stemStart.dy - length);
     } else {
       // Stem attaches to left side of notehead, goes down
-      stemStart = Offset(noteheadCenter.dx - noteheadWidth / 2, noteheadCenter.dy);
+      stemStart = Offset(
+        noteheadCenter.dx - noteheadWidth / 2,
+        noteheadCenter.dy,
+      );
       stemEnd = Offset(stemStart.dx, stemStart.dy + length);
     }
 
@@ -70,21 +73,20 @@ class StemRenderer {
 
   /// Determine stem direction for a chord (multiple notes)
   /// Based on the average position of all notes
-  static StemDirection determineStemDirectionForChord(List<StaffPosition> positions) {
+  static StemDirection determineStemDirectionForChord(
+    List<StaffPosition> positions,
+  ) {
     if (positions.isEmpty) return StemDirection.up;
 
-    final averagePosition = positions
-        .map((p) => p.value)
-        .reduce((a, b) => a + b) / positions.length;
+    final averagePosition =
+        positions.map((p) => p.value).reduce((a, b) => a + b) /
+        positions.length;
 
     return averagePosition > 4 ? StemDirection.down : StemDirection.up;
   }
 
   /// Get the endpoint of the stem (useful for attaching flags or beams)
-  Offset getStemEnd(
-      Offset noteheadCenter,
-      StemDirection direction,
-      ) {
+  Offset getStemEnd(Offset noteheadCenter, StemDirection direction) {
     if (direction == StemDirection.none) return noteheadCenter;
 
     final length = StaffUnits.stemLength.toPixels(staffSpaceSize);

@@ -16,6 +16,11 @@ class NotationPainter extends CustomPainter {
   final NotationConfig config;
   final Set<Note> activeNotes;
 
+  /// Ties that leave one bar and land in the next, keyed by clef and pitch.
+  /// Filled while a bar is drawn and consumed by the following bar; reset on
+  /// every paint.
+  final Map<String, _PendingTie> _pendingTies = {};
+
   NotationPainter({
     this.measures,
     this.grandStaff,
@@ -27,6 +32,7 @@ class NotationPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
+    _pendingTies.clear();
     if (grandStaff != null) {
       _paintGrandStaff(canvas, size);
     } else if (measures != null) {
@@ -1052,6 +1058,68 @@ class NotationPainter extends CustomPainter {
       }
     }
 
+    // Ties that cross the barline: finish the ones arriving from the previous
+    // bar, then record the ones leaving this bar.
+    final measureNotes = elements.whereType<Note>().toList();
+    final explicitTieStarts = Set<Note>.identity()
+      ..addAll(ties.map((t) => t.startNote));
+    final arriving = Map.of(_pendingTies)
+      ..removeWhere((key, _) => !key.startsWith('${clef.name}:'));
+    _pendingTies.removeWhere((key, _) => key.startsWith('${clef.name}:'));
+
+    Offset centerOf(Note note) {
+      final index = sortedBeats.indexOf(note.startBeat);
+      final pos = StaffPosition.forPitch(note.pitch, clef);
+      return Offset(
+        measureSpacing.positionAt(index < 0 ? 0 : index) + xOffset,
+        staffTopLeft.dy + noteRenderer.staffRenderer.positionToY(pos),
+      );
+    }
+
+    for (final note in measureNotes) {
+      if (note.startBeat > 0.001) continue;
+      final pending = arriving['${clef.name}:${note.pitch.midiNumber}'];
+      if (pending == null) continue;
+      final end = centerOf(note);
+      final tie = Tie(startNote: pending.note, endNote: note);
+      if ((pending.center.dy - end.dy).abs() < 0.5) {
+        tieRenderer.paintTie(
+          canvas,
+          tie,
+          pending.center,
+          end,
+          pending.direction,
+        );
+      } else {
+        // The tie crosses a line break: draw it as two halves.
+        final half = config.staffSpaceSize * 2.5;
+        tieRenderer.paintTie(
+          canvas,
+          tie,
+          pending.center,
+          pending.center.translate(half, 0),
+          pending.direction,
+        );
+        tieRenderer.paintTie(
+          canvas,
+          tie,
+          end.translate(-half, 0),
+          end,
+          pending.direction,
+        );
+      }
+    }
+
+    for (final note in measureNotes) {
+      if (!note.tieToNext || explicitTieStarts.contains(note)) continue;
+      final pos = StaffPosition.forPitch(note.pitch, clef);
+      _pendingTies['${clef.name}:${note.pitch.midiNumber}'] = _PendingTie(
+        note,
+        centerOf(note),
+        pos.value < 4.0 ? CurveDirection.down : CurveDirection.up,
+      );
+    }
+
     // Draw slurs with CORRECTED direction logic
     final slurRenderer = SlurRenderer(
       staffSpaceSize: config.staffSpaceSize,
@@ -1237,4 +1305,12 @@ class NotationPainter extends CustomPainter {
         oldDelegate.grandStaff != grandStaff ||
         oldDelegate.config != config;
   }
+}
+
+/// A tie leaving a bar, waiting for its end note in the next bar.
+class _PendingTie {
+  const _PendingTie(this.note, this.center, this.direction);
+  final Note note;
+  final Offset center;
+  final CurveDirection direction;
 }

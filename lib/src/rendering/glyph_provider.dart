@@ -52,13 +52,7 @@ class GlyphProvider {
   /// Decide which font to use for a glyph
   static String _fontForGlyph(String codepoint) {
     // Always use Petaluma for accidentals when mixing
-    const petalumaAccidentals = {
-      sharp,
-      flat,
-      natural,
-      doubleSharp,
-      doubleFlat,
-    };
+    const petalumaAccidentals = {sharp, flat, natural, doubleSharp, doubleFlat};
 
     if (petalumaAccidentals.contains(codepoint)) {
       return petaluma;
@@ -75,10 +69,10 @@ class GlyphProvider {
 
   /// Get a TextPainter for a music symbol
   static TextPainter getGlyph(
-      String codepoint,
-      double size, {
-        Color color = Colors.black,
-      }) {
+    String codepoint,
+    double size, {
+    Color color = Colors.black,
+  }) {
     final font = _fontForGlyph(codepoint);
     return TextPainter(
       text: TextSpan(

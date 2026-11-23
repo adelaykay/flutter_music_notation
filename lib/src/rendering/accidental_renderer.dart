@@ -16,11 +16,7 @@ class AccidentalRenderer {
   });
 
   /// Paint an accidental to the left of a note
-  void paint(
-      Canvas canvas,
-      Offset noteheadCenter,
-      Accidental accidental,
-      ) {
+  void paint(Canvas canvas, Offset noteheadCenter, Accidental accidental) {
     final size = StaffUnits.accidentalHeight.toPixels(staffSpaceSize);
     final glyph = GlyphProvider.getGlyph(
       GlyphProvider.getAccidentalGlyph(accidental),

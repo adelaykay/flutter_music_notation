@@ -29,6 +29,11 @@ class Note {
   /// Explicit stem direction (if null, determined by pitch or voice)
   final StemDirection? stemDirection;
 
+  /// Whether this note is tied to the next note of the same pitch, which
+  /// starts where this one ends. Use this for ties that cross a barline; ties
+  /// within a bar can also be given explicitly through [Measure.ties].
+  final bool tieToNext;
+
   const Note({
     required this.pitch,
     required this.duration,
@@ -37,6 +42,7 @@ class Note {
     required this.startBeat,
     this.voice = 0,
     this.stemDirection,
+    this.tieToNext = false,
   }) : assert(velocity >= 0 && velocity <= 127, 'Velocity must be 0-127');
 
   /// The beat position where this note ends
@@ -51,6 +57,7 @@ class Note {
     double? startBeat,
     int? voice,
     StemDirection? stemDirection,
+    bool? tieToNext,
   }) {
     return Note(
       pitch: pitch ?? this.pitch,
@@ -60,20 +67,22 @@ class Note {
       startBeat: startBeat ?? this.startBeat,
       voice: voice ?? this.voice,
       stemDirection: stemDirection ?? this.stemDirection,
+      tieToNext: tieToNext ?? this.tieToNext,
     );
   }
 
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-          other is Note &&
-              pitch == other.pitch &&
-              duration == other.duration &&
-              forceShowAccidental == other.forceShowAccidental &&
-              velocity == other.velocity &&
-              startBeat == other.startBeat &&
-              voice == other.voice &&
-              stemDirection == other.stemDirection;
+      other is Note &&
+          pitch == other.pitch &&
+          duration == other.duration &&
+          forceShowAccidental == other.forceShowAccidental &&
+          velocity == other.velocity &&
+          startBeat == other.startBeat &&
+          voice == other.voice &&
+          stemDirection == other.stemDirection &&
+          tieToNext == other.tieToNext;
 
   @override
   int get hashCode => Object.hash(
@@ -84,10 +93,12 @@ class Note {
     startBeat,
     voice,
     stemDirection,
+    tieToNext,
   );
 
   @override
-  String toString() => 'Note($pitch, ${duration.type.name}, beat: $startBeat, v: $voice)';
+  String toString() =>
+      'Note($pitch, ${duration.type.name}, beat: $startBeat, v: $voice)';
 }
 
 /// Represents a musical rest
@@ -98,19 +109,13 @@ class Rest {
   /// The beat position where this rest starts
   final double startBeat;
 
-  const Rest({
-    required this.duration,
-    required this.startBeat,
-  });
+  const Rest({required this.duration, required this.startBeat});
 
   /// The beat position where this rest ends
   double get endBeat => startBeat + duration.beats;
 
   /// Create a copy with modified properties
-  Rest copyWith({
-    NoteDuration? duration,
-    double? startBeat,
-  }) {
+  Rest copyWith({NoteDuration? duration, double? startBeat}) {
     return Rest(
       duration: duration ?? this.duration,
       startBeat: startBeat ?? this.startBeat,
@@ -120,7 +125,9 @@ class Rest {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-          other is Rest && duration == other.duration && startBeat == other.startBeat;
+      other is Rest &&
+          duration == other.duration &&
+          startBeat == other.startBeat;
 
   @override
   int get hashCode => Object.hash(duration, startBeat);
@@ -135,15 +142,14 @@ class Chord {
   final List<Note> notes;
 
   Chord({required this.notes})
-      : assert(notes.isNotEmpty, 'Chord must have at least one note') {
+    : assert(notes.isNotEmpty, 'Chord must have at least one note') {
     // Verify all notes have same start beat and duration
     final firstBeat = notes.first.startBeat;
     for (final note in notes) {
       assert(
-      note.startBeat == firstBeat,
-      'All notes in chord must have same start beat',
+        note.startBeat == firstBeat,
+        'All notes in chord must have same start beat',
       );
-
     }
   }
 
@@ -157,8 +163,9 @@ class Chord {
   double get endBeat => notes.first.endBeat;
 
   /// Notes sorted by pitch (lowest to highest)
-  List<Note> get sortedNotes => List<Note>.from(notes)
-    ..sort((a, b) => a.pitch.midiNumber.compareTo(b.pitch.midiNumber));
+  List<Note> get sortedNotes =>
+      List<Note>.from(notes)
+        ..sort((a, b) => a.pitch.midiNumber.compareTo(b.pitch.midiNumber));
 
   /// The lowest note in the chord
   Note get lowestNote => sortedNotes.first;
@@ -169,7 +176,7 @@ class Chord {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-          other is Chord && _listsEqual(notes, other.notes);
+      other is Chord && _listsEqual(notes, other.notes);
 
   bool _listsEqual(List<Note> a, List<Note> b) {
     if (a.length != b.length) return false;
@@ -183,5 +190,6 @@ class Chord {
   int get hashCode => Object.hashAll(notes);
 
   @override
-  String toString() => 'Chord(${notes.map((n) => n.pitch).join(', ')}, beat: $startBeat)';
+  String toString() =>
+      'Chord(${notes.map((n) => n.pitch).join(', ')}, beat: $startBeat)';
 }

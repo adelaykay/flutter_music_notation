@@ -23,10 +23,7 @@ class PlaybackController extends ChangeNotifier {
   /// Beats per minute (tempo)
   final double beatsPerMinute;
 
-  PlaybackController({
-    required this.notes,
-    this.beatsPerMinute = 120.0,
-  });
+  PlaybackController({required this.notes, this.beatsPerMinute = 120.0});
 
   // Getters
   double get position => _position;

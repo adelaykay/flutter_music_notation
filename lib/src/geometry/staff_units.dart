@@ -29,7 +29,9 @@ class StaffUnits {
   // Spacing
   static const minimumNoteSpacing = StaffUnits(2.0);
   static const accidentalPadding = StaffUnits(0.3);
-  static const ledgerLineExtension = StaffUnits(0.4); // How far ledger lines extend beyond notehead
+  static const ledgerLineExtension = StaffUnits(
+    0.4,
+  ); // How far ledger lines extend beyond notehead
 
   // Line thicknesses
   static const staffLineThickness = StaffUnits(0.1);
@@ -58,8 +60,7 @@ class StaffUnits {
 
   @override
   bool operator ==(Object other) =>
-      identical(this, other) ||
-          other is StaffUnits && value == other.value;
+      identical(this, other) || other is StaffUnits && value == other.value;
 
   @override
   int get hashCode => value.hashCode;

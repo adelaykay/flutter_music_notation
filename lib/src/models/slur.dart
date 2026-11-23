@@ -29,9 +29,8 @@ class Slur {
   Note get endNote => notes.last;
 
   /// All intermediate notes
-  List<Note> get middleNotes => notes.length > 2
-      ? notes.sublist(1, notes.length - 1)
-      : [];
+  List<Note> get middleNotes =>
+      notes.length > 2 ? notes.sublist(1, notes.length - 1) : [];
 
   /// Whether slur should curve upward or downward
   CurveDirection getDirection() {
@@ -72,10 +71,10 @@ class Slur {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-          other is Slur &&
-              _listEquals(notes, other.notes) &&
-              direction == other.direction &&
-              type == other.type;
+      other is Slur &&
+          _listEquals(notes, other.notes) &&
+          direction == other.direction &&
+          type == other.type;
 
   bool _listEquals(List<Note> a, List<Note> b) {
     if (a.length != b.length) return false;
@@ -118,15 +117,16 @@ class CurveCalculator {
   /// Calculate optimal direction for a tie/slur based on note positions
   /// FIXED: Corrected logic - notes BELOW middle curve UP
   static CurveDirection calculateOptimalDirection(
-      List<Note> notes,
-      List<double> staffPositions,
-      ) {
+    List<Note> notes,
+    List<double> staffPositions,
+  ) {
     if (notes.isEmpty || staffPositions.isEmpty) {
       return CurveDirection.up;
     }
 
     // Calculate average staff position (4.0 is middle line)
-    final avgPosition = staffPositions.reduce((a, b) => a + b) / staffPositions.length;
+    final avgPosition =
+        staffPositions.reduce((a, b) => a + b) / staffPositions.length;
 
     // FIXED: Notes below middle (< 4) should curve up, notes above (> 4) should curve down
     return avgPosition < 4.0 ? CurveDirection.up : CurveDirection.down;
@@ -135,11 +135,11 @@ class CurveCalculator {
   /// Calculate control points for a Bézier curve
   /// Returns [controlPoint1, controlPoint2] for a cubic Bézier
   static List<Offset> calculateBezierControlPoints(
-      Offset start,
-      Offset end,
-      CurveDirection direction,
-      double curvature,
-      ) {
+    Offset start,
+    Offset end,
+    CurveDirection direction,
+    double curvature,
+  ) {
     final dx = end.dx - start.dx;
     final dy = end.dy - start.dy;
 
@@ -153,30 +153,31 @@ class CurveCalculator {
     final cp2x = start.dx + dx * 0.67;
     final cp2y = start.dy + dy * 0.67 + curveHeight;
 
-    return [
-      Offset(cp1x, cp1y),
-      Offset(cp2x, cp2y),
-    ];
+    return [Offset(cp1x, cp1y), Offset(cp2x, cp2y)];
   }
 
   /// Calculate optimal curvature based on horizontal distance
-  static double calculateCurvature(double horizontalDistance, {bool isTie = false}) {
+  static double calculateCurvature(
+    double horizontalDistance, {
+    bool isTie = false,
+  }) {
     // Ties are generally less curved than slurs
     final baseHeight = isTie ? 8.0 : 12.0;
 
     // Longer curves need more height, but with diminishing returns
-    final scaledHeight = baseHeight * (1 + (horizontalDistance / 100).clamp(0, 1));
+    final scaledHeight =
+        baseHeight * (1 + (horizontalDistance / 100).clamp(0, 1));
 
     return scaledHeight;
   }
 
   /// Check if curve would collide with any notes
   static bool wouldCollideWithNotes(
-      Offset start,
-      Offset end,
-      List<Offset> notePositions,
-      double clearance,
-      ) {
+    Offset start,
+    Offset end,
+    List<Offset> notePositions,
+    double clearance,
+  ) {
     // Simple check: see if any note is too close to the curve path
     // In practice, would use more sophisticated collision detection
 
@@ -185,8 +186,9 @@ class CurveCalculator {
       if (notePos.dx < start.dx || notePos.dx > end.dx) continue;
 
       // Check vertical distance from straight line between start and end
-      final lineY = start.dy + (end.dy - start.dy) *
-          ((notePos.dx - start.dx) / (end.dx - start.dx));
+      final lineY =
+          start.dy +
+          (end.dy - start.dy) * ((notePos.dx - start.dx) / (end.dx - start.dx));
 
       if ((notePos.dy - lineY).abs() < clearance) {
         return true;

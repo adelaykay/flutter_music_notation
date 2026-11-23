@@ -85,9 +85,7 @@ class Beam {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-          other is Beam &&
-              _listEquals(notes, other.notes) &&
-              type == other.type;
+      other is Beam && _listEquals(notes, other.notes) && type == other.type;
 
   bool _listEquals(List<Note> a, List<Note> b) {
     if (a.length != b.length) return false;
@@ -128,10 +126,7 @@ class BeamGroup {
   /// The notes being beamed
   final List<Note> notes;
 
-  const BeamGroup({
-    required this.beams,
-    required this.notes,
-  });
+  const BeamGroup({required this.beams, required this.notes});
 
   /// Primary beam (always exists)
   Beam get primaryBeam => beams.first;
@@ -141,27 +136,27 @@ class BeamGroup {
       beams.where((b) => b.type == BeamType.secondary).toList();
 
   /// Whether this beam group uses fractional beaming
-  bool get hasFractionalBeams =>
-      beams.any((b) => b.noteIndices != null && b.noteIndices!.length < notes.length);
+  bool get hasFractionalBeams => beams.any(
+    (b) => b.noteIndices != null && b.noteIndices!.length < notes.length,
+  );
 
   @override
-  String toString() => 'BeamGroup(${notes.length} notes, ${beams.length} beams)';
+  String toString() =>
+      'BeamGroup(${notes.length} notes, ${beams.length} beams)';
 }
 
 /// Helper class to calculate beam groupings based on time signature
 class BeamGroupCalculator {
   /// Calculate how notes should be beamed based on beat structure
   static List<BeamGroup> calculateBeamGroups(
-      List<Note> notes,
-      int beatsPerMeasure,
-      int beatUnit,
-      ) {
+    List<Note> notes,
+    int beatsPerMeasure,
+    int beatUnit,
+  ) {
     final beamGroups = <BeamGroup>[];
 
     // Filter only notes that need beaming (eighth and shorter)
-    final beamableNotes = notes
-        .where((n) => n.duration.needsFlag)
-        .toList()
+    final beamableNotes = notes.where((n) => n.duration.needsFlag).toList()
       ..sort((a, b) => a.startBeat.compareTo(b.startBeat));
 
     if (beamableNotes.isEmpty) return beamGroups;
@@ -179,18 +174,17 @@ class BeamGroupCalculator {
 
       if (notesInBeat.length >= 2) {
         // Create primary beam
-        final primaryBeam = Beam(
-          notes: notesInBeat,
-          type: BeamType.primary,
-        );
+        final primaryBeam = Beam(notes: notesInBeat, type: BeamType.primary);
 
         // Create secondary beams if needed
         final secondaryBeams = _createSecondaryBeams(notesInBeat);
 
-        beamGroups.add(BeamGroup(
-          beams: [primaryBeam, ...secondaryBeams],
-          notes: notesInBeat,
-        ));
+        beamGroups.add(
+          BeamGroup(
+            beams: [primaryBeam, ...secondaryBeams],
+            notes: notesInBeat,
+          ),
+        );
       }
     }
 
@@ -203,7 +197,7 @@ class BeamGroupCalculator {
 
     // Check if we need secondary beams (sixteenth notes or shorter)
     final needsSecondary = notes.any(
-          (n) => n.duration.type.index >= DurationType.sixteenth.index,
+      (n) => n.duration.type.index >= DurationType.sixteenth.index,
     );
 
     if (!needsSecondary) return secondaryBeams;
@@ -216,10 +210,9 @@ class BeamGroupCalculator {
         currentGroup.add(note);
       } else {
         if (currentGroup.length >= 2) {
-          secondaryBeams.add(Beam(
-            notes: List.from(currentGroup),
-            type: BeamType.secondary,
-          ));
+          secondaryBeams.add(
+            Beam(notes: List.from(currentGroup), type: BeamType.secondary),
+          );
         }
         currentGroup = [];
       }
@@ -227,10 +220,7 @@ class BeamGroupCalculator {
 
     // Add final group if exists
     if (currentGroup.length >= 2) {
-      secondaryBeams.add(Beam(
-        notes: currentGroup,
-        type: BeamType.secondary,
-      ));
+      secondaryBeams.add(Beam(notes: currentGroup, type: BeamType.secondary));
     }
 
     return secondaryBeams;
@@ -238,10 +228,7 @@ class BeamGroupCalculator {
 
   /// Calculate beam slope based on note positions
   /// Returns angle in radians
-  static double calculateBeamSlope(
-      List<Note> notes,
-      List<double> yPositions,
-      ) {
+  static double calculateBeamSlope(List<Note> notes, List<double> yPositions) {
     if (notes.length < 2) return 0.0;
 
     // Use first and last note for slope calculation

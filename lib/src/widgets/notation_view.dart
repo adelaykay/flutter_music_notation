@@ -341,7 +341,9 @@ class _NotationViewState extends State<NotationView>
       if (widget.grandStaff != null) {
         // Grand staff: two staves + gap
         final measuresCount = widget.grandStaff!.measureCount;
-        final estimatedSystems = widget.config.useSystemLayout ? (measuresCount / 3).ceil() : 1;
+        final estimatedSystems = widget.config.useSystemLayout
+            ? (measuresCount / 3).ceil()
+            : 1;
         final singleStaffHeight =
             widget.config.staffSpaceSize * 4; // 5 lines = 4 spaces
         final systemHeight =
@@ -368,9 +370,15 @@ class _NotationViewState extends State<NotationView>
     if (effectiveWidth == null && !widget.config.useSystemLayout) {
       if (widget.measures != null) {
         // Estimate 150-200px per measure for single line
-        effectiveWidth = widget.config.leftMargin + (widget.measures!.length * 180.0) + widget.config.rightMargin;
+        effectiveWidth =
+            widget.config.leftMargin +
+            (widget.measures!.length * 180.0) +
+            widget.config.rightMargin;
       } else if (widget.grandStaff != null) {
-        effectiveWidth = widget.config.leftMargin + (widget.grandStaff!.measureCount * 180.0) + widget.config.rightMargin;
+        effectiveWidth =
+            widget.config.leftMargin +
+            (widget.grandStaff!.measureCount * 180.0) +
+            widget.config.rightMargin;
       }
     }
 

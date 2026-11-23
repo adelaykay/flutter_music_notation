@@ -10,19 +10,16 @@ class TieRenderer {
   final double staffSpaceSize;
   final Color color;
 
-  const TieRenderer({
-    required this.staffSpaceSize,
-    this.color = Colors.black,
-  });
+  const TieRenderer({required this.staffSpaceSize, this.color = Colors.black});
 
   /// Paint a tie between two notes
   void paintTie(
-      Canvas canvas,
-      Tie tie,
-      Offset startNoteheadCenter,
-      Offset endNoteheadCenter,
-      CurveDirection direction,
-      ) {
+    Canvas canvas,
+    Tie tie,
+    Offset startNoteheadCenter,
+    Offset endNoteheadCenter,
+    CurveDirection direction,
+  ) {
     // Calculate attachment points (edges of noteheads)
     final noteheadWidth = StaffUnits.noteheadWidth.toPixels(staffSpaceSize);
 
@@ -41,11 +38,11 @@ class TieRenderer {
 
   /// Paint a tie that ends at system edge (for ties crossing systems)
   void paintSystemEndTie(
-      Canvas canvas,
-      Offset startNoteheadCenter,
-      double systemRightEdge,
-      CurveDirection direction,
-      ) {
+    Canvas canvas,
+    Offset startNoteheadCenter,
+    double systemRightEdge,
+    CurveDirection direction,
+  ) {
     final noteheadWidth = StaffUnits.noteheadWidth.toPixels(staffSpaceSize);
 
     final startPoint = Offset(
@@ -53,27 +50,21 @@ class TieRenderer {
       startNoteheadCenter.dy,
     );
 
-    final endPoint = Offset(
-      systemRightEdge,
-      startNoteheadCenter.dy,
-    );
+    final endPoint = Offset(systemRightEdge, startNoteheadCenter.dy);
 
     _drawCurve(canvas, startPoint, endPoint, direction, true);
   }
 
   /// Paint a tie that starts at system edge (for ties crossing systems)
   void paintSystemStartTie(
-      Canvas canvas,
-      double systemLeftEdge,
-      Offset endNoteheadCenter,
-      CurveDirection direction,
-      ) {
+    Canvas canvas,
+    double systemLeftEdge,
+    Offset endNoteheadCenter,
+    CurveDirection direction,
+  ) {
     final noteheadWidth = StaffUnits.noteheadWidth.toPixels(staffSpaceSize);
 
-    final startPoint = Offset(
-      systemLeftEdge,
-      endNoteheadCenter.dy,
-    );
+    final startPoint = Offset(systemLeftEdge, endNoteheadCenter.dy);
 
     final endPoint = Offset(
       endNoteheadCenter.dx - noteheadWidth / 2,
@@ -85,12 +76,12 @@ class TieRenderer {
 
   /// Draw the actual tie curve
   void _drawCurve(
-      Canvas canvas,
-      Offset start,
-      Offset end,
-      CurveDirection direction,
-      bool isTie,
-      ) {
+    Canvas canvas,
+    Offset start,
+    Offset end,
+    CurveDirection direction,
+    bool isTie,
+  ) {
     final horizontalDistance = (end.dx - start.dx).abs();
 
     // Calculate curvature

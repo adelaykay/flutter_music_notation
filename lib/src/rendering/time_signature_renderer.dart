@@ -23,25 +23,43 @@ class TimeSignatureRenderer {
   });
 
   static const _digitBase = 0xE080; // timeSig0
-  static const _commonTime = '';
-  static const _cutTime = '';
+  static const _commonTime = '\uE08A';
+  static const _cutTime = '\uE08B';
 
   double get _fontSize => staffSpaceSize * 4;
 
-  static String _digits(int value) =>
-      value.toString().split('').map((d) => String.fromCharCode(_digitBase + int.parse(d))).join();
+  static String _digits(int value) => value
+      .toString()
+      .split('')
+      .map((d) => String.fromCharCode(_digitBase + int.parse(d)))
+      .join();
 
-  TextPainter _painter(String glyphs) => GlyphProvider.getGlyph(glyphs, _fontSize, color: color);
+  TextPainter _painter(String glyphs) =>
+      GlyphProvider.getGlyph(glyphs, _fontSize, color: color);
 
   /// Paints [glyphs] horizontally centred in a column of [columnWidth]
   /// starting at [x], with the glyph baseline at [baselineY].
-  void _paintCentred(Canvas canvas, TextPainter p, double x, double columnWidth, double baselineY) {
+  void _paintCentred(
+    Canvas canvas,
+    TextPainter p,
+    double x,
+    double columnWidth,
+    double baselineY,
+  ) {
     final baseline = p.computeDistanceToActualBaseline(TextBaseline.alphabetic);
-    p.paint(canvas, Offset(x + (columnWidth - p.width) / 2, baselineY - baseline));
+    p.paint(
+      canvas,
+      Offset(x + (columnWidth - p.width) / 2, baselineY - baseline),
+    );
   }
 
   /// Paint the time signature with its left edge at [x].
-  void paint(Canvas canvas, double x, double staffTopY, TimeSignature timeSignature) {
+  void paint(
+    Canvas canvas,
+    double x,
+    double staffTopY,
+    TimeSignature timeSignature,
+  ) {
     if (timeSignature.isCommonTime || timeSignature.isCutTime) {
       final p = _painter(timeSignature.isCommonTime ? _commonTime : _cutTime);
       _paintCentred(canvas, p, x, p.width, staffTopY + staffSpaceSize * 2);
@@ -58,7 +76,9 @@ class TimeSignatureRenderer {
   /// Width the time signature occupies (excluding any following gap).
   double getWidth(TimeSignature timeSignature) {
     if (timeSignature.isCommonTime || timeSignature.isCutTime) {
-      return _painter(timeSignature.isCommonTime ? _commonTime : _cutTime).width;
+      return _painter(
+        timeSignature.isCommonTime ? _commonTime : _cutTime,
+      ).width;
     }
     final top = _painter(_digits(timeSignature.beats)).width;
     final bottom = _painter(_digits(timeSignature.beatUnit)).width;

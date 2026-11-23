@@ -69,7 +69,10 @@ class Pitch {
 
   /// Create a pitch from MIDI note number (0-127)
   /// Middle C (MIDI 60) = C4
-  factory Pitch.fromMidiNumber(int midiNumber, {Accidental preferredAccidental = Accidental.natural}) {
+  factory Pitch.fromMidiNumber(
+    int midiNumber, {
+    Accidental preferredAccidental = Accidental.natural,
+  }) {
     assert(midiNumber >= 0 && midiNumber <= 127, 'MIDI number must be 0-127');
 
     final octave = (midiNumber ~/ 12) - 1;
@@ -82,34 +85,74 @@ class Pitch {
         return Pitch(noteName: NoteName.C, octave: octave);
       case 1:
         return preferredAccidental == Accidental.flat
-            ? Pitch(noteName: NoteName.D, accidental: Accidental.flat, octave: octave)
-            : Pitch(noteName: NoteName.C, accidental: Accidental.sharp, octave: octave);
+            ? Pitch(
+                noteName: NoteName.D,
+                accidental: Accidental.flat,
+                octave: octave,
+              )
+            : Pitch(
+                noteName: NoteName.C,
+                accidental: Accidental.sharp,
+                octave: octave,
+              );
       case 2:
         return Pitch(noteName: NoteName.D, octave: octave);
       case 3:
         return preferredAccidental == Accidental.flat
-            ? Pitch(noteName: NoteName.E, accidental: Accidental.flat, octave: octave)
-            : Pitch(noteName: NoteName.D, accidental: Accidental.sharp, octave: octave);
+            ? Pitch(
+                noteName: NoteName.E,
+                accidental: Accidental.flat,
+                octave: octave,
+              )
+            : Pitch(
+                noteName: NoteName.D,
+                accidental: Accidental.sharp,
+                octave: octave,
+              );
       case 4:
         return Pitch(noteName: NoteName.E, octave: octave);
       case 5:
         return Pitch(noteName: NoteName.F, octave: octave);
       case 6:
         return preferredAccidental == Accidental.flat
-            ? Pitch(noteName: NoteName.G, accidental: Accidental.flat, octave: octave)
-            : Pitch(noteName: NoteName.F, accidental: Accidental.sharp, octave: octave);
+            ? Pitch(
+                noteName: NoteName.G,
+                accidental: Accidental.flat,
+                octave: octave,
+              )
+            : Pitch(
+                noteName: NoteName.F,
+                accidental: Accidental.sharp,
+                octave: octave,
+              );
       case 7:
         return Pitch(noteName: NoteName.G, octave: octave);
       case 8:
         return preferredAccidental == Accidental.flat
-            ? Pitch(noteName: NoteName.A, accidental: Accidental.flat, octave: octave)
-            : Pitch(noteName: NoteName.G, accidental: Accidental.sharp, octave: octave);
+            ? Pitch(
+                noteName: NoteName.A,
+                accidental: Accidental.flat,
+                octave: octave,
+              )
+            : Pitch(
+                noteName: NoteName.G,
+                accidental: Accidental.sharp,
+                octave: octave,
+              );
       case 9:
         return Pitch(noteName: NoteName.A, octave: octave);
       case 10:
         return preferredAccidental == Accidental.flat
-            ? Pitch(noteName: NoteName.B, accidental: Accidental.flat, octave: octave)
-            : Pitch(noteName: NoteName.A, accidental: Accidental.sharp, octave: octave);
+            ? Pitch(
+                noteName: NoteName.B,
+                accidental: Accidental.flat,
+                octave: octave,
+              )
+            : Pitch(
+                noteName: NoteName.A,
+                accidental: Accidental.sharp,
+                octave: octave,
+              );
       case 11:
         return Pitch(noteName: NoteName.B, octave: octave);
       default:
@@ -139,16 +182,14 @@ class Pitch {
 
   /// Scientific pitch notation (e.g., "C4", "F♯5", "B♭3")
   String get scientificName {
-    final accidentalStr = accidental == Accidental.natural ? '' : accidental.symbol;
+    final accidentalStr = accidental == Accidental.natural
+        ? ''
+        : accidental.symbol;
     return '${noteName.name}$accidentalStr$octave';
   }
 
   /// Create a copy with modified properties
-  Pitch copyWith({
-    NoteName? noteName,
-    Accidental? accidental,
-    int? octave,
-  }) {
+  Pitch copyWith({NoteName? noteName, Accidental? accidental, int? octave}) {
     return Pitch(
       noteName: noteName ?? this.noteName,
       accidental: accidental ?? this.accidental,
@@ -159,11 +200,11 @@ class Pitch {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-          other is Pitch &&
-              runtimeType == other.runtimeType &&
-              noteName == other.noteName &&
-              accidental == other.accidental &&
-              octave == other.octave;
+      other is Pitch &&
+          runtimeType == other.runtimeType &&
+          noteName == other.noteName &&
+          accidental == other.accidental &&
+          octave == other.octave;
 
   @override
   int get hashCode => Object.hash(noteName, accidental, octave);
