@@ -138,7 +138,6 @@ class Chord {
       : assert(notes.isNotEmpty, 'Chord must have at least one note') {
     // Verify all notes have same start beat and duration
     final firstBeat = notes.first.startBeat;
-    final firstDuration = notes.first.duration;
     for (final note in notes) {
       assert(
       note.startBeat == firstBeat,

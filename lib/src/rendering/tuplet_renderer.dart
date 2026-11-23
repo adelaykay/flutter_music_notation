@@ -2,7 +2,6 @@
 
 import 'package:flutter/material.dart';
 import '../models/tuplet_bracket.dart';
-import '../geometry/staff_units.dart';
 
 /// Renders tuplet brackets and numbers
 class TupletRenderer {

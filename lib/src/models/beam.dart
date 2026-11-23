@@ -102,7 +102,7 @@ class Beam {
 
   @override
   String toString() =>
-      'Beam(${notes.length} notes, ${beamCount} beams, beats: $startBeat-$endBeat)';
+      'Beam(${notes.length} notes, $beamCount beams, beats: $startBeat-$endBeat)';
 }
 
 /// Type of beam

@@ -2,7 +2,7 @@
 
 /// A professional music notation rendering library for Flutter
 /// with MIDI support and synchronized playback.
-library flutter_music_notation;
+library;
 
 // Models
 export 'src/models/pitch.dart';

@@ -120,3 +120,4 @@ app.*.symbols
 # IDE
 .idea/
 *.iml
+test/failures/

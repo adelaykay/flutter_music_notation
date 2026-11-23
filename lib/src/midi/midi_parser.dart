@@ -25,7 +25,6 @@ class MidiParser {
 
       // Read header chunk
       final headerLength = _readInt32(bytes, 4);
-      final format = _readInt16(bytes, 8);
       final numTracks = _readInt16(bytes, 10);
       final division = _readInt16(bytes, 12);
 
@@ -36,7 +35,7 @@ class MidiParser {
       int microsecondsPerQuarterNote = 500000;
 
       // Parse all tracks
-      int offset = 14; // After header
+      int offset = 8 + headerLength; // Header chunk may be longer than 6 bytes
 
       for (int track = 0; track < numTracks; track++) {
         if (offset + 8 > bytes.length) break;

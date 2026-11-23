@@ -5,6 +5,34 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+- Layout options contributed by **Julien Bourgeois** ([@Julien5](https://github.com/Julien5)). All are opt-in, and the defaults keep existing output unchanged:
+  - `NotationConfig.showTimeSignature` (default `true`) to hide the time signature
+  - `NotationConfig.expandWidth` (default `false`) to stretch the staff across the full widget width, with the final barline flush right
+  - `NotationConfig.leadingSpace` (default `0.0`) for space between the time signature (or clef) and the first note
+  - `NotationConfig.barlineToClefSpace` (default `0.0`) for space between the start barline and the clef
+  - `Measure.startBarline` for a barline at the start of a system (e.g. after a grand-staff brace)
+- Golden tests for the example layouts (Julien Bourgeois), now rendered with the real music font
+- `KeySignature.accidentalFor(letter)` and `KeySignature.notesNeedingAccidentals(notes)`
+
+### Changed
+- The key signature is repeated at the start of every system by default (`showKeySignatureOnEachSystem: true`), as in standard engraving
+- A short final system is left ragged instead of being stretched across the full width
+- Time signatures use the SMuFL time-signature glyphs from the bundled font
+
+### Fixed
+- Accidentals follow letter names, not pitch classes: F♯ in G major no longer gets a redundant sharp, and F♮ in G major (or C♮ in C♭ major) now gets its natural
+- Accidentals carry through the bar for each letter and octave, and a note that returns to the key's accidental after a natural shows it again
+- Natural signs are drawn (they were never rendered)
+- Notes leave room for the next note's accidental, so accidentals no longer collide with the previous note
+- Bar widths on multi-system layouts: the first bar of a line was inflated and later bars squeezed
+- The time signature font is resolved through the package, so it no longer falls back to the system font in apps
+- Grand staff brace rendering (Julien Bourgeois)
+- Grand staff spacing considers notes on both staves, so a note on an otherwise empty lower staff is no longer drawn on the barline (Julien Bourgeois)
+- MIDI files whose header chunk is longer than 6 bytes are parsed correctly
+
 ## [0.2.0] - 2025-11-06
 
 ### Added

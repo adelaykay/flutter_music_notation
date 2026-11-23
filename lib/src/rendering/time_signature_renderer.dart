@@ -2,8 +2,17 @@
 
 import 'package:flutter/material.dart';
 import '../models/time_signature.dart';
+import 'glyph_provider.dart';
 
-/// Renders time signature symbols (numbers or symbols)
+/// Renders time signatures with the SMuFL time-signature glyphs from the
+/// bundled music font, so digits and the common/cut time symbols match the
+/// rest of the engraving on every platform.
+///
+/// SMuFL fonts are scaled so that one em is four staff spaces, and the
+/// time-signature digits are two staff spaces tall, centred on their
+/// baseline. The numerator is therefore drawn with its baseline one space
+/// below the top line, the denominator three spaces below it, and the
+/// common/cut symbols on the middle line.
 class TimeSignatureRenderer {
   final double staffSpaceSize;
   final Color color;
@@ -13,168 +22,46 @@ class TimeSignatureRenderer {
     this.color = Colors.black,
   });
 
-  /// Paint the time signature
-  void paint(
-      Canvas canvas,
-      double x,
-      double staffTopY,
-      TimeSignature timeSignature,
-      ) {
-    // Use symbols for common time and cut time
-    if (timeSignature.isCommonTime) {
-      _drawCommonTimeSymbol(canvas, x, staffTopY);
+  static const _digitBase = 0xE080; // timeSig0
+  static const _commonTime = '';
+  static const _cutTime = '';
+
+  double get _fontSize => staffSpaceSize * 4;
+
+  static String _digits(int value) =>
+      value.toString().split('').map((d) => String.fromCharCode(_digitBase + int.parse(d))).join();
+
+  TextPainter _painter(String glyphs) => GlyphProvider.getGlyph(glyphs, _fontSize, color: color);
+
+  /// Paints [glyphs] horizontally centred in a column of [columnWidth]
+  /// starting at [x], with the glyph baseline at [baselineY].
+  void _paintCentred(Canvas canvas, TextPainter p, double x, double columnWidth, double baselineY) {
+    final baseline = p.computeDistanceToActualBaseline(TextBaseline.alphabetic);
+    p.paint(canvas, Offset(x + (columnWidth - p.width) / 2, baselineY - baseline));
+  }
+
+  /// Paint the time signature with its left edge at [x].
+  void paint(Canvas canvas, double x, double staffTopY, TimeSignature timeSignature) {
+    if (timeSignature.isCommonTime || timeSignature.isCutTime) {
+      final p = _painter(timeSignature.isCommonTime ? _commonTime : _cutTime);
+      _paintCentred(canvas, p, x, p.width, staffTopY + staffSpaceSize * 2);
       return;
     }
 
-    if (timeSignature.isCutTime) {
-      _drawCutTimeSymbol(canvas, x, staffTopY);
-      return;
-    }
-
-    // Draw stacked numbers
-    _drawNumbers(canvas, x, staffTopY, timeSignature);
+    final top = _painter(_digits(timeSignature.beats));
+    final bottom = _painter(_digits(timeSignature.beatUnit));
+    final column = top.width > bottom.width ? top.width : bottom.width;
+    _paintCentred(canvas, top, x, column, staffTopY + staffSpaceSize);
+    _paintCentred(canvas, bottom, x, column, staffTopY + staffSpaceSize * 3);
   }
 
-  /// Draw common time symbol (C)
-  void _drawCommonTimeSymbol(Canvas canvas, double x, double staffTopY) {
-    final textPainter = TextPainter(
-      text: TextSpan(
-        text: 'C',
-        style: TextStyle(
-          fontSize: staffSpaceSize * 3.0,
-          color: color,
-          fontWeight: FontWeight.bold,
-        ),
-      ),
-      textDirection: TextDirection.ltr,
-    )..layout();
-
-    final y = staffTopY + (staffSpaceSize * 2) - textPainter.height / 2;
-    textPainter.paint(canvas, Offset(x, y));
-  }
-
-  /// Draw cut time symbol (¢)
-  void _drawCutTimeSymbol(Canvas canvas, double x, double staffTopY) {
-    // Draw C with vertical line through it
-    final textPainter = TextPainter(
-      text: TextSpan(
-        text: 'C',
-        style: TextStyle(
-          fontSize: staffSpaceSize * 3.0,
-          color: color,
-          fontWeight: FontWeight.bold,
-        ),
-      ),
-      textDirection: TextDirection.ltr,
-    )..layout();
-
-    final y = staffTopY + (staffSpaceSize * 2) - textPainter.height / 2;
-    textPainter.paint(canvas, Offset(x, y));
-
-    // Draw vertical line through the C
-    final paint = Paint()
-      ..color = color
-      ..strokeWidth = 2.0
-      ..style = PaintingStyle.stroke;
-
-    final centerX = x + textPainter.width / 2;
-    canvas.drawLine(
-      Offset(centerX, y),
-      Offset(centerX, y + textPainter.height),
-      paint,
-    );
-  }
-
-  /// Draw time signature as stacked numbers
-  void _drawNumbers(
-      Canvas canvas,
-      double x,
-      double staffTopY,
-      TimeSignature timeSignature,
-      ) {
-    final fontSize = staffSpaceSize * 2.8;
-
-    // Draw numerator (top number)
-    final numeratorPainter = TextPainter(
-      text: TextSpan(
-        text: timeSignature.beats.toString(),
-        style: TextStyle(
-          fontFamily: 'Bravura',
-          fontSize: fontSize,
-          color: color,
-          fontWeight: FontWeight.bold,
-          height: 1.9
-        ),
-      ),
-      textDirection: TextDirection.ltr,
-    )..layout();
-
-    // Draw denominator (bottom number)
-    final denominatorPainter = TextPainter(
-      text: TextSpan(
-        text: timeSignature.beatUnit.toString(),
-        style: TextStyle(
-          fontSize: fontSize,
-          color: color,
-          fontWeight: FontWeight.bold,
-          height: 1.0
-        ),
-      ),
-      textDirection: TextDirection.ltr,
-    )..layout();
-
-    // Position: centered on staff
-    final staffMiddle = staffTopY + (staffSpaceSize * 2);
-
-    // Numerator above middle line
-    final numeratorY = staffMiddle - staffSpaceSize * 1.7;
-    numeratorPainter.paint(
-      canvas,
-      Offset(x, numeratorY - numeratorPainter.height / 2),
-    );
-
-    // Denominator below middle line
-    final denominatorY = staffMiddle + staffSpaceSize * 1.2;
-    denominatorPainter.paint(
-      canvas,
-      Offset(x, denominatorY - denominatorPainter.height / 2),
-    );
-  }
-
-  /// Calculate the width occupied by the time signature
+  /// Width the time signature occupies (excluding any following gap).
   double getWidth(TimeSignature timeSignature) {
     if (timeSignature.isCommonTime || timeSignature.isCutTime) {
-      return staffSpaceSize * 2.5;
+      return _painter(timeSignature.isCommonTime ? _commonTime : _cutTime).width;
     }
-
-    // Use the wider of the two numbers
-    final fontSize = staffSpaceSize * 2.0;
-
-    final numeratorPainter = TextPainter(
-      text: TextSpan(
-        text: timeSignature.beats.toString(),
-        style: TextStyle(
-          fontSize: fontSize,
-          fontWeight: FontWeight.bold,
-        ),
-      ),
-      textDirection: TextDirection.ltr,
-    )..layout();
-
-    final denominatorPainter = TextPainter(
-      text: TextSpan(
-        text: timeSignature.beatUnit.toString(),
-        style: TextStyle(
-          fontSize: fontSize,
-          fontWeight: FontWeight.bold,
-        ),
-      ),
-      textDirection: TextDirection.ltr,
-    )..layout();
-
-    return (numeratorPainter.width > denominatorPainter.width
-        ? numeratorPainter.width
-        : denominatorPainter.width) +
-        staffSpaceSize;
+    final top = _painter(_digits(timeSignature.beats)).width;
+    final bottom = _painter(_digits(timeSignature.beatUnit)).width;
+    return top > bottom ? top : bottom;
   }
 }

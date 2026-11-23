@@ -63,7 +63,7 @@ class NoteRenderer {
     staffRenderer.paintLedgerLines(canvas, noteCenter, staffPosition);
 
     // Draw accidental if needed
-    if (showAccidental && note.pitch.accidental != Accidental.natural) {
+    if (showAccidental) {
       accidentalRenderer.paint(canvas, noteCenter, note.pitch.accidental);
     }
 
@@ -134,7 +134,7 @@ class NoteRenderer {
 
       // Draw accidental if needed
       final showAccidental = showAccidentals[note.pitch.midiNumber] ?? false;
-      if (showAccidental && note.pitch.accidental != Accidental.natural) {
+      if (showAccidental) {
         accidentalRenderer.paint(canvas, noteCenter, note.pitch.accidental);
       }
 
@@ -221,7 +221,7 @@ class NoteRenderer {
 
       // Draw accidental if needed
       final showAccidental = notesShowingAccidentals.contains(note.pitch.midiNumber);
-      if (showAccidental && note.pitch.accidental != Accidental.natural) {
+      if (showAccidental) {
         // Offset accidentals vertically to avoid collision in tight chords
         final accidentalOffset = Offset(xPosition - (i * 5), noteCenter.dy);
         accidentalRenderer.paint(canvas, accidentalOffset, note.pitch.accidental);

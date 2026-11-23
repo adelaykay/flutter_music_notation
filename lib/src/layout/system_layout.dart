@@ -1,9 +1,6 @@
 // lib/src/layout/system_layout.dart
 
 import '../../flutter_music_notation.dart';
-import '../models/measure.dart';
-import 'spacing_engine.dart';
-import 'line_breaker.dart';
 
 /// Manages the layout of multiple systems (lines) of music
 class SystemLayout {
@@ -80,6 +77,7 @@ class SystemLayout {
         leftMargin,
         pageWidth - rightMargin, // End position (use full width)
         measureSpacing,
+        isLastLine: i == lines.length - 1,
       );
 
       systems.add(SystemInfo(

@@ -1,7 +1,6 @@
 // lib/src/widgets/notation_view.dart
 
 import 'package:flutter/material.dart';
-import 'dart:math';
 import '../models/note.dart';
 import '../models/measure.dart';
 import '../models/grand_staff.dart';
@@ -14,6 +13,7 @@ import '../rendering/notation_painter.dart';
 /// Configuration for notation display
 class NotationConfig {
   final double staffSpaceSize;
+  final double barlineToClefSpace;
   final Color staffLineColor;
   final Color noteColor;
   final Color activeNoteColor;
@@ -25,6 +25,7 @@ class NotationConfig {
   final double leftMargin;
   final double rightMargin;
   final double topMargin;
+  final double leadingSpace;
   final double measureSpacing;
   final double minMeasureWidth;
   final SpacingEngine spacingEngine;
@@ -33,6 +34,7 @@ class NotationConfig {
   final double systemSpacing;
   final bool showMeasureNumbers;
   final bool showClefOnEachSystem;
+  final bool showTimeSignature;
   final LineBreakConfig? lineBreakConfig;
   final double grandStaffGap;
   final double upperStaffHeight;
@@ -42,9 +44,11 @@ class NotationConfig {
   final bool showKeySignatureOnEachSystem;
   final double clefNoteMargin;
   final bool enableTieDetection;
+  final bool expandWidth;
 
   const NotationConfig({
     this.staffSpaceSize = 12.0,
+    this.barlineToClefSpace = 0.0,
     this.staffLineColor = Colors.black,
     this.noteColor = Colors.black,
     this.activeNoteColor = Colors.green,
@@ -56,6 +60,7 @@ class NotationConfig {
     this.leftMargin = 100.0,
     this.rightMargin = 20.0,
     this.topMargin = 40.0,
+    this.leadingSpace = 0.0,
     this.measureSpacing = 40.0,
     this.minMeasureWidth = 100.0,
     this.spacingEngine = SpacingPresets.normal,
@@ -64,19 +69,22 @@ class NotationConfig {
     this.systemSpacing = 60.0,
     this.showMeasureNumbers = true,
     this.showClefOnEachSystem = true,
+    this.showTimeSignature = true,
     this.lineBreakConfig,
     this.grandStaffGap = 60.0,
     this.upperStaffHeight = 40.0,
     this.lowerStaffHeight = 40.0,
     this.showBrace = true,
     this.enableBeaming = false,
-    this.showKeySignatureOnEachSystem = false,
+    this.showKeySignatureOnEachSystem = true,
     this.clefNoteMargin = 20.0,
     this.enableTieDetection = false,
+    this.expandWidth = false,
   });
 
   NotationConfig copyWith({
     double? staffSpaceSize,
+    double? barlineToClefSpace,
     Color? staffLineColor,
     Color? noteColor,
     Color? activeNoteColor,
@@ -88,6 +96,7 @@ class NotationConfig {
     double? leftMargin,
     double? rightMargin,
     double? topMargin,
+    double? leadingSpace,
     double? measureSpacing,
     double? minMeasureWidth,
     SpacingEngine? spacingEngine,
@@ -96,6 +105,7 @@ class NotationConfig {
     double? systemSpacing,
     bool? showMeasureNumbers,
     bool? showClefOnEachSystem,
+    bool? showTimeSignature,
     LineBreakConfig? lineBreakConfig,
     double? grandStaffGap,
     double? upperStaffHeight,
@@ -105,9 +115,11 @@ class NotationConfig {
     bool? showKeySignatureOnEachSystem,
     double? clefNoteMargin,
     bool? enableTieDetection,
+    bool? expandWidth,
   }) {
     return NotationConfig(
       staffSpaceSize: staffSpaceSize ?? this.staffSpaceSize,
+      barlineToClefSpace: barlineToClefSpace ?? this.barlineToClefSpace,
       staffLineColor: staffLineColor ?? this.staffLineColor,
       noteColor: noteColor ?? this.noteColor,
       activeNoteColor: activeNoteColor ?? this.activeNoteColor,
@@ -119,6 +131,7 @@ class NotationConfig {
       leftMargin: leftMargin ?? this.leftMargin,
       rightMargin: rightMargin ?? this.rightMargin,
       topMargin: topMargin ?? this.topMargin,
+      leadingSpace: leadingSpace ?? this.leadingSpace,
       measureSpacing: measureSpacing ?? this.measureSpacing,
       minMeasureWidth: minMeasureWidth ?? this.minMeasureWidth,
       spacingEngine: spacingEngine ?? this.spacingEngine,
@@ -127,6 +140,7 @@ class NotationConfig {
       systemSpacing: systemSpacing ?? this.systemSpacing,
       showMeasureNumbers: showMeasureNumbers ?? this.showMeasureNumbers,
       showClefOnEachSystem: showClefOnEachSystem ?? this.showClefOnEachSystem,
+      showTimeSignature: showTimeSignature ?? this.showTimeSignature,
       lineBreakConfig: lineBreakConfig ?? this.lineBreakConfig,
       grandStaffGap: grandStaffGap ?? this.grandStaffGap,
       upperStaffHeight: upperStaffHeight ?? this.upperStaffHeight,
@@ -137,6 +151,7 @@ class NotationConfig {
           showKeySignatureOnEachSystem ?? this.showKeySignatureOnEachSystem,
       clefNoteMargin: clefNoteMargin ?? this.clefNoteMargin,
       enableTieDetection: enableTieDetection ?? this.enableTieDetection,
+      expandWidth: expandWidth ?? this.expandWidth,
     );
   }
 
@@ -146,6 +161,7 @@ class NotationConfig {
       other is NotationConfig &&
           runtimeType == other.runtimeType &&
           staffSpaceSize == other.staffSpaceSize &&
+          barlineToClefSpace == other.barlineToClefSpace &&
           staffLineColor == other.staffLineColor &&
           noteColor == other.noteColor &&
           activeNoteColor == other.activeNoteColor &&
@@ -157,6 +173,7 @@ class NotationConfig {
           leftMargin == other.leftMargin &&
           rightMargin == other.rightMargin &&
           topMargin == other.topMargin &&
+          leadingSpace == other.leadingSpace &&
           measureSpacing == other.measureSpacing &&
           minMeasureWidth == other.minMeasureWidth &&
           spacingEngine == other.spacingEngine &&
@@ -165,19 +182,22 @@ class NotationConfig {
           systemSpacing == other.systemSpacing &&
           showMeasureNumbers == other.showMeasureNumbers &&
           showClefOnEachSystem == other.showClefOnEachSystem &&
+          showTimeSignature == other.showTimeSignature &&
           lineBreakConfig == other.lineBreakConfig &&
           grandStaffGap == other.grandStaffGap &&
           upperStaffHeight == other.upperStaffHeight &&
           lowerStaffHeight == other.lowerStaffHeight &&
           showBrace == other.showBrace &&
+          expandWidth == other.expandWidth &&
           enableBeaming == other.enableBeaming &&
           showKeySignatureOnEachSystem == other.showKeySignatureOnEachSystem &&
           clefNoteMargin == other.clefNoteMargin &&
           enableTieDetection == other.enableTieDetection;
 
   @override
-  int get hashCode => Object.hash(
+  int get hashCode => Object.hashAll([
     staffSpaceSize,
+    barlineToClefSpace,
     staffLineColor,
     noteColor,
     activeNoteColor,
@@ -189,6 +209,7 @@ class NotationConfig {
     leftMargin,
     rightMargin,
     topMargin,
+    leadingSpace,
     measureSpacing,
     minMeasureWidth,
     spacingEngine,
@@ -197,7 +218,18 @@ class NotationConfig {
     systemSpacing,
     showMeasureNumbers,
     showClefOnEachSystem,
-  );
+    showTimeSignature,
+    lineBreakConfig,
+    grandStaffGap,
+    upperStaffHeight,
+    lowerStaffHeight,
+    showBrace,
+    expandWidth,
+    enableBeaming,
+    showKeySignatureOnEachSystem,
+    clefNoteMargin,
+    enableTieDetection,
+  ]);
 }
 
 /// Widget that displays musical notation
@@ -349,9 +381,9 @@ class _NotationViewState extends State<NotationView>
         notes: widget.notes,
         rests: widget.rests,
         config: widget.config,
-        activeNotes: widget.playbackController?.activeNotes ?? {},
+        activeNotes: widget.playbackController?.activeNotes ?? const {},
       ),
-      size: Size(effectiveWidth ?? double.infinity, effectiveHeight ?? double.infinity),
+      size: Size(effectiveWidth ?? double.infinity, effectiveHeight),
     );
 
     if (widget.playbackController != null) {

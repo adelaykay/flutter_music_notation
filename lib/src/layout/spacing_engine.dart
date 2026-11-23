@@ -61,6 +61,26 @@ class SpacingEngine {
     );
   }
 
+  /// Horizontal room needed between [current] and [next]: the right side of
+  /// [current] (notehead, dots, flag) plus the accidental drawn to the left of
+  /// [next], if it shows one. Accidentals follow the bar rules of
+  /// [KeySignature.notesNeedingAccidentals].
+  double _gapNeeded(dynamic current, dynamic next, Set<Note> withAccidentals, double staffSpaceSize) {
+    double gap;
+    if (current is Note) {
+      gap = CollisionDetector.calculateNoteWidthStatic(current, false, staffSpaceSize);
+    } else if (current is Rest) {
+      gap = CollisionDetector.calculateRestWidthStatic(current, staffSpaceSize);
+    } else {
+      gap = minSpacing;
+    }
+    if (next is Note && withAccidentals.contains(next)) {
+      gap += CollisionDetector.calculateNoteWidthStatic(next, true, staffSpaceSize) -
+          CollisionDetector.calculateNoteWidthStatic(next, false, staffSpaceSize);
+    }
+    return gap;
+  }
+
   /// Calculate uniform spacing (equal distance between all elements)
   List<double> _calculateUniformSpacing(
       List<dynamic> elements,
@@ -69,32 +89,14 @@ class SpacingEngine {
         KeySignature keySignature = KeySignature.cMajor,
       }) {
     final positions = <double>[];
+    final withAccidentals = keySignature.notesNeedingAccidentals(elements.whereType<Note>());
     double currentX = startX;
 
     for (int i = 0; i < elements.length; i++) {
       positions.add(currentX);
-
-      // Determine minimum width needed for this element
-      double minWidth = baseSpacing;
-      final element = elements[i];
-
-      if (element is Note) {
-        final needsAccidental = keySignature.needsAccidental(element.pitch);
-        final visualWidth = CollisionDetector.calculateNoteWidthStatic(
-          element,
-          needsAccidental,
-          staffSpaceSize,
-        );
-        minWidth = max(minWidth, visualWidth + minSpacing * 0.5);
-      } else if (element is Rest) {
-        final visualWidth = CollisionDetector.calculateRestWidthStatic(
-          element,
-          staffSpaceSize,
-        );
-        minWidth = max(minWidth, visualWidth + minSpacing * 0.5);
-      }
-
-      currentX += minWidth;
+      final next = i < elements.length - 1 ? elements[i + 1] : null;
+      final needed = _gapNeeded(elements[i], next, withAccidentals, staffSpaceSize);
+      currentX += max(baseSpacing, needed + minSpacing * 0.5);
     }
 
     return positions;
@@ -124,13 +126,16 @@ class SpacingEngine {
     if (availableWidth != null) {
       final idealTotalWidth = spacingWeights.isEmpty ? 0 : spacingWeights.reduce((a, b) => a + b);
       if (idealTotalWidth > 0) {
-        final usableWidth = availableWidth - startX - minSpacing;
+        // availableWidth is the width of this run of elements, measured from
+        // startX (not an absolute end position).
+        final usableWidth = availableWidth - minSpacing;
         scaleFactor = (usableWidth / idealTotalWidth).clamp(0.3, 3.0);
       }
     }
 
     // Calculate actual positions
     final positions = <double>[];
+    final withAccidentals = keySignature.notesNeedingAccidentals(elements.whereType<Note>());
     double currentX = startX;
 
     for (int i = 0; i < elements.length; i++) {
@@ -138,17 +143,9 @@ class SpacingEngine {
 
       // Add spacing before next element
       if (i < elements.length - 1) {
-        // Minimum width based on visual elements (accidentals/dots)
-        double visualMinWidth = minSpacing;
-        final currentElement = elements[i];
-        if (currentElement is Note) {
-          final needsAccidental = keySignature.needsAccidental(currentElement.pitch);
-          visualMinWidth = CollisionDetector.calculateNoteWidthStatic(
-            currentElement,
-            needsAccidental,
-            staffSpaceSize,
-          );
-        }
+        // Minimum width so this element and the next one's accidental fit
+        final visualMinWidth =
+            _gapNeeded(elements[i], elements[i + 1], withAccidentals, staffSpaceSize);
 
         final spacing = (spacingWeights[i] * scaleFactor)
             .clamp(visualMinWidth + staffSpaceSize * 0.5, maxSpacing);
@@ -283,6 +280,9 @@ class SpacingEngine {
     return (x > 0) ? (log(x.clamp(0.1, 100)) / log(2.0)) : 0;
   }
 
+  /// The most a final line is stretched to fill the width.
+  static const double lastLineMaxStretch = 1.5;
+
   /// Calculate spacing for multiple measures on a line
   LineSpacing calculateLineSpacing(
       List<MeasureElements> measures,
@@ -290,6 +290,7 @@ class SpacingEngine {
       double lineWidth,
       double measureSpacing, {
         double staffSpaceSize = 12.0,
+        bool isLastLine = false,
       }) {
     final measureSpacings = <MeasureSpacing>[];
     double currentX = startX;
@@ -312,9 +313,14 @@ class SpacingEngine {
     final availableWidth = lineWidth - startX;
 
     // Determine if we need to compress or can expand
-    final scaleFactor = (availableWidth > totalMinWidth && totalMinWidth > 0)
+    var scaleFactor = (availableWidth > totalMinWidth && totalMinWidth > 0)
         ? availableWidth / totalMinWidth
         : 1.0;
+    // A short final line is left ragged rather than stretched across the
+    // page, as in conventional engraving.
+    if (isLastLine && scaleFactor > lastLineMaxStretch) {
+      scaleFactor = lastLineMaxStretch;
+    }
 
     // Second pass: calculate actual positions with scaling
     for (int i = 0; i < measures.length; i++) {

@@ -1,6 +1,7 @@
 // lib/src/models/key_signature.dart
 
 import 'pitch.dart';
+import 'note.dart';
 
 /// Represents a musical key signature
 class KeySignature {
@@ -103,24 +104,45 @@ class KeySignature {
     }
   }
 
-  /// Check if a pitch needs an accidental in this key
-  bool needsAccidental(Pitch pitch) {
-    final pitchClass = pitch.midiNumber % 12;
-    final altered = getAlteredPitchClasses();
+  /// The accidental this key signature applies to [letter]
+  /// (e.g. F → sharp in G major, B → flat in F major, natural otherwise).
+  Accidental accidentalFor(NoteName letter) {
+    const sharpOrder = [NoteName.F, NoteName.C, NoteName.G, NoteName.D, NoteName.A, NoteName.E, NoteName.B];
+    const flatOrder = [NoteName.B, NoteName.E, NoteName.A, NoteName.D, NoteName.G, NoteName.C, NoteName.F];
+    if (accidentals > 0 && sharpOrder.take(accidentals).contains(letter)) return Accidental.sharp;
+    if (accidentals < 0 && flatOrder.take(-accidentals).contains(letter)) return Accidental.flat;
+    return Accidental.natural;
+  }
 
-    if (altered.contains(pitchClass)) {
-      // This pitch is in the key signature
-      // Only needs accidental if it differs from key signature
-      if (usesSharps) {
-        return pitch.accidental != Accidental.sharp;
-      } else {
-        return pitch.accidental != Accidental.flat;
+  /// Whether [pitch] needs a written accidental at the start of a bar in this
+  /// key. Key signatures alter letter names, so this compares the pitch's own
+  /// accidental with the one the key gives its letter: F♯ in G major needs
+  /// none, F♮ in G major needs a natural.
+  bool needsAccidental(Pitch pitch) => pitch.accidental != accidentalFor(pitch.noteName);
+
+  /// Which of [notes] (one bar) need a written accidental, following standard
+  /// engraving: an accidental lasts until the end of the bar for that letter
+  /// and octave, so it is not repeated, and a later note that returns to the
+  /// key's (or another) accidental gets one again. Notes are taken in time
+  /// order; notes at the same beat are taken low to high.
+  Set<Note> notesNeedingAccidentals(Iterable<Note> notes) {
+    final ordered = notes.toList()
+      ..sort((a, b) {
+        final byBeat = a.startBeat.compareTo(b.startBeat);
+        return byBeat != 0 ? byBeat : a.pitch.midiNumber.compareTo(b.pitch.midiNumber);
+      });
+    final current = <(NoteName, int), Accidental>{};
+    final result = Set<Note>.identity();
+    for (final note in ordered) {
+      final letter = note.pitch.noteName;
+      final slot = (letter, note.pitch.octave);
+      final inForce = current[slot] ?? accidentalFor(letter);
+      if (note.pitch.accidental != inForce) {
+        result.add(note);
+        current[slot] = note.pitch.accidental;
       }
-    } else {
-      // This pitch is not in key signature
-      // Needs accidental if it's not natural
-      return pitch.accidental != Accidental.natural;
     }
+    return result;
   }
 
   @override

@@ -1,8 +1,6 @@
 // lib/src/layout/line_breaker.dart
 
 import '../../flutter_music_notation.dart';
-import '../models/measure.dart';
-import 'spacing_engine.dart';
 
 /// Determines how to break measures across multiple lines
 class LineBreaker {

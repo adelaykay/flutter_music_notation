@@ -54,6 +54,7 @@ Configuration object for customizing notation appearance.
 ```dart
 const NotationConfig({
   double staffSpaceSize = 12.0,
+  double barlineToClefSpace = 0.0,
   Color staffLineColor = Colors.black,
   Color noteColor = Colors.black,
   Color activeNoteColor = Colors.green,
@@ -64,11 +65,13 @@ const NotationConfig({
   double noteWidth = 60.0,
   double leftMargin = 100.0,
   double measureSpacing = 40.0,
+  bool expandWidth = false,
 })
 ```
 
 **Properties:**
 - `staffSpaceSize` (double) - Size of space between staff lines in pixels
+- `barlineToClefSpace` (double) - Gap between the left (start) barline and the clef in pixels
 - `staffLineColor` (Color) - Color of staff lines
 - `noteColor` (Color) - Color of notes and symbols
 - `activeNoteColor` (Color) - Color of notes during playback
@@ -79,6 +82,7 @@ const NotationConfig({
 - `noteWidth` (double) - Horizontal spacing between notes
 - `leftMargin` (double) - Left margin for clef, key sig, time sig
 - `measureSpacing` (double) - Space between measures
+- `expandWidth` (bool) - When true, extends the staff (and flushes the final barline) to fill the full available width; when false, the staff spans only the rendered measures
 
 ---
 

@@ -36,6 +36,9 @@ class Measure {
 
   /// Tuplet brackets in this measure (optional - auto-detected if null)
   final List<TupletBracket>? tuplets;
+  /// Type of barline at the beginning of this measure (e.g. a left barline
+  /// after the brace on a grand staff). `null` means no start barline.
+  final BarlineType? startBarline;
 
   const Measure({
     required this.number,
@@ -47,6 +50,7 @@ class Measure {
     this.ties,
     this.slurs,
     this.tuplets,
+    this.startBarline,
   });
 
   /// All elements (notes and rests) sorted by start beat
@@ -141,6 +145,7 @@ class Measure {
     List<Tie>? ties,
     List<Slur>? slurs,
     List<TupletBracket>? tuplets,
+    BarlineType? startBarline,
   }) {
     return Measure(
       number: number ?? this.number,
@@ -152,6 +157,7 @@ class Measure {
       ties: ties ?? this.ties,
       slurs: slurs ?? this.slurs,
       tuplets: tuplets ?? this.tuplets,
+      startBarline: startBarline ?? this.startBarline,
     );
   }
 }

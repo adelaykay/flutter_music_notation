@@ -9,7 +9,6 @@ import '../models/key_signature.dart';
 import '../models/grand_staff.dart';
 import '../geometry/staff_position.dart';
 import 'midi_note.dart';
-import 'midi_parser.dart';
 import 'quantizer.dart';
 import 'satb_detector.dart';
 
