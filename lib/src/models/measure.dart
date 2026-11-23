@@ -69,7 +69,7 @@ class Measure {
     );
   }
 
-  /// Get ties for this measure (auto-detect if not provided)
+  /// Get ties for this measure (auto-detect enabled)
   List<Tie> get tiesInMeasure {
     if (ties != null) return ties!;
 
@@ -94,6 +94,12 @@ class Measure {
 
     return detectedTies;
   }
+
+  /// Get explicitly provided ties for this measure (auto-detect disabled)
+  List<Tie> get explicitTiesInMeasure {
+    return ties ?? [];
+  }
+
 
   /// Get tuplets for this measure (auto-detect if not provided)
   List<TupletBracket> get tupletsInMeasure {

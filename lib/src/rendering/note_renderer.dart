@@ -49,7 +49,8 @@ class NoteRenderer {
         required ClefType clef,
         required bool showAccidental,
         required bool isActive,
-        bool isBeamed = false, // NEW: Skip flags if beamed
+        bool isBeamed = false,
+        StemDirection? stemDirection, // NEW: Allow explicit stem direction
       }) {
     // Calculate staff position for this pitch
     final staffPosition = StaffPosition.forPitch(note.pitch, clef);
@@ -72,11 +73,11 @@ class NoteRenderer {
 
     // Draw stem and flags if needed
     if (note.duration.needsStem) {
-      final stemDirection = StemRenderer.determineStemDirection(staffPosition);
+      final direction = stemDirection ?? StemRenderer.determineStemDirection(staffPosition);
       final stemEnd = stemRenderer.paint(
         canvas,
         noteCenter,
-        direction: stemDirection,
+        direction: direction,
         isActive: isActive,
       );
 
@@ -85,7 +86,7 @@ class NoteRenderer {
         flagRenderer.paint(
           canvas,
           stemEnd,
-          direction: stemDirection,
+          direction: direction,
           durationType: note.duration.type,
         );
       }
@@ -196,6 +197,7 @@ class NoteRenderer {
         required Set<int> notesShowingAccidentals,
         required bool isActive,
         bool isBeamed = false,
+        StemDirection? stemDirection, // NEW: Allow explicit stem direction
       }) {
     final sortedNotes = chord.sortedNotes;
 
@@ -205,7 +207,7 @@ class NoteRenderer {
         .toList();
 
     // Determine stem direction for the chord
-    final stemDirection = StemRenderer.determineStemDirectionForChord(positions);
+    final direction = stemDirection ?? StemRenderer.determineStemDirectionForChord(positions);
 
     // Draw all noteheads and accidentals
     for (int i = 0; i < sortedNotes.length; i++) {
@@ -232,7 +234,7 @@ class NoteRenderer {
 
     // Draw stem and flags for the whole chord
     if (chord.duration.needsStem) {
-      final extremeNote = stemDirection == StemDirection.up
+      final extremeNote = direction == StemDirection.up
           ? sortedNotes.last  // Highest note
           : sortedNotes.first; // Lowest note
 
@@ -243,7 +245,7 @@ class NoteRenderer {
       final stemEnd = stemRenderer.paint(
         canvas,
         noteCenter,
-        direction: stemDirection,
+        direction: direction,
         isActive: isActive,
       );
 
@@ -252,7 +254,7 @@ class NoteRenderer {
         flagRenderer.paint(
           canvas,
           stemEnd,
-          direction: stemDirection,
+          direction: direction,
           durationType: chord.duration.type,
         );
       }

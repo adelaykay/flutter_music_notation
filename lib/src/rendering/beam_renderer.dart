@@ -72,7 +72,7 @@ class BeamRenderer {
 
     final beamThickness = StaffUnits.beamThickness.toPixels(staffSpaceSize);
 
-    // Calculate beam slope
+    // Use the actual stem end positions (which already have slope applied)
     final startPos = stemEndPositions.first;
     final endPos = stemEndPositions.last;
 
@@ -80,28 +80,18 @@ class BeamRenderer {
     final offsetDirection = stemDirection == StemDirection.up ? -1 : 1;
     final adjustedOffset = verticalOffset * offsetDirection;
 
-    // Define beam as a trapezoid
+    // Define beam as a filled rectangle
     final path = Path();
 
-    // Top left
-    path.moveTo(
-      startPos.dx,
-      startPos.dy + adjustedOffset,
-    );
+    // Top edge
+    path.moveTo(startPos.dx, startPos.dy + adjustedOffset);
+    path.lineTo(endPos.dx, endPos.dy + adjustedOffset);
 
-    // Top right
-    path.lineTo(
-      endPos.dx,
-      endPos.dy + adjustedOffset,
-    );
-
-    // Bottom right
+    // Bottom edge
     path.lineTo(
       endPos.dx,
       endPos.dy + adjustedOffset + (beamThickness * offsetDirection),
     );
-
-    // Bottom left
     path.lineTo(
       startPos.dx,
       startPos.dy + adjustedOffset + (beamThickness * offsetDirection),
@@ -131,7 +121,6 @@ class BeamRenderer {
         allStemEnds[noteIndices.first],
         verticalOffset,
         stemDirection,
-        // Determine hook direction based on surrounding notes
         noteIndices.first > 0, // Hook left if not first note
       );
       return;
@@ -194,6 +183,7 @@ class BeamRenderer {
   }
 
   /// Calculate optimal beam positions for a group of notes
+  /// This is the KEY method - it calculates stem ends WITH proper slope
   List<Offset> calculateStemEnds(
       List<Note> notes,
       List<Offset> noteheadCenters,
@@ -205,12 +195,11 @@ class BeamRenderer {
     final stemLength = StaffUnits.stemLength.toPixels(staffSpaceSize);
     final noteheadWidth = StaffUnits.noteheadWidth.toPixels(staffSpaceSize);
 
-    // Calculate base stem ends
-    final baseStemEnds = <Offset>[];
+    // Step 1: Calculate initial stem ends (without slope adjustment)
+    final initialStemEnds = <Offset>[];
 
     for (int i = 0; i < notes.length; i++) {
       final center = noteheadCenters[i];
-      final position = staffPositions[i];
 
       double stemX;
       double stemY;
@@ -223,57 +212,111 @@ class BeamRenderer {
         stemY = center.dy + stemLength;
       }
 
-      baseStemEnds.add(Offset(stemX, stemY));
+      initialStemEnds.add(Offset(stemX, stemY));
     }
 
-    // Adjust for beam slope
-    final adjustedEnds = _adjustForBeamSlope(baseStemEnds, stemDirection);
+    // Step 2: Apply slope adjustment
+    final adjustedEnds = _adjustForBeamSlope(
+      initialStemEnds,
+      staffPositions,
+      stemDirection,
+    );
 
     return adjustedEnds;
   }
 
   /// Adjust stem ends to create proper beam slope
+  /// This is where the magic happens!
   List<Offset> _adjustForBeamSlope(
       List<Offset> stemEnds,
+      List<StaffPosition> staffPositions,
       StemDirection stemDirection,
       ) {
     if (stemEnds.length < 2) return stemEnds;
 
-    // Calculate average Y position
-    final avgY = stemEnds.map((p) => p.dy).reduce((a, b) => a + b) / stemEnds.length;
+    // Get Y positions of noteheads (not stem ends)
+    final noteheadYPositions = staffPositions.map((pos) => pos.value).toList();
 
-    // Find highest and lowest points
-    final sortedByY = List<Offset>.from(stemEnds)
-      ..sort((a, b) => a.dy.compareTo(b.dy));
+    // Calculate the slope based on notehead positions
+    final firstNoteheadY = noteheadYPositions.first;
+    final lastNoteheadY = noteheadYPositions.last;
+    final noteheadYDiff = lastNoteheadY - firstNoteheadY;
 
-    final highestY = sortedByY.first.dy;
-    final lowestY = sortedByY.last.dy;
-    final range = (lowestY - highestY).abs();
-
-    // If range is small, use horizontal beam
-    if (range < staffSpaceSize) {
-      return stemEnds.map((p) => Offset(p.dx, avgY)).toList();
-    }
-
-    // Calculate slope
+    // Calculate horizontal distance
     final firstX = stemEnds.first.dx;
     final lastX = stemEnds.last.dx;
-    final firstY = stemEnds.first.dy;
-    final lastY = stemEnds.last.dy;
+    final horizontalDistance = lastX - firstX;
 
-    final slope = (lastY - firstY) / (lastX - firstX);
+    if (horizontalDistance == 0) return stemEnds;
 
-    // Limit slope (max ~15 degrees)
-    final maxSlope = 0.2679; // tan(15 degrees)
-    final limitedSlope = slope.clamp(-maxSlope, maxSlope);
+    // Calculate slope based on notehead positions
+    // The beam should roughly parallel the notes
+    final rawSlope = (noteheadYDiff * staffSpaceSize / 2) / horizontalDistance;
 
-    // Apply slope to all stem ends
+    // For stems down, we need to invert the visual slope since stems go down
+    final adjustedSlope = stemDirection == StemDirection.down ? -rawSlope : rawSlope;
+
+    // Limit slope to reasonable angles (approximately ±15 degrees)
+    const maxSlope = 1.5;
+    final limitedSlope = adjustedSlope.clamp(-maxSlope, maxSlope);
+
+    // If notes are relatively flat, make beam horizontal
+    if (noteheadYDiff.abs() <= 1) {
+      // Notes within one staff position - use horizontal beam
+      final averageY = stemEnds.map((p) => p.dy).reduce((a, b) => a + b) / stemEnds.length;
+      return stemEnds.map((p) => Offset(p.dx, averageY)).toList();
+    }
+
+    // Apply the slope to all stem ends
     final adjustedEnds = <Offset>[];
+    final firstStemY = stemEnds.first.dy;
 
     for (final stemEnd in stemEnds) {
       final dx = stemEnd.dx - firstX;
-      final adjustedY = firstY + (dx * limitedSlope);
-      adjustedEnds.add(Offset(stemEnd.dx, adjustedY));
+      final slopedY = firstStemY + (dx * limitedSlope);
+      adjustedEnds.add(Offset(stemEnd.dx, slopedY));
+    }
+
+    // Verify minimum stem lengths are maintained
+    return _ensureMinimumStemLengths(
+      adjustedEnds,
+      stemEnds, // original positions
+      stemDirection,
+    );
+  }
+
+  /// Ensure all stems meet minimum length requirements
+  List<Offset> _ensureMinimumStemLengths(
+      List<Offset> slopedEnds,
+      List<Offset> originalEnds,
+      StemDirection stemDirection,
+      ) {
+    final minStemLength = StaffUnits.stemLength.toPixels(staffSpaceSize) * 0.8;
+    final adjustedEnds = <Offset>[];
+
+    for (int i = 0; i < slopedEnds.length; i++) {
+      final slopedEnd = slopedEnds[i];
+      final originalEnd = originalEnds[i];
+
+      // Calculate the notehead Y position (where stem starts)
+      final noteheadY = stemDirection == StemDirection.up
+          ? originalEnd.dy + StaffUnits.stemLength.toPixels(staffSpaceSize)
+          : originalEnd.dy - StaffUnits.stemLength.toPixels(staffSpaceSize);
+
+      // Calculate current stem length
+      final currentLength = (slopedEnd.dy - noteheadY).abs();
+
+      if (currentLength < minStemLength) {
+        // Extend stem to minimum length
+        final adjustment = minStemLength - currentLength;
+        final newY = stemDirection == StemDirection.up
+            ? slopedEnd.dy - adjustment
+            : slopedEnd.dy + adjustment;
+
+        adjustedEnds.add(Offset(slopedEnd.dx, newY));
+      } else {
+        adjustedEnds.add(slopedEnd);
+      }
     }
 
     return adjustedEnds;

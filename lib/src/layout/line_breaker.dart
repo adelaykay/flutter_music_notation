@@ -1,5 +1,6 @@
 // lib/src/layout/line_breaker.dart
 
+import '../../flutter_music_notation.dart';
 import '../models/measure.dart';
 import 'spacing_engine.dart';
 
@@ -60,7 +61,11 @@ class LineBreaker {
 
       // Calculate minimum width needed for this measure
       final elements = measure.elements;
-      final measureWidth = spacingEngine.calculateMinimumMeasureWidth(elements);
+      final measureWidth = spacingEngine.calculateMinimumMeasureWidth(
+        elements,
+        keySignature: measure.keySignature,
+        clef: ClefType.treble,
+      );
 
       // Check if adding this measure would exceed line width
       final totalWidth = currentWidth + measureWidth +
@@ -111,6 +116,7 @@ class LineBreaker {
   /// This version tries to minimize raggedness (uneven line lengths)
   List<LineOfMeasures> breakWithMinimalRaggedness(
       List<Measure> measures, {
+        required bool useSystemLayout,
         required double startX,
         required double measureSpacing,
       }) {
@@ -121,7 +127,11 @@ class LineBreaker {
 
     // Calculate width for each measure
     final measureWidths = measures.map((m) {
-      return spacingEngine.calculateMinimumMeasureWidth(m.elements);
+      return spacingEngine.calculateMinimumMeasureWidth(
+        m.elements,
+        keySignature: m.keySignature,
+        clef: ClefType.treble,
+      );
     }).toList();
 
     int currentIndex = 0;
@@ -133,6 +143,7 @@ class LineBreaker {
         currentIndex,
         availableWidth,
         measureSpacing,
+        useSystemLayout,
       );
 
       lines.add(LineOfMeasures(
@@ -155,6 +166,7 @@ class LineBreaker {
       int startIndex,
       double availableWidth,
       double measureSpacing,
+      bool useSystemLayout,
       ) {
     double currentWidth = 0;
     int bestBreakPoint = startIndex + 1;
@@ -168,7 +180,7 @@ class LineBreaker {
       currentWidth += measureWidth + spacing;
 
       // Allow up to 95% of available width (more aggressive)
-      if (currentWidth > availableWidth * 1.3) {
+      if (currentWidth > availableWidth * 1.1 && useSystemLayout) {
         break;
       }
 

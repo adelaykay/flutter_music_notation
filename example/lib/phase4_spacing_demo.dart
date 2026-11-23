@@ -164,6 +164,7 @@ class SpacingDemo extends StatelessWidget {
   }
 
   Widget _buildNotation(List<Measure> measures, SpacingEngine spacingEngine) {
+    final g1 = GrandStaff(upperStaff: _createTwinkleTwinkle(), lowerStaff: _createMixedDurations());
     return Container(
       height: 180,
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -173,7 +174,8 @@ class SpacingDemo extends StatelessWidget {
         borderRadius: BorderRadius.circular(8),
       ),
       child: NotationView(
-        measures: measures,
+        grandStaff: g1,
+        // measures: measures,
         config: NotationConfig(
           useSystemLayout: true,
           staffSpaceSize: 12,

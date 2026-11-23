@@ -200,9 +200,10 @@ class CollisionDetector {
 
   /// Calculate total width occupied by a note including accidentals and dots
   /// This is crucial for proper spacing
-  double calculateNoteWidth(
+  static double calculateNoteWidthStatic(
       Note note,
       bool showAccidental,
+      double staffSpaceSize,
       ) {
     double width = StaffUnits.noteheadWidth.toPixels(staffSpaceSize);
 
@@ -226,7 +227,7 @@ class CollisionDetector {
   }
 
   /// Calculate total width for a rest including dots
-  double calculateRestWidth(Rest rest) {
+  static double calculateRestWidthStatic(Rest rest, double staffSpaceSize) {
     // Base rest width (approximate)
     double width = staffSpaceSize * 2.0;
 
@@ -236,6 +237,20 @@ class CollisionDetector {
     }
 
     return width;
+  }
+
+  /// Calculate total width occupied by a note including accidentals and dots
+  /// This is crucial for proper spacing
+  double calculateNoteWidth(
+      Note note,
+      bool showAccidental,
+      ) {
+    return calculateNoteWidthStatic(note, showAccidental, staffSpaceSize);
+  }
+
+  /// Calculate total width for a rest including dots
+  double calculateRestWidth(Rest rest) {
+    return calculateRestWidthStatic(rest, staffSpaceSize);
   }
 
   /// Calculate minimum horizontal spacing needed between two elements

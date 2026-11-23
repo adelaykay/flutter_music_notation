@@ -3,6 +3,9 @@
 import 'dart:math';
 
 import '../models/note.dart';
+ import '../models/key_signature.dart';
+import '../geometry/staff_position.dart';
+import 'collision_detector.dart';
 
 /// Calculates optimal horizontal spacing for musical notation
 /// based on duration and engraving best practices.
@@ -32,12 +35,20 @@ class SpacingEngine {
       List<dynamic> elements, {
         required double startX,
         double? availableWidth,
+        double staffSpaceSize = 12.0,
+        ClefType clef = ClefType.treble,
+        KeySignature keySignature = KeySignature.cMajor,
       }) {
     if (elements.isEmpty) return [];
 
     if (!proportional) {
       // Uniform spacing (legacy mode)
-      return _calculateUniformSpacing(elements, startX);
+      return _calculateUniformSpacing(
+        elements,
+        startX,
+        staffSpaceSize: staffSpaceSize,
+        keySignature: keySignature,
+      );
     }
 
     // Proportional spacing based on duration
@@ -45,20 +56,45 @@ class SpacingEngine {
       elements,
       startX,
       availableWidth,
+      staffSpaceSize: staffSpaceSize,
+      keySignature: keySignature,
     );
   }
 
   /// Calculate uniform spacing (equal distance between all elements)
   List<double> _calculateUniformSpacing(
       List<dynamic> elements,
-      double startX,
-      ) {
+      double startX, {
+        double staffSpaceSize = 12.0,
+        KeySignature keySignature = KeySignature.cMajor,
+      }) {
     final positions = <double>[];
     double currentX = startX;
 
     for (int i = 0; i < elements.length; i++) {
       positions.add(currentX);
-      currentX += baseSpacing;
+
+      // Determine minimum width needed for this element
+      double minWidth = baseSpacing;
+      final element = elements[i];
+
+      if (element is Note) {
+        final needsAccidental = keySignature.needsAccidental(element.pitch);
+        final visualWidth = CollisionDetector.calculateNoteWidthStatic(
+          element,
+          needsAccidental,
+          staffSpaceSize,
+        );
+        minWidth = max(minWidth, visualWidth + minSpacing * 0.5);
+      } else if (element is Rest) {
+        final visualWidth = CollisionDetector.calculateRestWidthStatic(
+          element,
+          staffSpaceSize,
+        );
+        minWidth = max(minWidth, visualWidth + minSpacing * 0.5);
+      }
+
+      currentX += minWidth;
     }
 
     return positions;
@@ -69,8 +105,10 @@ class SpacingEngine {
   List<double> _calculateProportionalSpacing(
       List<dynamic> elements,
       double startX,
-      double? availableWidth,
-      ) {
+      double? availableWidth, {
+        double staffSpaceSize = 12.0,
+        KeySignature keySignature = KeySignature.cMajor,
+      }) {
     // Calculate duration for each element
     final durations = elements.map((e) {
       if (e is Note) return e.duration.beats;
@@ -81,14 +119,14 @@ class SpacingEngine {
     // Calculate spacing weights based on duration
     final spacingWeights = _calculateSpacingWeights(durations);
 
-    // Calculate total width needed with ideal spacing
-    final idealTotalWidth = spacingWeights.reduce((a, b) => a + b);
-
     // Determine scaling factor if we have a target width
     double scaleFactor = 1.0;
-    if (availableWidth != null && idealTotalWidth > 0) {
-      final usableWidth = availableWidth - startX - minSpacing;
-      scaleFactor = (usableWidth / idealTotalWidth).clamp(0.3, 3.0);
+    if (availableWidth != null) {
+      final idealTotalWidth = spacingWeights.isEmpty ? 0 : spacingWeights.reduce((a, b) => a + b);
+      if (idealTotalWidth > 0) {
+        final usableWidth = availableWidth - startX - minSpacing;
+        scaleFactor = (usableWidth / idealTotalWidth).clamp(0.3, 3.0);
+      }
     }
 
     // Calculate actual positions
@@ -100,8 +138,20 @@ class SpacingEngine {
 
       // Add spacing before next element
       if (i < elements.length - 1) {
+        // Minimum width based on visual elements (accidentals/dots)
+        double visualMinWidth = minSpacing;
+        final currentElement = elements[i];
+        if (currentElement is Note) {
+          final needsAccidental = keySignature.needsAccidental(currentElement.pitch);
+          visualMinWidth = CollisionDetector.calculateNoteWidthStatic(
+            currentElement,
+            needsAccidental,
+            staffSpaceSize,
+          );
+        }
+
         final spacing = (spacingWeights[i] * scaleFactor)
-            .clamp(minSpacing, maxSpacing);
+            .clamp(visualMinWidth + staffSpaceSize * 0.5, maxSpacing);
         currentX += spacing;
       }
     }
@@ -140,8 +190,11 @@ class SpacingEngine {
   MeasureSpacing calculateMeasureSpacing(
       List<dynamic> elements,
       double startX,
-      double measureWidth,
-      ) {
+      double measureWidth, {
+        double staffSpaceSize = 12.0,
+        ClefType clef = ClefType.treble,
+        KeySignature keySignature = KeySignature.cMajor,
+      }) {
     if (elements.isEmpty) {
       return MeasureSpacing(
         positions: [],
@@ -156,11 +209,31 @@ class SpacingEngine {
       elements,
       startX: startX,
       availableWidth: measureWidth,
+      staffSpaceSize: staffSpaceSize,
+      clef: clef,
+      keySignature: keySignature,
     );
 
-    // Calculate actual end position
+    // Calculate actual end position - DETERMINED BY LAST NOTE WIDTH
+    double lastNoteWidth = minSpacing;
+    if (elements.isNotEmpty) {
+      final lastElement = elements.last;
+      if (lastElement is Note) {
+        lastNoteWidth = CollisionDetector.calculateNoteWidthStatic(
+          lastElement,
+          keySignature.needsAccidental(lastElement.pitch),
+          staffSpaceSize,
+        ) + minSpacing * 0.5;
+      } else if (lastElement is Rest) {
+        lastNoteWidth = CollisionDetector.calculateRestWidthStatic(
+          lastElement,
+          staffSpaceSize,
+        ) + minSpacing * 0.5;
+      }
+    }
+
     final endX = positions.isNotEmpty
-        ? positions.last + minSpacing
+        ? positions.last + lastNoteWidth
         : startX;
 
     return MeasureSpacing(
@@ -172,18 +245,37 @@ class SpacingEngine {
   }
 
   /// Calculate minimum width needed for a measure
-  double calculateMinimumMeasureWidth(List<dynamic> elements) {
+  double calculateMinimumMeasureWidth(
+      List<dynamic> elements, {
+        double staffSpaceSize = 12.0,
+        ClefType clef = ClefType.treble,
+        KeySignature keySignature = KeySignature.cMajor,
+      }) {
     if (elements.isEmpty) return minSpacing;
 
     final positions = calculateSpacing(
       elements,
       startX: 0,
       availableWidth: null,
+      staffSpaceSize: staffSpaceSize,
+      clef: clef,
+      keySignature: keySignature,
     );
 
     if (positions.isEmpty) return minSpacing;
 
-    return positions.last + minSpacing;
+    // Last note width for the end of bar
+    double lastNoteWidth = minSpacing;
+    final lastElement = elements.last;
+    if (lastElement is Note) {
+      lastNoteWidth = CollisionDetector.calculateNoteWidthStatic(
+        lastElement,
+        keySignature.needsAccidental(lastElement.pitch),
+        staffSpaceSize,
+      ) + minSpacing * 0.5;
+    }
+
+    return positions.last + lastNoteWidth;
   }
 
   /// Helper: Calculate log base 2
@@ -196,25 +288,31 @@ class SpacingEngine {
       List<MeasureElements> measures,
       double startX,
       double lineWidth,
-      double measureSpacing,
-      ) {
+      double measureSpacing, {
+        double staffSpaceSize = 12.0,
+      }) {
     final measureSpacings = <MeasureSpacing>[];
     double currentX = startX;
 
     // First pass: calculate minimum widths
     final minWidths = measures.map((m) {
-      return calculateMinimumMeasureWidth(m.elements);
+      return calculateMinimumMeasureWidth(
+        m.elements,
+        staffSpaceSize: staffSpaceSize,
+        clef: m.clef,
+        keySignature: m.keySignature,
+      );
     }).toList();
 
     // Calculate total minimum width needed
-    final totalMinWidth = minWidths.reduce((a, b) => a + b) +
+    final totalMinWidth = minWidths.isEmpty ? 0 : minWidths.reduce((a, b) => a + b) +
         (measures.length - 1) * measureSpacing;
 
     // Calculate available width for distribution
     final availableWidth = lineWidth - startX;
 
     // Determine if we need to compress or can expand
-    final scaleFactor = availableWidth > totalMinWidth
+    final scaleFactor = (availableWidth > totalMinWidth && totalMinWidth > 0)
         ? availableWidth / totalMinWidth
         : 1.0;
 
@@ -227,6 +325,9 @@ class SpacingEngine {
         measure.elements,
         currentX,
         targetWidth,
+        staffSpaceSize: staffSpaceSize,
+        clef: measure.clef,
+        keySignature: measure.keySignature,
       );
 
       measureSpacings.add(spacing);
@@ -301,10 +402,14 @@ class LineSpacing {
 class MeasureElements {
   final List<dynamic> elements;
   final int measureNumber;
+  final KeySignature keySignature;
+  final ClefType clef;
 
   const MeasureElements({
     required this.elements,
     required this.measureNumber,
+    this.keySignature = KeySignature.cMajor,
+    this.clef = ClefType.treble,
   });
 }
 

@@ -1,8 +1,6 @@
 // lib/src/models/slur.dart
 
-
 import 'dart:ui';
-
 import 'note.dart';
 import 'tie.dart';
 
@@ -91,7 +89,7 @@ class Slur {
   int get hashCode => Object.hash(Object.hashAll(notes), direction, type);
 
   @override
-  String toString() => 'Slur(${notes.length} notes, ${startBeat} → ${endBeat})';
+  String toString() => 'Slur(${notes.length} notes, $startBeat → $endBeat)';
 }
 
 /// Direction of a curve (tie or slur)
@@ -118,6 +116,7 @@ enum SlurType {
 /// Helper class for calculating curve properties
 class CurveCalculator {
   /// Calculate optimal direction for a tie/slur based on note positions
+  /// FIXED: Corrected logic - notes BELOW middle curve UP
   static CurveDirection calculateOptimalDirection(
       List<Note> notes,
       List<double> staffPositions,
@@ -129,8 +128,8 @@ class CurveCalculator {
     // Calculate average staff position (4.0 is middle line)
     final avgPosition = staffPositions.reduce((a, b) => a + b) / staffPositions.length;
 
-    // Curve down if notes are above middle, up if below
-    return avgPosition > 4.0 ? CurveDirection.down : CurveDirection.up;
+    // FIXED: Notes below middle (< 4) should curve up, notes above (> 4) should curve down
+    return avgPosition < 4.0 ? CurveDirection.up : CurveDirection.down;
   }
 
   /// Calculate control points for a Bézier curve

@@ -1,6 +1,8 @@
 // lib/src/rendering/notation_painter.dart
 
 import 'package:flutter/material.dart';
+import 'package:flutter_music_notation/src/rendering/stem_renderer.dart';
+import '../../flutter_music_notation.dart';
 import '../models/grand_staff.dart';
 import '../models/note.dart';
 import '../models/pitch.dart';
@@ -11,6 +13,7 @@ import '../layout/spacing_engine.dart';
 import '../layout/system_layout.dart';
 import '../layout/grand_staff_layout.dart';
 import 'brace_renderer.dart';
+import 'notehead_renderer.dart';
 import 'tuplet_renderer.dart';
 import 'note_renderer.dart';
 import 'clef_renderer.dart';
@@ -91,6 +94,7 @@ class NotationPainter extends CustomPainter {
       staffGap: config.grandStaffGap,
       systemSpacing: config.systemSpacing,
       showMeasureNumbers: config.showMeasureNumbers,
+      useSystemLayout: config.useSystemLayout,
     );
 
     final scoreLayout = grandStaffLayout.calculateLayout(
@@ -108,7 +112,10 @@ class NotationPainter extends CustomPainter {
       final lowerStaffY = system.lowerStaffY;
 
       if (config.showBrace) {
-        final braceX = config.leftMargin - braceRenderer.getWidth() - config.staffSpaceSize;
+        final braceX =
+            config.leftMargin -
+                braceRenderer.getWidth() -
+                config.staffSpaceSize;
         braceRenderer.paint(
           canvas,
           braceX,
@@ -133,7 +140,8 @@ class NotationPainter extends CustomPainter {
         system.spacing,
         ClefType.treble,
         isFirstSystem: system.isFirstSystem,
-        showMeasureNumbers: system.showMeasureNumbers && config.showMeasureNumbers,
+        showMeasureNumbers:
+        system.showMeasureNumbers && config.showMeasureNumbers,
         barlinePositions: upperBarlinePositions,
       );
 
@@ -176,7 +184,9 @@ class NotationPainter extends CustomPainter {
           canvas,
           system.instrumentName!,
           Offset(
-            config.leftMargin - braceRenderer.getWidth() - config.staffSpaceSize * 6,
+            config.leftMargin -
+                braceRenderer.getWidth() -
+                config.staffSpaceSize * 6,
             upperStaffY + system.totalHeight / 2,
           ),
         );
@@ -225,7 +235,26 @@ class NotationPainter extends CustomPainter {
         staffTopLeft.dy,
         firstMeasure.timeSignature,
       );
-      currentX += timeSignatureRenderer.getWidth(firstMeasure.timeSignature) + config.staffSpaceSize;
+      currentX +=
+          timeSignatureRenderer.getWidth(firstMeasure.timeSignature) +
+              config.staffSpaceSize;
+    } else if (measures.isNotEmpty && config.showKeySignatureOnEachSystem) {
+      // Add key signature on subsequent systems if configured
+      if (config.showKeySignatureOnEachSystem) {
+        final firstMeasure = measures.first;
+        if (firstMeasure.keySignature.accidentals != 0) {
+          keySignatureRenderer.paint(
+            canvas,
+            currentX,
+            staffTopLeft.dy,
+            firstMeasure.keySignature,
+            config.clef,
+          );
+          currentX +=
+              keySignatureRenderer.getWidth(firstMeasure.keySignature) +
+                  config.clefNoteMargin;
+        }
+      }
     }
 
     for (int i = 0; i < measures.length; i++) {
@@ -259,11 +288,7 @@ class NotationPainter extends CustomPainter {
     }
 
     final staffWidth = currentX - config.leftMargin - config.measureSpacing;
-    noteRenderer.staffRenderer.paint(
-      canvas,
-      staffTopLeft,
-      staffWidth,
-    );
+    noteRenderer.staffRenderer.paint(canvas, staffTopLeft, staffWidth);
   }
 
   void _drawInstrumentName(Canvas canvas, String name, Offset position) {
@@ -282,7 +307,10 @@ class NotationPainter extends CustomPainter {
 
     textPainter.paint(
       canvas,
-      Offset(position.dx - textPainter.width, position.dy - textPainter.height / 2),
+      Offset(
+        position.dx - textPainter.width,
+        position.dy - textPainter.height / 2,
+      ),
     );
   }
 
@@ -395,15 +423,21 @@ class NotationPainter extends CustomPainter {
           staffTopLeft.dy,
           firstMeasure.timeSignature,
         );
-        currentX += timeSignatureRenderer.getWidth(firstMeasure.timeSignature) + config.staffSpaceSize;
+        currentX +=
+            timeSignatureRenderer.getWidth(firstMeasure.timeSignature) +
+                config.staffSpaceSize;
       } else if (system.measures.isNotEmpty && config.showClefOnEachSystem) {
         clefRenderer.paint(canvas, currentX, staffTopLeft.dy, config.clef);
-        currentX += 35 + config.staffSpaceSize * 0.5;
+        currentX += 35 + config.clefNoteMargin;
       }
 
       final barlinePositions = <double>[];
 
-      for (int measureIndex = 0; measureIndex < system.measures.length; measureIndex++) {
+      for (
+      int measureIndex = 0;
+      measureIndex < system.measures.length;
+      measureIndex++
+      ) {
         final measure = system.measures[measureIndex];
         final measureSpacing = system.spacing.measureSpacings[measureIndex];
 
@@ -413,6 +447,24 @@ class NotationPainter extends CustomPainter {
             measure.number,
             Offset(currentX, staffY - config.staffSpaceSize * 2),
           );
+        }
+
+        // Show key signature on non-first systems if configured
+        if (!system.isFirstSystem &&
+            measureIndex == 0 &&
+            config.showKeySignatureOnEachSystem) {
+          if (measure.keySignature.accidentals != 0) {
+            keySignatureRenderer.paint(
+              canvas,
+              currentX,
+              staffTopLeft.dy,
+              measure.keySignature,
+              config.clef,
+            );
+            currentX +=
+                keySignatureRenderer.getWidth(measure.keySignature) +
+                    config.clefNoteMargin;
+          }
         }
 
         final xOffset = currentX - measureSpacing.startX;
@@ -434,11 +486,7 @@ class NotationPainter extends CustomPainter {
       }
 
       final staffWidth = currentX - config.leftMargin - config.measureSpacing;
-      noteRenderer.staffRenderer.paint(
-        canvas,
-        staffTopLeft,
-        staffWidth,
-      );
+      noteRenderer.staffRenderer.paint(canvas, staffTopLeft, staffWidth);
 
       for (int i = 0; i < system.measures.length; i++) {
         final measure = system.measures[i];
@@ -475,7 +523,11 @@ class NotationPainter extends CustomPainter {
     // Calculate total width needed
     double finalBarlineX = currentX;
 
-    for (int measureIndex = 0; measureIndex < measures!.length; measureIndex++) {
+    for (
+    int measureIndex = 0;
+    measureIndex < measures!.length;
+    measureIndex++
+    ) {
       final measure = measures![measureIndex];
 
       if (measure.isFirstMeasure) {
@@ -483,7 +535,9 @@ class NotationPainter extends CustomPainter {
         if (measure.keySignature.accidentals != 0) {
           currentX += keySignatureRenderer.getWidth(measure.keySignature);
         }
-        currentX += timeSignatureRenderer.getWidth(measure.timeSignature) + config.staffSpaceSize;
+        currentX +=
+            timeSignatureRenderer.getWidth(measure.timeSignature) +
+                config.staffSpaceSize;
       }
 
       final measureStartX = currentX;
@@ -491,28 +545,61 @@ class NotationPainter extends CustomPainter {
 
       final elementsByBeat = <double, List<dynamic>>{};
       for (final element in elements) {
-        final beat = element is Note ? element.startBeat : (element as Rest).startBeat;
+        final beat = element is Note
+            ? element.startBeat
+            : (element as Rest).startBeat;
         elementsByBeat.putIfAbsent(beat, () => []).add(element);
       }
 
       final sortedBeats = elementsByBeat.keys.toList()..sort();
-      final flatElements = sortedBeats.map((beat) => elementsByBeat[beat]!.first).toList();
-      final positions = spacingEngine.calculateSpacing(flatElements, startX: measureStartX);
+      final flatElements = sortedBeats
+          .map((beat) => elementsByBeat[beat]!.first)
+          .toList();
+      final positions = spacingEngine.calculateSpacing(
+        flatElements,
+        startX: measureStartX,
+        staffSpaceSize: config.staffSpaceSize,
+        clef: config.clef,
+        keySignature: measure.keySignature,
+      );
+
+      double lastNoteWidth = config.noteWidth;
+      if (flatElements.isNotEmpty) {
+        final last = flatElements.last;
+        if (last is Note) {
+          lastNoteWidth = CollisionDetector.calculateNoteWidthStatic(
+            last,
+            measure.keySignature.needsAccidental(last.pitch),
+            config.staffSpaceSize,
+          ) + config.staffSpaceSize;
+        }
+      }
 
       final measureEndX = positions.isNotEmpty
-          ? positions.last + config.noteWidth
+          ? positions.last + lastNoteWidth
           : measureStartX + config.minMeasureWidth;
 
       finalBarlineX = measureEndX;
       currentX = measureEndX + config.measureSpacing;
     }
 
-    final staffWidth = finalBarlineX - staffTopLeft.dx + config.staffSpaceSize - 10;
+    final staffWidth =
+        finalBarlineX - staffTopLeft.dx + config.staffSpaceSize - 10;
+    
+    // Notify about the total width for scrolling
+    if (size.width < staffWidth + config.leftMargin + config.rightMargin) {
+      // In a real scenario, we might want to pass this width back to the widget
+    }
+
     noteRenderer.staffRenderer.paint(canvas, staffTopLeft, staffWidth);
 
     // Draw measures with Phase 6 features
     currentX = staffTopLeft.dx;
-    for (int measureIndex = 0; measureIndex < measures!.length; measureIndex++) {
+    for (
+    int measureIndex = 0;
+    measureIndex < measures!.length;
+    measureIndex++
+    ) {
       final measure = measures![measureIndex];
 
       if (measure.isFirstMeasure) {
@@ -530,8 +617,15 @@ class NotationPainter extends CustomPainter {
           currentX += keySignatureRenderer.getWidth(measure.keySignature);
         }
 
-        timeSignatureRenderer.paint(canvas, currentX, staffTopLeft.dy, measure.timeSignature);
-        currentX += timeSignatureRenderer.getWidth(measure.timeSignature) + config.staffSpaceSize;
+        timeSignatureRenderer.paint(
+          canvas,
+          currentX,
+          staffTopLeft.dy,
+          measure.timeSignature,
+        );
+        currentX +=
+            timeSignatureRenderer.getWidth(measure.timeSignature) +
+                config.staffSpaceSize;
       }
 
       final measureStartX = currentX;
@@ -539,20 +633,46 @@ class NotationPainter extends CustomPainter {
 
       final elementsByBeat = <double, List<dynamic>>{};
       for (final element in elements) {
-        final beat = element is Note ? element.startBeat : (element as Rest).startBeat;
+        final beat = element is Note
+            ? element.startBeat
+            : (element as Rest).startBeat;
         elementsByBeat.putIfAbsent(beat, () => []).add(element);
       }
 
       final sortedBeats = elementsByBeat.keys.toList()..sort();
-      final flatElements = sortedBeats.map((beat) => elementsByBeat[beat]!.first).toList();
-      final positions = spacingEngine.calculateSpacing(flatElements, startX: measureStartX);
+      final flatElements = sortedBeats
+          .map((beat) => elementsByBeat[beat]!.first)
+          .toList();
+      final positions = spacingEngine.calculateSpacing(
+        flatElements,
+        startX: measureStartX,
+        staffSpaceSize: config.staffSpaceSize,
+        clef: config.clef,
+        keySignature: measure.keySignature,
+      );
+
+      double lastNoteWidth = config.noteWidth;
+      if (flatElements.isNotEmpty) {
+        final last = flatElements.last;
+        if (last is Note) {
+          lastNoteWidth = CollisionDetector.calculateNoteWidthStatic(
+            last,
+            measure.keySignature.needsAccidental(last.pitch),
+            config.staffSpaceSize,
+          ) + config.staffSpaceSize;
+        }
+      }
 
       // Create a fake MeasureSpacing for _drawMeasureContent
       final measureSpacing = MeasureSpacing(
         positions: positions,
-        totalWidth: positions.isNotEmpty ? positions.last - positions.first : config.minMeasureWidth,
+        totalWidth: positions.isNotEmpty
+            ? positions.last - positions.first
+            : config.minMeasureWidth,
         startX: measureStartX,
-        endX: positions.isNotEmpty ? positions.last + config.noteWidth : measureStartX + config.minMeasureWidth,
+        endX: positions.isNotEmpty
+            ? positions.last + lastNoteWidth
+            : measureStartX + config.minMeasureWidth,
       );
 
       // Use Phase 6 rendering
@@ -566,9 +686,7 @@ class NotationPainter extends CustomPainter {
         config.clef,
       );
 
-      final measureEndX = positions.isNotEmpty
-          ? positions.last + config.noteWidth
-          : measureStartX + config.minMeasureWidth;
+      final measureEndX = measureSpacing.endX;
 
       barlineRenderer.paint(
         canvas,
@@ -597,7 +715,9 @@ class NotationPainter extends CustomPainter {
 
     final elementsByBeat = <double, List<dynamic>>{};
     for (final element in elements) {
-      final beat = element is Note ? element.startBeat : (element as Rest).startBeat;
+      final beat = element is Note
+          ? element.startBeat
+          : (element as Rest).startBeat;
       elementsByBeat.putIfAbsent(beat, () => []).add(element);
     }
 
@@ -605,7 +725,7 @@ class NotationPainter extends CustomPainter {
 
     // Phase 6: Get beam groups, ties, slurs, tuplets
     final beamGroups = measure.beamGroups;
-    final ties = measure.tiesInMeasure;
+    final ties = config.enableTieDetection ? measure.tiesInMeasure : measure.explicitTiesInMeasure;
     final slurs = measure.slursInMeasure;
     final tuplets = measure.tupletsInMeasure;
 
@@ -615,36 +735,66 @@ class NotationPainter extends CustomPainter {
       beamedNotes.addAll(beamGroup.notes);
     }
 
-    // Draw non-beamed notes and rests
+    // Draw elements
     for (int i = 0; i < sortedBeats.length; i++) {
       final beat = sortedBeats[i];
       final elementsAtBeat = elementsByBeat[beat]!;
       final xPosition = measureSpacing.positionAt(i) + xOffset;
 
-      if (elementsAtBeat.first is Rest) {
-        final rest = elementsAtBeat.first as Rest;
+      // Group notes by voice for SATB/multi-voice support
+      final voicesAtBeat = <int, List<Note>>{};
+      final restsAtBeat = <Rest>[];
+
+      for (final element in elementsAtBeat) {
+        if (element is Note) {
+          voicesAtBeat.putIfAbsent(element.voice, () => []).add(element);
+        } else if (element is Rest) {
+          restsAtBeat.add(element);
+        }
+      }
+
+      // Draw rests
+      for (final rest in restsAtBeat) {
         noteRenderer.paintRest(
           canvas,
           rest: rest,
           staffTopLeft: staffTopLeft,
           xPosition: xPosition,
         );
-      } else {
-        final notesAtBeat = elementsAtBeat.cast<Note>();
+      }
 
-        // Skip if these notes are beamed
-        if (notesAtBeat.every((n) => beamedNotes.contains(n))) {
+      // Draw each voice separately if they have different voices or explicit stem directions
+      // If multiple notes share the same voice, they are treated as a chord
+      for (final voice in voicesAtBeat.keys) {
+        final notesInVoice = voicesAtBeat[voice]!;
+
+        // Skip if all notes in this voice are beamed
+        if (config.enableBeaming &&
+            notesInVoice.every((n) => beamedNotes.contains(n))) {
           continue;
         }
 
-        if (notesAtBeat.length == 1) {
-          final note = notesAtBeat.first;
+        if (notesInVoice.length == 1) {
+          final note = notesInVoice.first;
           final isActive = activeNotes.contains(note);
           final pitchClass = note.pitch.midiNumber % 12;
           final needsAccidental = measure.keySignature.needsAccidental(note.pitch);
           final showAccidental = needsAccidental && !seenPitchClasses.contains(pitchClass);
 
           if (showAccidental) seenPitchClasses.add(pitchClass);
+
+          // Determine stem direction: explicit -> voice-based -> auto
+          StemDirection stemDir = note.stemDirection ?? StemDirection.auto;
+          if (stemDir == StemDirection.auto) {
+            // SATB defaults: 
+            // Voice 0 (Soprano/Treble Top) -> Up
+            // Voice 1 (Alto/Treble Bottom) -> Down
+            // Voice 2 (Tenor/Bass Top) -> Up
+            // Voice 3 (Bass/Bass Bottom) -> Down
+            if (voice == 0 || voice == 2) stemDir = StemDirection.up;
+            else if (voice == 1 || voice == 3) stemDir = StemDirection.down;
+            else stemDir = StemRenderer.determineStemDirection(StaffPosition.forPitch(note.pitch, clef));
+          }
 
           noteRenderer.paintNote(
             canvas,
@@ -655,19 +805,30 @@ class NotationPainter extends CustomPainter {
             showAccidental: showAccidental,
             isActive: isActive,
             isBeamed: false,
+            stemDirection: stemDir,
           );
         } else {
-          final chord = Chord(notes: notesAtBeat);
-          final isActive = notesAtBeat.any((n) => activeNotes.contains(n));
+          final chord = Chord(notes: notesInVoice);
+          final isActive = notesInVoice.any((n) => activeNotes.contains(n));
           final chordAccidentals = <int>{};
 
-          for (final note in notesAtBeat) {
+          for (final note in notesInVoice) {
             final pitchClass = note.pitch.midiNumber % 12;
             final needsAccidental = measure.keySignature.needsAccidental(note.pitch);
             if (needsAccidental && !seenPitchClasses.contains(pitchClass)) {
               chordAccidentals.add(note.pitch.midiNumber);
               seenPitchClasses.add(pitchClass);
             }
+          }
+
+          // Determine stem direction for the voice
+          StemDirection stemDir = notesInVoice.first.stemDirection ?? StemDirection.auto;
+          if (stemDir == StemDirection.auto) {
+            if (voice == 0 || voice == 2) stemDir = StemDirection.up;
+            else if (voice == 1 || voice == 3) stemDir = StemDirection.down;
+            else stemDir = StemRenderer.determineStemDirectionForChord(
+              notesInVoice.map((n) => StaffPosition.forPitch(n.pitch, clef)).toList()
+            );
           }
 
           noteRenderer.paintChord(
@@ -679,45 +840,129 @@ class NotationPainter extends CustomPainter {
             notesShowingAccidentals: chordAccidentals,
             isActive: isActive,
             isBeamed: false,
+            stemDirection: stemDir,
           );
         }
       }
     }
 
-    // Draw beam groups
-    for (final beamGroup in beamGroups) {
-      final beamNotes = beamGroup.notes;
-      final xPositions = <double>[];
-      final showAccidentals = <int, bool>{};
+    // Draw beam groups with properly calculated stem ends
+    if (config.enableBeaming) {
+      for (final beamGroup in beamGroups) {
+        final beamNotes = beamGroup.notes;
+        final xPositions = <double>[];
+        final showAccidentals = <int, bool>{};
+        final noteheadCenters = <Offset>[];
+        final staffPositions = <StaffPosition>[];
 
-      for (final note in beamNotes) {
-        final beatIndex = sortedBeats.indexOf(note.startBeat);
-        if (beatIndex >= 0) {
-          xPositions.add(measureSpacing.positionAt(beatIndex) + xOffset);
+        for (final note in beamNotes) {
+          final beatIndex = sortedBeats.indexOf(note.startBeat);
+          if (beatIndex >= 0) {
+            final x = measureSpacing.positionAt(beatIndex) + xOffset;
+            xPositions.add(x);
 
-          final pitchClass = note.pitch.midiNumber % 12;
-          final needsAccidental = measure.keySignature.needsAccidental(note.pitch);
-          final showAccidental = needsAccidental && !seenPitchClasses.contains(pitchClass);
+            // Calculate staff position and notehead center
+            final staffPos = StaffPosition.forPitch(note.pitch, clef);
+            final y = noteRenderer.staffRenderer.positionToY(staffPos);
+            noteheadCenters.add(Offset(x, staffTopLeft.dy + y));
+            staffPositions.add(staffPos);
 
-          showAccidentals[note.pitch.midiNumber] = showAccidental;
-          if (showAccidental) seenPitchClasses.add(pitchClass);
+            final pitchClass = note.pitch.midiNumber % 12;
+            final needsAccidental = measure.keySignature.needsAccidental(
+              note.pitch,
+            );
+            final showAccidental =
+                needsAccidental && !seenPitchClasses.contains(pitchClass);
+
+            showAccidentals[note.pitch.midiNumber] = showAccidental;
+            if (showAccidental) seenPitchClasses.add(pitchClass);
+          }
         }
-      }
 
-      if (xPositions.length == beamNotes.length) {
-        noteRenderer.paintBeamGroup(
-          canvas,
-          beamGroup,
-          staffTopLeft,
-          xPositions,
-          clef,
-          showAccidentals,
-          activeNotes,
-        );
+        if (xPositions.length == beamNotes.length) {
+          // Calculate proper stem direction
+          final stemDirection = StemRenderer.determineStemDirectionForChord(
+            staffPositions,
+          );
+
+          // Calculate stem ends using the beam renderer's method
+          final stemEnds = noteRenderer.beamRenderer.calculateStemEnds(
+            beamNotes,
+            noteheadCenters,
+            staffPositions,
+            stemDirection,
+          );
+
+          // Draw noteheads and accidentals first
+          for (int i = 0; i < beamNotes.length; i++) {
+            final note = beamNotes[i];
+            final noteCenter = noteheadCenters[i];
+            final staffPos = staffPositions[i];
+            final isActive = activeNotes.contains(note);
+            final showAccidental =
+                showAccidentals[note.pitch.midiNumber] ?? false;
+
+            // Draw ledger lines
+            noteRenderer.staffRenderer.paintLedgerLines(
+              canvas,
+              noteCenter,
+              staffPos,
+            );
+
+            // Draw accidental if needed
+            if (showAccidental && note.pitch.accidental != Accidental.natural) {
+              noteRenderer.accidentalRenderer.paint(
+                canvas,
+                noteCenter,
+                note.pitch.accidental,
+              );
+            }
+
+            // Draw notehead
+            final filled = NoteheadRenderer.shouldBeFilled(note.duration);
+            noteRenderer.noteheadRenderer.paint(
+              canvas,
+              noteCenter,
+              filled: filled,
+              isActive: isActive,
+            );
+
+            // Draw dots if needed
+            if (note.duration.dots > 0) {
+              noteRenderer.dotRenderer.paintNoteDots(
+                canvas,
+                noteCenter,
+                staffPos,
+                note.duration.dots,
+              );
+            }
+          }
+
+          // Draw stems
+          for (int i = 0; i < beamNotes.length; i++) {
+            final noteCenter = noteheadCenters[i];
+            final isActive = activeNotes.contains(beamNotes[i]);
+
+            noteRenderer.stemRenderer.paint(
+              canvas,
+              noteCenter,
+              direction: stemDirection,
+              isActive: isActive,
+            );
+          }
+
+          // Draw beams
+          noteRenderer.beamRenderer.paintBeamGroup(
+            canvas,
+            beamGroup,
+            stemEnds,
+            stemDirection,
+          );
+        }
       }
     }
 
-    // Draw ties
+    // Draw ties with CORRECTED direction logic
     final tieRenderer = TieRenderer(
       staffSpaceSize: config.staffSpaceSize,
       color: config.noteColor,
@@ -740,21 +985,16 @@ class NotationPainter extends CustomPainter {
         final startCenter = Offset(startX, staffTopLeft.dy + startY);
         final endCenter = Offset(endX, staffTopLeft.dy + endY);
 
-        final direction = startStaffPos.value > 4.0
+        // FIXED: Inverted logic - notes BELOW middle (value < 4) curve up
+        final direction = startStaffPos.value < 4.0
             ? CurveDirection.down
             : CurveDirection.up;
 
-        tieRenderer.paintTie(
-          canvas,
-          tie,
-          startCenter,
-          endCenter,
-          direction,
-        );
+        tieRenderer.paintTie(canvas, tie, startCenter, endCenter, direction);
       }
     }
 
-    // Draw slurs
+    // Draw slurs with CORRECTED direction logic
     final slurRenderer = SlurRenderer(
       staffSpaceSize: config.staffSpaceSize,
       color: config.noteColor,
@@ -777,17 +1017,16 @@ class NotationPainter extends CustomPainter {
       }
 
       if (noteheadCenters.length >= 2) {
-        final direction = CurveCalculator.calculateOptimalDirection(
-          slur.notes,
-          staffPositions,
-        );
+        // FIXED: Calculate direction properly
+        final avgPosition =
+            staffPositions.reduce((a, b) => a + b) / staffPositions.length;
 
-        slurRenderer.paintSlur(
-          canvas,
-          slur,
-          noteheadCenters,
-          direction,
-        );
+        // Notes BELOW middle (value < 4) should curve up
+        final direction = avgPosition < 4.0
+            ? CurveDirection.down
+            : CurveDirection.up;
+
+        slurRenderer.paintSlur(canvas, slur, noteheadCenters, direction);
       }
     }
 
@@ -816,12 +1055,7 @@ class NotationPainter extends CustomPainter {
       if (notePositions.length >= 2) {
         final direction = tuplet.calculateDirection(staffPositions);
 
-        tupletRenderer.paintTuplet(
-          canvas,
-          tuplet,
-          notePositions,
-          direction,
-        );
+        tupletRenderer.paintTuplet(canvas, tuplet, notePositions, direction);
       }
     }
   }
@@ -842,8 +1076,6 @@ class NotationPainter extends CustomPainter {
     textPainter.paint(canvas, position);
   }
 
-
-  /// Paint notes in legacy mode (for backward compatibility)
   void _paintLegacyNotes(Canvas canvas, Size size) {
     if (notes == null || notes!.isEmpty) return;
 
@@ -852,22 +1084,17 @@ class NotationPainter extends CustomPainter {
       color: config.noteColor,
     );
 
-    // Calculate staff position
     final staffHeight = noteRenderer.staffRenderer.height;
     final staffY = (size.height - staffHeight) / 2;
     final staffTopLeft = Offset(config.leftMargin, staffY);
 
-    // Draw staff lines
     noteRenderer.staffRenderer.paint(
       canvas,
       staffTopLeft,
       size.width - config.leftMargin - 20,
     );
 
-    // Track which notes need accidentals
     final seenPitchClasses = <int>{};
-
-    // Sort all elements by start beat
     final allElements = <dynamic>[...notes!, ...?rests];
     allElements.sort((a, b) {
       final aStart = a is Note ? a.startBeat : (a as Rest).startBeat;
@@ -875,21 +1102,20 @@ class NotationPainter extends CustomPainter {
       return aStart.compareTo(bStart);
     });
 
-    // Group by beat
     final elementsByBeat = <double, List<dynamic>>{};
     for (final element in allElements) {
-      final beat = element is Note ? element.startBeat : (element as Rest).startBeat;
+      final beat = element is Note
+          ? element.startBeat
+          : (element as Rest).startBeat;
       elementsByBeat.putIfAbsent(beat, () => []).add(element);
     }
 
     final sortedBeats = elementsByBeat.keys.toList()..sort();
 
-    // Draw elements with UNIFORM spacing
     for (int i = 0; i < sortedBeats.length; i++) {
       final beat = sortedBeats[i];
       final elementsAtBeat = elementsByBeat[beat]!;
 
-      // Uniform horizontal position
       final xPosition = staffTopLeft.dx + (i * config.noteWidth);
 
       if (elementsAtBeat.first is Rest) {
@@ -908,8 +1134,9 @@ class NotationPainter extends CustomPainter {
           final isActive = activeNotes.contains(note);
 
           final pitchClass = note.pitch.midiNumber % 12;
-          final showAccidental = !seenPitchClasses.contains(pitchClass) &&
-              note.pitch.accidental != Accidental.natural;
+          final showAccidental =
+              !seenPitchClasses.contains(pitchClass) &&
+                  note.pitch.accidental != Accidental.natural;
 
           if (showAccidental) {
             seenPitchClasses.add(pitchClass);
@@ -961,6 +1188,4 @@ class NotationPainter extends CustomPainter {
         oldDelegate.grandStaff != grandStaff ||
         oldDelegate.config != config;
   }
-
-
 }

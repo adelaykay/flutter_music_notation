@@ -21,6 +21,7 @@ export 'src/models/tuplet_bracket.dart';
 // Geometry
 export 'src/geometry/staff_position.dart';
 export 'src/geometry/staff_units.dart';
+export 'src/geometry/stem_direction.dart';
 
 // Layout - Phase 4 exports
 export 'src/layout/spacing_engine.dart';
@@ -49,3 +50,9 @@ export 'src/rendering/beam_renderer.dart';
 export 'src/rendering/tie_renderer.dart';
 export 'src/rendering/slur_renderer.dart';
 export 'src/rendering/tuplet_renderer.dart';
+// Midi to Notation
+export 'src/midi/midi_note.dart';
+export 'src/midi/midi_parser.dart';
+export 'src/midi/midi_to_notation.dart';
+export 'src/midi/satb_detector.dart';
+export 'src/midi/quantizer.dart';

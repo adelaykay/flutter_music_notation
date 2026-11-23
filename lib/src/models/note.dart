@@ -2,6 +2,7 @@
 
 import 'pitch.dart';
 import 'duration.dart';
+import '../geometry/stem_direction.dart';
 
 /// Represents a single musical note
 class Note {
@@ -21,12 +22,21 @@ class Note {
   /// The beat position where this note starts
   final double startBeat;
 
+  /// The voice this note belongs to (0=default, 1, 2, etc.)
+  /// Used for SATB and multi-voice rendering
+  final int voice;
+
+  /// Explicit stem direction (if null, determined by pitch or voice)
+  final StemDirection? stemDirection;
+
   const Note({
     required this.pitch,
     required this.duration,
     this.forceShowAccidental,
     this.velocity = 64,
     required this.startBeat,
+    this.voice = 0,
+    this.stemDirection,
   }) : assert(velocity >= 0 && velocity <= 127, 'Velocity must be 0-127');
 
   /// The beat position where this note ends
@@ -39,6 +49,8 @@ class Note {
     bool? forceShowAccidental,
     int? velocity,
     double? startBeat,
+    int? voice,
+    StemDirection? stemDirection,
   }) {
     return Note(
       pitch: pitch ?? this.pitch,
@@ -46,6 +58,8 @@ class Note {
       forceShowAccidental: forceShowAccidental ?? this.forceShowAccidental,
       velocity: velocity ?? this.velocity,
       startBeat: startBeat ?? this.startBeat,
+      voice: voice ?? this.voice,
+      stemDirection: stemDirection ?? this.stemDirection,
     );
   }
 
@@ -57,7 +71,9 @@ class Note {
               duration == other.duration &&
               forceShowAccidental == other.forceShowAccidental &&
               velocity == other.velocity &&
-              startBeat == other.startBeat;
+              startBeat == other.startBeat &&
+              voice == other.voice &&
+              stemDirection == other.stemDirection;
 
   @override
   int get hashCode => Object.hash(
@@ -66,10 +82,12 @@ class Note {
     forceShowAccidental,
     velocity,
     startBeat,
+    voice,
+    stemDirection,
   );
 
   @override
-  String toString() => 'Note($pitch, ${duration.type.name}, beat: $startBeat)';
+  String toString() => 'Note($pitch, ${duration.type.name}, beat: $startBeat, v: $voice)';
 }
 
 /// Represents a musical rest
@@ -126,10 +144,7 @@ class Chord {
       note.startBeat == firstBeat,
       'All notes in chord must have same start beat',
       );
-      assert(
-      note.duration == firstDuration,
-      'All notes in chord must have same duration',
-      );
+
     }
   }
 

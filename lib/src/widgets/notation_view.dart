@@ -1,6 +1,7 @@
 // lib/src/widgets/notation_view.dart
 
 import 'package:flutter/material.dart';
+import 'dart:math';
 import '../models/note.dart';
 import '../models/measure.dart';
 import '../models/grand_staff.dart';
@@ -37,6 +38,10 @@ class NotationConfig {
   final double upperStaffHeight;
   final double lowerStaffHeight;
   final bool showBrace;
+  final bool enableBeaming;
+  final bool showKeySignatureOnEachSystem;
+  final double clefNoteMargin;
+  final bool enableTieDetection;
 
   const NotationConfig({
     this.staffSpaceSize = 12.0,
@@ -64,6 +69,10 @@ class NotationConfig {
     this.upperStaffHeight = 40.0,
     this.lowerStaffHeight = 40.0,
     this.showBrace = true,
+    this.enableBeaming = false,
+    this.showKeySignatureOnEachSystem = false,
+    this.clefNoteMargin = 20.0,
+    this.enableTieDetection = false,
   });
 
   NotationConfig copyWith({
@@ -92,6 +101,10 @@ class NotationConfig {
     double? upperStaffHeight,
     double? lowerStaffHeight,
     bool? showBrace,
+    bool? enableBeaming,
+    bool? showKeySignatureOnEachSystem,
+    double? clefNoteMargin,
+    bool? enableTieDetection,
   }) {
     return NotationConfig(
       staffSpaceSize: staffSpaceSize ?? this.staffSpaceSize,
@@ -119,39 +132,48 @@ class NotationConfig {
       upperStaffHeight: upperStaffHeight ?? this.upperStaffHeight,
       lowerStaffHeight: lowerStaffHeight ?? this.lowerStaffHeight,
       showBrace: showBrace ?? this.showBrace,
+      enableBeaming: enableBeaming ?? this.enableBeaming,
+      showKeySignatureOnEachSystem:
+          showKeySignatureOnEachSystem ?? this.showKeySignatureOnEachSystem,
+      clefNoteMargin: clefNoteMargin ?? this.clefNoteMargin,
+      enableTieDetection: enableTieDetection ?? this.enableTieDetection,
     );
   }
 
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-          other is NotationConfig &&
-              runtimeType == other.runtimeType &&
-              staffSpaceSize == other.staffSpaceSize &&
-              staffLineColor == other.staffLineColor &&
-              noteColor == other.noteColor &&
-              activeNoteColor == other.activeNoteColor &&
-              clef == other.clef &&
-              width == other.width &&
-              height == other.height &&
-              padding == other.padding &&
-              noteWidth == other.noteWidth &&
-              leftMargin == other.leftMargin &&
-              rightMargin == other.rightMargin &&
-              topMargin == other.topMargin &&
-              measureSpacing == other.measureSpacing &&
-              minMeasureWidth == other.minMeasureWidth &&
-              spacingEngine == other.spacingEngine &&
-              useSystemLayout == other.useSystemLayout &&
-              systemHeight == other.systemHeight &&
-              systemSpacing == other.systemSpacing &&
-              showMeasureNumbers == other.showMeasureNumbers &&
-              showClefOnEachSystem == other.showClefOnEachSystem &&
-              lineBreakConfig == other.lineBreakConfig &&
-              grandStaffGap == other.grandStaffGap &&
-              upperStaffHeight == other.upperStaffHeight &&
-              lowerStaffHeight == other.lowerStaffHeight &&
-              showBrace == other.showBrace;
+      other is NotationConfig &&
+          runtimeType == other.runtimeType &&
+          staffSpaceSize == other.staffSpaceSize &&
+          staffLineColor == other.staffLineColor &&
+          noteColor == other.noteColor &&
+          activeNoteColor == other.activeNoteColor &&
+          clef == other.clef &&
+          width == other.width &&
+          height == other.height &&
+          padding == other.padding &&
+          noteWidth == other.noteWidth &&
+          leftMargin == other.leftMargin &&
+          rightMargin == other.rightMargin &&
+          topMargin == other.topMargin &&
+          measureSpacing == other.measureSpacing &&
+          minMeasureWidth == other.minMeasureWidth &&
+          spacingEngine == other.spacingEngine &&
+          useSystemLayout == other.useSystemLayout &&
+          systemHeight == other.systemHeight &&
+          systemSpacing == other.systemSpacing &&
+          showMeasureNumbers == other.showMeasureNumbers &&
+          showClefOnEachSystem == other.showClefOnEachSystem &&
+          lineBreakConfig == other.lineBreakConfig &&
+          grandStaffGap == other.grandStaffGap &&
+          upperStaffHeight == other.upperStaffHeight &&
+          lowerStaffHeight == other.lowerStaffHeight &&
+          showBrace == other.showBrace &&
+          enableBeaming == other.enableBeaming &&
+          showKeySignatureOnEachSystem == other.showKeySignatureOnEachSystem &&
+          clefNoteMargin == other.clefNoteMargin &&
+          enableTieDetection == other.enableTieDetection;
 
   @override
   int get hashCode => Object.hash(
@@ -196,15 +218,15 @@ class NotationView extends StatefulWidget {
     this.playbackController,
     this.config = const NotationConfig(),
   }) : assert(
-  measures != null || grandStaff != null || notes != null,
-  'Either measures, grandStaff, or notes must be provided',
-  ),
-        assert(
-        (measures == null || grandStaff == null) &&
-            (measures == null || notes == null) &&
-            (grandStaff == null || notes == null),
-        'Only one of measures, grandStaff, or notes should be provided',
-        );
+         measures != null || grandStaff != null || notes != null,
+         'Either measures, grandStaff, or notes must be provided',
+       ),
+       assert(
+         (measures == null || grandStaff == null) &&
+             (measures == null || notes == null) &&
+             (grandStaff == null || notes == null),
+         'Only one of measures, grandStaff, or notes should be provided',
+       );
 
   @override
   State<NotationView> createState() => _NotationViewState();
@@ -279,81 +301,93 @@ class _NotationViewState extends State<NotationView>
 
   @override
   Widget build(BuildContext context) {
-    // Calculate height based on content type
+    // Calculate height and width based on content type
     double? effectiveHeight = widget.config.height;
+    double? effectiveWidth = widget.config.width;
 
     if (effectiveHeight == null) {
       if (widget.grandStaff != null) {
         // Grand staff: two staves + gap
         final measuresCount = widget.grandStaff!.measureCount;
-        final estimatedSystems = (measuresCount / 3).ceil();
-        final singleStaffHeight = widget.config.staffSpaceSize * 4; // 5 lines = 4 spaces
-        final systemHeight = singleStaffHeight +
-            widget.config.grandStaffGap +
-            singleStaffHeight;
-        effectiveHeight = widget.config.topMargin +
+        final estimatedSystems = widget.config.useSystemLayout ? (measuresCount / 3).ceil() : 1;
+        final singleStaffHeight =
+            widget.config.staffSpaceSize * 4; // 5 lines = 4 spaces
+        final systemHeight =
+            singleStaffHeight + widget.config.grandStaffGap + singleStaffHeight;
+        effectiveHeight =
+            widget.config.topMargin +
             (estimatedSystems * (systemHeight + widget.config.systemSpacing)) +
             widget.config.topMargin;
       } else if (widget.config.useSystemLayout && widget.measures != null) {
         // Multi-line single staff
         final measuresCount = widget.measures!.length;
         final estimatedSystems = (measuresCount / 4).ceil();
-        effectiveHeight = widget.config.topMargin +
-            (estimatedSystems * (widget.config.systemHeight + widget.config.systemSpacing));
+        effectiveHeight =
+            widget.config.topMargin +
+            (estimatedSystems *
+                (widget.config.systemHeight + widget.config.systemSpacing));
       } else {
         // Single line or legacy mode
         effectiveHeight = 200;
       }
     }
 
-    if (widget.playbackController == null) {
-      return Container(
-        width: widget.config.width,
-        height: effectiveHeight,
-        padding: widget.config.padding,
-        child: CustomPaint(
-          painter: NotationPainter(
-            measures: widget.measures,
-            grandStaff: widget.grandStaff,
-            notes: widget.notes,
-            rests: widget.rests,
-            config: widget.config,
-            activeNotes: {},
-          ),
-          size: Size.infinite,
-        ),
+    // Estimate width for single-line scrollable content
+    if (effectiveWidth == null && !widget.config.useSystemLayout) {
+      if (widget.measures != null) {
+        // Estimate 150-200px per measure for single line
+        effectiveWidth = widget.config.leftMargin + (widget.measures!.length * 180.0) + widget.config.rightMargin;
+      } else if (widget.grandStaff != null) {
+        effectiveWidth = widget.config.leftMargin + (widget.grandStaff!.measureCount * 180.0) + widget.config.rightMargin;
+      }
+    }
+
+    Widget content = CustomPaint(
+      painter: NotationPainter(
+        measures: widget.measures,
+        grandStaff: widget.grandStaff,
+        notes: widget.notes,
+        rests: widget.rests,
+        config: widget.config,
+        activeNotes: widget.playbackController?.activeNotes ?? {},
+      ),
+      size: Size(effectiveWidth ?? double.infinity, effectiveHeight ?? double.infinity),
+    );
+
+    if (widget.playbackController != null) {
+      content = AnimatedBuilder(
+        animation: _animationController,
+        builder: (context, child) {
+          if (widget.playbackController?.isPlaying ?? false) {
+            final now = DateTime.now();
+            if (_lastUpdateTime != null) {
+              final deltaTime =
+                  now.difference(_lastUpdateTime!).inMilliseconds / 1000.0;
+              widget.playbackController?.update(deltaTime);
+            }
+            _lastUpdateTime = now;
+          }
+          return child!;
+        },
+        child: content,
       );
     }
 
-    return AnimatedBuilder(
-      animation: _animationController,
-      builder: (context, child) {
-        if (widget.playbackController?.isPlaying ?? false) {
-          final now = DateTime.now();
-          if (_lastUpdateTime != null) {
-            final deltaTime = now.difference(_lastUpdateTime!).inMilliseconds / 1000.0;
-            widget.playbackController?.update(deltaTime);
-          }
-          _lastUpdateTime = now;
-        }
-
-        return Container(
-          width: widget.config.width,
-          height: effectiveHeight,
-          padding: widget.config.padding,
-          child: CustomPaint(
-            painter: NotationPainter(
-              measures: widget.measures,
-              grandStaff: widget.grandStaff,
-              notes: widget.notes,
-              rests: widget.rests,
-              config: widget.config,
-              activeNotes: widget.playbackController?.activeNotes ?? {},
-            ),
-            size: Size.infinite,
-          ),
-        );
-      },
+    Widget result = Container(
+      width: effectiveWidth,
+      height: effectiveHeight,
+      padding: widget.config.padding,
+      child: content,
     );
+
+    // If width is estimated and large, wrap in SingleChildScrollView
+    if (effectiveWidth != null && !widget.config.useSystemLayout) {
+      return SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: result,
+      );
+    }
+
+    return result;
   }
 }

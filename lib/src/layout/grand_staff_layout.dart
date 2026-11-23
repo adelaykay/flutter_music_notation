@@ -1,5 +1,6 @@
 // lib/src/layout/grand_staff_layout.dart
 
+import '../../flutter_music_notation.dart';
 import '../models/grand_staff.dart';
 import '../models/measure.dart';
 import 'spacing_engine.dart';
@@ -13,6 +14,7 @@ class GrandStaffLayout {
   final double staffGap; // Space between upper and lower staff
   final double systemSpacing; // Space between systems
   final bool showMeasureNumbers;
+  final bool useSystemLayout;
 
   const GrandStaffLayout({
     required this.spacingEngine,
@@ -20,7 +22,7 @@ class GrandStaffLayout {
     this.lowerStaffHeight = 40.0,
     this.staffGap = 60.0,
     this.systemSpacing = 80.0,
-    this.showMeasureNumbers = true,
+    this.showMeasureNumbers = true, this.useSystemLayout = false,
   });
 
   /// Total height of one grand staff system (both staves + gap)
@@ -47,13 +49,13 @@ class GrandStaffLayout {
       spacingEngine: spacingEngine,
       targetLineWidth: availableWidth,
       minMeasuresPerLine: lineBreakConfig?.minMeasuresPerLine ?? 2,
-      maxMeasuresPerLine: lineBreakConfig?.maxMeasuresPerLine ?? 6,
+      maxMeasuresPerLine: useSystemLayout ? lineBreakConfig?.maxMeasuresPerLine ?? 6 : double.infinity,
     );
 
     final lines = lineBreaker.breakWithMinimalRaggedness(
       grandStaff.upperStaff,
       startX: leftMargin,
-      measureSpacing: measureSpacing,
+      measureSpacing: measureSpacing, useSystemLayout: useSystemLayout,
     );
 
     // Create grand staff systems
@@ -77,6 +79,8 @@ class GrandStaffLayout {
         return MeasureElements(
           elements: m.elements,
           measureNumber: m.number,
+          keySignature: m.keySignature,
+          clef: ClefType.treble, // Using treble as reference for spacing
         );
       }).toList();
 

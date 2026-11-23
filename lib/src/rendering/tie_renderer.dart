@@ -27,12 +27,12 @@ class TieRenderer {
     final noteheadWidth = StaffUnits.noteheadWidth.toPixels(staffSpaceSize);
 
     final startPoint = Offset(
-      startNoteheadCenter.dx + noteheadWidth / 2,
+      startNoteheadCenter.dx + noteheadWidth / 1.3,
       startNoteheadCenter.dy,
     );
 
     final endPoint = Offset(
-      endNoteheadCenter.dx - noteheadWidth / 2,
+      endNoteheadCenter.dx - noteheadWidth / 1.3,
       endNoteheadCenter.dy,
     );
 

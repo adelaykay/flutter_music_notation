@@ -17,6 +17,8 @@ dev_dependencies:
   flutter_lints: ^5.0.0
 
 flutter:
+  assets:
+    - assets/sample.mid
   fonts:
     - family: Bravura
       fonts:

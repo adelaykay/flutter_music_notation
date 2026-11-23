@@ -3,13 +3,9 @@
 import 'package:flutter/material.dart';
 import '../geometry/staff_position.dart';
 import '../geometry/staff_units.dart';
+import '../geometry/stem_direction.dart';
 
-/// Direction of a note stem
-enum StemDirection {
-  up,   // Stem points upward
-  down, // Stem points downward
-  none, // No stem (whole notes)
-}
+export '../geometry/stem_direction.dart';
 
 /// Renders note stems
 class StemRenderer {

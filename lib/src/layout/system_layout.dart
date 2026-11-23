@@ -1,5 +1,6 @@
 // lib/src/layout/system_layout.dart
 
+import '../../flutter_music_notation.dart';
 import '../models/measure.dart';
 import 'spacing_engine.dart';
 import 'line_breaker.dart';
@@ -54,6 +55,7 @@ class SystemLayout {
       measures,
       startX: leftMargin,
       measureSpacing: measureSpacing,
+      useSystemLayout: true,
     );
 
     // Create systems from lines
@@ -68,6 +70,8 @@ class SystemLayout {
         return MeasureElements(
           elements: m.elements,
           measureNumber: m.number,
+          keySignature: m.keySignature,
+          clef: ClefType.treble, // Default to treble for layout calculations
         );
       }).toList();
 

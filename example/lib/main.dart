@@ -1,394 +1,427 @@
-// example/lib/phase6_integration_example.dart
+// example/lib/phase7_complete_test.dart
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_music_notation/flutter_music_notation.dart';
+import 'gallery_page.dart';
 
 void main() {
-  runApp(const Phase6IntegrationExample());
+  runApp(const MusicNotationApp());
 }
 
-class Phase6IntegrationExample extends StatelessWidget {
-  const Phase6IntegrationExample({super.key});
+class MusicNotationApp extends StatelessWidget {
+  const MusicNotationApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Phase 6 Integration Demo',
+      title: 'Flutter Music Notation',
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
+        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
-      home: const Phase6DemoPage(),
+      home: const HomePage(),
     );
   }
 }
 
-class Phase6DemoPage extends StatelessWidget {
-  const Phase6DemoPage({super.key});
+class HomePage extends StatelessWidget {
+  const HomePage({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        title: const Text('Flutter Music Notation'),
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        title: const Text('Phase 6: Advanced Features Integration'),
       ),
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              _buildSection(
-                'Example 1: Beamed Eighth Notes',
-                _createBeamedExample(),
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            ElevatedButton.icon(
+              onPressed: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const GalleryPage()),
               ),
-              const SizedBox(height: 40),
-
-              _buildSection(
-                'Example 2: Tied Notes',
-                _createTiedExample(),
+              icon: const Icon(Icons.collections),
+              label: const Text('View Music Gallery'),
+              style: ElevatedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                textStyle: const TextStyle(fontSize: 18),
               ),
-              const SizedBox(height: 40),
-
-              _buildSection(
-                'Example 3: Slurred Phrase',
-                _createSlurredExample(),
+            ),
+            const SizedBox(height: 20),
+            ElevatedButton.icon(
+              onPressed: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const TestPage()),
               ),
-              const SizedBox(height: 40),
-
-              _buildSection(
-                'Example 4: Triplet',
-                _createTripletExample(),
+              icon: const Icon(Icons.settings),
+              label: const Text('MIDI Integration Test'),
+              style: ElevatedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                textStyle: const TextStyle(fontSize: 18),
               ),
-              const SizedBox(height: 40),
-
-              _buildSection(
-                'Example 5: Combined Features',
-                _createCombinedExample(),
-              ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
   }
+}
 
-  Widget _buildSection(String title, List<Measure> measures) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+class TestPage extends StatefulWidget {
+  const TestPage({super.key});
+
+  @override
+  State<TestPage> createState() => _TestPageState();
+}
+
+class _TestPageState extends State<TestPage> {
+  MidiData? _midiData;
+  List<Measure>? _singleStaffMeasures;
+  GrandStaff? _grandStaff;
+  bool _isLoading = false;
+  String? _error;
+
+  // Configuration toggles
+  bool _enableBeaming = true;
+  bool _enableTies = false;
+  bool _showKeyOnEachSystem = true;
+  bool _useUniformSpacing = true;
+  RenderMode _renderMode = RenderMode.singleStaff;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadSampleMidi();
+  }
+
+  Future<void> _loadSampleMidi() async {
+    setState(() {
+      _isLoading = true;
+      _error = null;
+    });
+
+    try {
+      // Try to load MIDI from assets
+      final bytes = await rootBundle.load('assets/sample.mid');
+      final midiBytes = bytes.buffer.asUint8List();
+      final midiData = MidiParser.parse(midiBytes);
+
+      setState(() {
+        _midiData = midiData;
+        _convertMidi();
+        _isLoading = false;
+      });
+    } catch (e) {
+      // If file loading fails, create demo data
+      _createDemoMidiData();
+    }
+  }
+
+  void _createDemoMidiData() {
+    // Create simulated MIDI data for demonstration
+    final notes = <MidiNote>[
+      // Measure 1 - C major scale ascending
+      MidiNote(midiNumber: 60, velocity: 80, startTime: 0, endTime: 500),
+      MidiNote(midiNumber: 62, velocity: 80, startTime: 500, endTime: 1000),
+      MidiNote(midiNumber: 64, velocity: 80, startTime: 1000, endTime: 1500),
+      MidiNote(midiNumber: 65, velocity: 80, startTime: 1500, endTime: 2000),
+
+      // Measure 2 - Continuation
+      MidiNote(midiNumber: 67, velocity: 80, startTime: 2000, endTime: 2500),
+      MidiNote(midiNumber: 69, velocity: 80, startTime: 2500, endTime: 3000),
+      MidiNote(midiNumber: 71, velocity: 80, startTime: 3000, endTime: 3500),
+      MidiNote(midiNumber: 72, velocity: 80, startTime: 3500, endTime: 4000),
+
+      // Measure 3 - Descending with some chords
+      MidiNote(midiNumber: 72, velocity: 80, startTime: 4000, endTime: 5000),
+      MidiNote(midiNumber: 64, velocity: 70, startTime: 4000, endTime: 5000),
+      MidiNote(midiNumber: 67, velocity: 70, startTime: 5000, endTime: 6000),
+      MidiNote(midiNumber: 60, velocity: 70, startTime: 5000, endTime: 6000),
+
+      // Measure 4 - Final cadence
+      MidiNote(midiNumber: 65, velocity: 80, startTime: 6000, endTime: 7000),
+      MidiNote(midiNumber: 69, velocity: 80, startTime: 7000, endTime: 8000),
+      MidiNote(midiNumber: 60, velocity: 90, startTime: 8000, endTime: 10000),
+      MidiNote(midiNumber: 64, velocity: 90, startTime: 8000, endTime: 10000),
+      MidiNote(midiNumber: 67, velocity: 90, startTime: 8000, endTime: 10000),
+    ];
+
+    final midiData = MidiData(
+      notes: notes,
+      timeSignatureNumerator: 4,
+      timeSignatureDenominator: 4,
+      keySignatureSharps: 0,
+      keySignatureIsMinor: false,
+      beatsPerMinute: 120.0,
+      ticksPerQuarterNote: 480,
+    );
+
+    setState(() {
+      _midiData = midiData;
+      _convertMidi();
+      _isLoading = false;
+    });
+  }
+
+  void _convertMidi() {
+    if (_midiData == null) return;
+
+    final converter = MidiToNotation(midiData: _midiData!);
+
+    switch (_renderMode) {
+      case RenderMode.singleStaff:
+        _singleStaffMeasures = converter.toSingleStaff(
+          clefPreference: ClefPreference.auto,
+        );
+        _grandStaff = null;
+        break;
+      case RenderMode.grandStaff:
+        _grandStaff = converter.toGrandStaff();
+        _singleStaffMeasures = null;
+        break;
+    }
+  }
+
+  void _toggleRenderMode(RenderMode mode) {
+    setState(() {
+      _renderMode = mode;
+      _convertMidi();
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Phase 7: MIDI Integration Test'),
+        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.refresh),
+            tooltip: 'Reload',
+            onPressed: _loadSampleMidi,
+          ),
+        ],
+      ),
+      body: Column(
+        children: [
+          _buildControlPanel(),
+          Expanded(
+            child: _buildContent(),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildControlPanel() {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      color: Colors.blue.shade50,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Rendering Options',
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 12),
+
+          // Render Mode
+          Row(
+            children: [
+              const SizedBox(width: 150, child: Text('Render Mode:')),
+              SegmentedButton<RenderMode>(
+                segments: const [
+                  ButtonSegment(
+                    value: RenderMode.singleStaff,
+                    label: Text('Single Staff'),
+                    icon: Icon(Icons.horizontal_rule),
+                  ),
+                  ButtonSegment(
+                    value: RenderMode.grandStaff,
+                    label: Text('Grand Staff'),
+                    icon: Icon(Icons.piano),
+                  ),
+                ],
+                selected: {_renderMode},
+                onSelectionChanged: (Set<RenderMode> selection) {
+                  _toggleRenderMode(selection.first);
+                },
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+
+          // Beaming toggle
+          _buildToggleRow(
+            'Enable Beaming',
+            _enableBeaming,
+                (value) => setState(() => _enableBeaming = value),
+          ),
+
+          // Ties toggle
+          _buildToggleRow(
+            'Enable Ties',
+            _enableTies,
+                (value) => setState(() => _enableTies = value),
+          ),
+
+          // Key signature toggle
+          _buildToggleRow(
+            'Show Key on Each System',
+            _showKeyOnEachSystem,
+                (value) => setState(() => _showKeyOnEachSystem = value),
+          ),
+
+          // Spacing toggle
+          _buildToggleRow(
+            'Use Uniform Spacing',
+            _useUniformSpacing,
+                (value) => setState(() => _useUniformSpacing = value),
+          ),
+
+          if (_midiData != null) ...[
+            const Divider(),
+            _buildMidiInfo(),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildToggleRow(String label, bool value, Function(bool) onChanged) {
+    return Row(
       children: [
-        Text(
-          title,
-          style: const TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-          ),
+        SizedBox(
+          width: 200,
+          child: Text(label),
         ),
-        const SizedBox(height: 10),
-        Container(
-          height: 180,
-          decoration: BoxDecoration(
-            border: Border.all(color: Colors.grey),
-            borderRadius: BorderRadius.circular(8),
-            color: Colors.white,
-          ),
-          child: NotationView(
-            measures: measures,
-            config: const NotationConfig(
-              staffSpaceSize: 12,
-              leftMargin: 80,
-              measureSpacing: 40,
-            ),
-          ),
+        Switch(
+          value: value,
+          onChanged: onChanged,
         ),
       ],
     );
   }
 
-  /// Example 1: Beamed eighth notes
-  List<Measure> _createBeamedExample() {
-    return [
-      Measure(
-        number: 0,
-        timeSignature: TimeSignature.fourFour,
-        keySignature: KeySignature.cMajor,
-        notes: [
-          // Four eighth notes - will be automatically beamed
-          Note(
-            pitch: Pitch(noteName: NoteName.C, octave: 4),
-            duration: const NoteDuration.eighth(),
-            startBeat: 0.0,
-          ),
-          Note(
-            pitch: Pitch(noteName: NoteName.D, octave: 4),
-            duration: const NoteDuration.eighth(),
-            startBeat: 0.5,
-          ),
-          Note(
-            pitch: Pitch(noteName: NoteName.E, octave: 4),
-            duration: const NoteDuration.eighth(),
-            startBeat: 1.0,
-          ),
-          Note(
-            pitch: Pitch(noteName: NoteName.F, octave: 4),
-            duration: const NoteDuration.eighth(),
-            startBeat: 1.5,
-          ),
-          // Another group
-          Note(
-            pitch: Pitch(noteName: NoteName.G, octave: 4),
-            duration: const NoteDuration.eighth(),
-            startBeat: 2.0,
-          ),
-          Note(
-            pitch: Pitch(noteName: NoteName.A, octave: 4),
-            duration: const NoteDuration.eighth(),
-            startBeat: 2.5,
-          ),
-          Note(
-            pitch: Pitch(noteName: NoteName.B, octave: 4),
-            duration: const NoteDuration.eighth(),
-            startBeat: 3.0,
-          ),
-          Note(
-            pitch: Pitch(noteName: NoteName.C, octave: 5),
-            duration: const NoteDuration.eighth(),
-            startBeat: 3.5,
-          ),
-        ],
-        endBarline: BarlineType.final_,
-      ),
-    ];
+  Widget _buildMidiInfo() {
+    final data = _midiData!;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'MIDI Information',
+          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+        ),
+        const SizedBox(height: 8),
+        Text('Notes: ${data.notes.length}'),
+        Text('Time: ${data.timeSignatureNumerator}/${data.timeSignatureDenominator}'),
+        Text('Key: ${_getKeyName(data.keySignatureSharps, data.keySignatureIsMinor)}'),
+        Text('Tempo: ${data.beatsPerMinute.toStringAsFixed(0)} BPM'),
+      ],
+    );
   }
 
-  /// Example 2: Tied notes
-  List<Measure> _createTiedExample() {
-    final note1 = Note(
-      pitch: Pitch(noteName: NoteName.C, octave: 4),
-      duration: const NoteDuration.half(),
-      startBeat: 0.0,
+  Widget _buildContent() {
+    if (_isLoading) {
+      return const Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            CircularProgressIndicator(),
+            SizedBox(height: 20),
+            Text('Loading MIDI file...'),
+          ],
+        ),
+      );
+    }
+
+    if (_error != null) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(Icons.error_outline, size: 64, color: Colors.red),
+            const SizedBox(height: 20),
+            Text(_error!, style: const TextStyle(color: Colors.red)),
+          ],
+        ),
+      );
+    }
+
+    return SingleChildScrollView(
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: _buildNotation(),
+      ),
+    );
+  }
+
+  Widget _buildNotation() {
+    final config = NotationConfig(
+      staffSpaceSize: 12,
+      leftMargin: 120,
+      useSystemLayout: true,
+      enableBeaming: _enableBeaming,
+      enableTieDetection: _enableTies,
+      showKeySignatureOnEachSystem: _showKeyOnEachSystem,
+      clefNoteMargin: 25.0,
+      spacingEngine: _useUniformSpacing
+          ? SpacingPresets.uniform
+          : SpacingPresets.loose,
+      measureSpacing: 30.0,
     );
 
-    final note2 = Note(
-      pitch: Pitch(noteName: NoteName.C, octave: 4), // Same pitch
-      duration: const NoteDuration.half(),
-      startBeat: 2.0,
+    if (_grandStaff != null) {
+      return SizedBox(
+        height: 500,
+        child: NotationView(
+          grandStaff: _grandStaff,
+          config: config.copyWith(
+            showBrace: true,
+          ),
+        ),
+      );
+    }
+
+    if (_singleStaffMeasures != null) {
+      return SizedBox(
+        height: 300,
+        child: NotationView(
+          measures: _singleStaffMeasures,
+          config: config,
+        ),
+      );
+    }
+
+    return const Center(
+      child: Text('No notation available'),
     );
-
-    return [
-      Measure(
-        number: 0,
-        timeSignature: TimeSignature.fourFour,
-        keySignature: KeySignature.cMajor,
-        notes: [note1, note2],
-        ties: [
-          Tie(
-            startNote: note1,
-            endNote: note2,
-            direction: CurveDirection.up,
-          ),
-        ],
-        endBarline: BarlineType.final_,
-      ),
-    ];
   }
 
-  /// Example 3: Slurred phrase
-  List<Measure> _createSlurredExample() {
-    final notes = [
-      Note(
-        pitch: Pitch(noteName: NoteName.C, octave: 4),
-        duration: const NoteDuration.quarter(),
-        startBeat: 0.0,
-      ),
-      Note(
-        pitch: Pitch(noteName: NoteName.E, octave: 4),
-        duration: const NoteDuration.quarter(),
-        startBeat: 1.0,
-      ),
-      Note(
-        pitch: Pitch(noteName: NoteName.G, octave: 4),
-        duration: const NoteDuration.quarter(),
-        startBeat: 2.0,
-      ),
-      Note(
-        pitch: Pitch(noteName: NoteName.C, octave: 5),
-        duration: const NoteDuration.quarter(),
-        startBeat: 3.0,
-      ),
-    ];
+  String _getKeyName(int sharps, bool isMinor) {
+    const majorKeys = {
+      0: 'C', 1: 'G', 2: 'D', 3: 'A', 4: 'E', 5: 'B', 6: 'F♯', 7: 'C♯',
+      -1: 'F', -2: 'B♭', -3: 'E♭', -4: 'A♭', -5: 'D♭', -6: 'G♭', -7: 'C♭',
+    };
 
-    return [
-      Measure(
-        number: 0,
-        timeSignature: TimeSignature.fourFour,
-        keySignature: KeySignature.cMajor,
-        notes: notes,
-        slurs: [
-          Slur(
-            notes: notes,
-            type: SlurType.standard,
-          ),
-        ],
-        endBarline: BarlineType.final_,
-      ),
-    ];
+    const minorKeys = {
+      0: 'A', 1: 'E', 2: 'B', 3: 'F♯', 4: 'C♯', 5: 'G♯', 6: 'D♯', 7: 'A♯',
+      -1: 'D', -2: 'G', -3: 'C', -4: 'F', -5: 'B♭', -6: 'E♭', -7: 'A♭',
+    };
+
+    final key = isMinor ? minorKeys[sharps] : majorKeys[sharps];
+    return '$key ${isMinor ? 'minor' : 'major'}';
   }
+}
 
-  /// Example 4: Triplet
-  List<Measure> _createTripletExample() {
-    final tripletNotes = [
-      Note(
-        pitch: Pitch(noteName: NoteName.C, octave: 4),
-        duration: const NoteDuration(
-          type: DurationType.eighth,
-          tuplet: Tuplet.triplet,
-        ),
-        startBeat: 0.0,
-      ),
-      Note(
-        pitch: Pitch(noteName: NoteName.D, octave: 4),
-        duration: const NoteDuration(
-          type: DurationType.eighth,
-          tuplet: Tuplet.triplet,
-        ),
-        startBeat: 0.667,
-      ),
-      Note(
-        pitch: Pitch(noteName: NoteName.E, octave: 4),
-        duration: const NoteDuration(
-          type: DurationType.eighth,
-          tuplet: Tuplet.triplet,
-        ),
-        startBeat: 1.333,
-      ),
-      // Second triplet
-      Note(
-        pitch: Pitch(noteName: NoteName.F, octave: 4),
-        duration: const NoteDuration(
-          type: DurationType.eighth,
-          tuplet: Tuplet.triplet,
-        ),
-        startBeat: 2.0,
-      ),
-      Note(
-        pitch: Pitch(noteName: NoteName.G, octave: 4),
-        duration: const NoteDuration(
-          type: DurationType.eighth,
-          tuplet: Tuplet.triplet,
-        ),
-        startBeat: 2.667,
-      ),
-      Note(
-        pitch: Pitch(noteName: NoteName.A, octave: 4),
-        duration: const NoteDuration(
-          type: DurationType.eighth,
-          tuplet: Tuplet.triplet,
-        ),
-        startBeat: 3.333,
-      ),
-    ];
-
-    return [
-      Measure(
-        number: 0,
-        timeSignature: TimeSignature.fourFour,
-        keySignature: KeySignature.cMajor,
-        notes: tripletNotes,
-        // Tuplets will be auto-detected
-        endBarline: BarlineType.final_,
-      ),
-    ];
-  }
-
-  /// Example 5: Combined features (beaming + slur + tuplet)
-  List<Measure> _createCombinedExample() {
-    // Regular beamed notes
-    final beamedNotes = [
-      Note(
-        pitch: Pitch(noteName: NoteName.C, octave: 4),
-        duration: const NoteDuration.eighth(),
-        startBeat: 0.0,
-      ),
-      Note(
-        pitch: Pitch(noteName: NoteName.D, octave: 4),
-        duration: const NoteDuration.eighth(),
-        startBeat: 0.5,
-      ),
-    ];
-
-    // Triplet with slur
-    final tripletNotes = [
-      Note(
-        pitch: Pitch(noteName: NoteName.E, octave: 4),
-        duration: const NoteDuration(
-          type: DurationType.eighth,
-          tuplet: Tuplet.triplet,
-        ),
-        startBeat: 1.0,
-      ),
-      Note(
-        pitch: Pitch(noteName: NoteName.F, octave: 4),
-        duration: const NoteDuration(
-          type: DurationType.eighth,
-          tuplet: Tuplet.triplet,
-        ),
-        startBeat: 1.667,
-      ),
-      Note(
-        pitch: Pitch(noteName: NoteName.G, octave: 4),
-        duration: const NoteDuration(
-          type: DurationType.eighth,
-          tuplet: Tuplet.triplet,
-        ),
-        startBeat: 2.333,
-      ),
-    ];
-
-    // Final tied note
-    final tiedNote1 = Note(
-      pitch: Pitch(noteName: NoteName.A, octave: 4),
-      duration: const NoteDuration.quarter(),
-      startBeat: 3.0,
-    );
-
-    final allNotes = [...beamedNotes, ...tripletNotes, tiedNote1];
-
-    return [
-      Measure(
-        number: 0,
-        timeSignature: TimeSignature.fourFour,
-        keySignature: KeySignature.cMajor,
-        notes: allNotes,
-        slurs: [
-          Slur(notes: tripletNotes, type: SlurType.standard),
-        ],
-        endBarline: BarlineType.single,
-      ),
-      Measure(
-        number: 1,
-        timeSignature: TimeSignature.fourFour,
-        keySignature: KeySignature.cMajor,
-        notes: [
-          Note(
-            pitch: Pitch(noteName: NoteName.A, octave: 4),
-            duration: const NoteDuration.whole(),
-            startBeat: 0.0,
-          ),
-        ],
-        ties: [
-          Tie(
-            startNote: tiedNote1,
-            endNote: Note(
-              pitch: Pitch(noteName: NoteName.A, octave: 4),
-              duration: const NoteDuration.whole(),
-              startBeat: 0.0,
-            ),
-          ),
-        ],
-        endBarline: BarlineType.final_,
-      ),
-    ];
-  }
+enum RenderMode {
+  singleStaff,
+  grandStaff,
 }
