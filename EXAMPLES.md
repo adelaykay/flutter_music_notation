@@ -11,9 +11,10 @@ Complete code examples demonstrating various features of Flutter Music Notation.
 5. [Note Durations](#note-durations)
 6. [Rests](#rests)
 7. [Chords](#chords)
-8. [Complete Pieces](#complete-pieces)
-9. [Playback](#playback)
-10. [Advanced](#advanced)
+8. [Four Parts on a Grand Staff](#four-parts-on-a-grand-staff)
+9. [Complete Pieces](#complete-pieces)
+10. [Playback](#playback)
+11. [Advanced](#advanced)
 
 ---
 
@@ -536,6 +537,49 @@ List<Measure> createChordProgression() {
 ```
 
 ---
+
+## Four Parts on a Grand Staff
+
+A hymn in four parts: soprano and alto share the treble staff, tenor and bass the bass staff, each voice with its own stems. A tie, a rest belonging to one voice, and a shaded bar:
+
+```dart
+Note part(int midi, NoteDuration d, double beat, int voice, {bool tie = false}) => Note(
+  pitch: Pitch.fromMidiNumber(midi, preferredAccidental: Accidental.flat),
+  duration: d,
+  startBeat: beat,
+  voice: voice, // 0 soprano, 1 alto, 2 tenor, 3 bass
+  stemDirection: voice.isEven ? StemDirection.up : StemDirection.down,
+  tieToNext: tie,
+);
+
+const key = KeySignature(accidentals: -3); // E flat major
+const time = TimeSignature.fourFour;
+const h = NoteDuration.half(), q = NoteDuration.quarter(), w = NoteDuration.whole();
+
+final upper = Measure(
+  number: 0,
+  timeSignature: time,
+  keySignature: key,
+  notes: [
+    part(67, h, 0, 0, tie: true), part(67, q, 2, 0), part(68, q, 3, 0), // soprano, tied inside the bar
+    part(63, h, 0, 1), // alto…
+  ],
+  rests: [const Rest(duration: NoteDuration.half(), startBeat: 2, voice: 1)], // …then rests, below the soprano
+);
+final lower = Measure(
+  number: 0,
+  timeSignature: time,
+  keySignature: key,
+  notes: [part(58, h, 0, 2), part(58, h, 2, 2), part(51, w, 0, 3)],
+);
+
+NotationView(
+  grandStaff: GrandStaff(upperStaff: [upper], lowerStaff: [lower]),
+  config: const NotationConfig(useSystemLayout: true, staffSpaceSize: 8, highlightedMeasure: 0),
+)
+```
+
+The example app's **SATB Hymn** sample (`example/lib/samples/satb_sample.dart`) shows eight bars with systems that fit the width and a Play button that shades each bar in turn.
 
 ## Complete Pieces
 

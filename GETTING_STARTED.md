@@ -20,7 +20,7 @@ Add this to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  flutter_music_notation: ^0.1.0
+  flutter_music_notation: ^0.4.0
 ```
 
 ### Step 2: Install
@@ -490,7 +490,7 @@ Now that you understand the basics, you can:
 ## Getting Help
 
 - 📖 [Full Documentation](../README.md)
-- 💬 [GitHub Issues](https://github.com/adelaykay/flutter_music_notation/issues)
+- 💬 [GitHub Issues](https://github.com/empyrealworks/flutter_music_notation/issues)
 - 📧 Email: hello@empyrealworks.com
 
 ## Quick Reference Card

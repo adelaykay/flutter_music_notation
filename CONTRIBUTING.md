@@ -48,7 +48,7 @@ We are committed to providing a welcoming and inclusive environment for all cont
 
 ### Finding Issues to Work On
 
-1. Check the [GitHub Issues](https://github.com/adelaykay/flutter_music_notation/issues)
+1. Check the [GitHub Issues](https://github.com/empyrealworks/flutter_music_notation/issues)
 2. Look for issues labeled:
     - `good first issue` - Great for newcomers
     - `help wanted` - We'd love community help
@@ -146,7 +146,7 @@ If applicable, add screenshots.
 - Flutter version: [e.g., 3.16.0]
 - Dart version: [e.g., 3.2.0]
 - Platform: [e.g., iOS 17, Android 14, Web]
-- Package version: [e.g., 0.1.0]
+- Package version: [e.g., 0.4.0]
 
 **Additional Context**
 Any other relevant information.

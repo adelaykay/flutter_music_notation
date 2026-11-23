@@ -6,6 +6,7 @@ Complete API documentation for Flutter Music Notation library.
 
 - [Widgets](#widgets)
 - [Models](#models)
+- [Layout](#layout)
 - [Geometry](#geometry)
 - [Playback](#playback)
 - [Rendering (Advanced)](#rendering-advanced)
@@ -22,6 +23,7 @@ The main widget for displaying musical notation.
 NotationView({
   Key? key,
   List<Measure>? measures,
+  GrandStaff? grandStaff,
   List<Note>? notes,
   List<Rest>? rests,
   PlaybackController? playbackController,
@@ -29,8 +31,11 @@ NotationView({
 })
 ```
 
+Give exactly one of `measures`, `grandStaff` or `notes`.
+
 **Parameters:**
-- `measures` (List<Measure>?) - List of measures to display (preferred mode)
+- `measures` (List<Measure>?) - List of measures to display on one staff (preferred mode)
+- `grandStaff` (GrandStaff?) - Two staves joined by a brace, e.g. piano or a four-part hymn. With `config.useSystemLayout` and no `config.height`, the view takes the available width and sizes itself to its systems
 - `notes` (List<Note>?) - List of notes to display (legacy mode)
 - `rests` (List<Rest>?) - List of rests to display (legacy mode)
 - `playbackController` (PlaybackController?) - Optional controller for playback
@@ -64,25 +69,52 @@ const NotationConfig({
   EdgeInsets padding = const EdgeInsets.all(20),
   double noteWidth = 60.0,
   double leftMargin = 100.0,
+  double rightMargin = 20.0,
+  double topMargin = 40.0,
   double measureSpacing = 40.0,
+  SpacingEngine spacingEngine = SpacingPresets.normal,
+  bool useSystemLayout = false,
+  double systemSpacing = 60.0,
+  LineBreakConfig? lineBreakConfig,
+  bool showMeasureNumbers = true,
+  bool showTimeSignature = true,
+  bool showKeySignatureOnEachSystem = true,
+  double grandStaffGap = 60.0,
+  double upperStaffHeight = 40.0,
+  double lowerStaffHeight = 40.0,
+  bool showBrace = true,
+  bool enableBeaming = false,
   bool expandWidth = false,
+  int? highlightedMeasure,
+  Color highlightColor = const Color(0x33FFC107),
+  // …and leadingSpace, clefNoteMargin, minMeasureWidth, systemHeight,
+  // showClefOnEachSystem, enableTieDetection
 })
 ```
 
 **Properties:**
-- `staffSpaceSize` (double) - Size of space between staff lines in pixels
+- `staffSpaceSize` (double) - Size of space between staff lines in pixels. Glyphs and note spacing scale with it
 - `barlineToClefSpace` (double) - Gap between the left (start) barline and the clef in pixels
 - `staffLineColor` (Color) - Color of staff lines
 - `noteColor` (Color) - Color of notes and symbols
 - `activeNoteColor` (Color) - Color of notes during playback
 - `clef` (ClefType) - Which clef to display
 - `width` (double?) - Optional fixed width
-- `height` (double?) - Optional fixed height
+- `height` (double?) - Optional fixed height. Null for a grand staff in system layout sizes the view to its systems
 - `padding` (EdgeInsets) - Padding around the notation
 - `noteWidth` (double) - Horizontal spacing between notes
 - `leftMargin` (double) - Left margin for clef, key sig, time sig
+- `rightMargin`, `topMargin` (double) - Margins around the systems
 - `measureSpacing` (double) - Space between measures
-- `expandWidth` (bool) - When true, extends the staff (and flushes the final barline) to fill the full available width; when false, the staff spans only the rendered measures
+- `spacingEngine` (SpacingEngine) - Note spacing; presets are given at a 12 px staff space and scale with `staffSpaceSize`
+- `useSystemLayout` (bool) - Break the music into systems (lines) that fit the width
+- `systemSpacing` (double) - Vertical space between systems
+- `lineBreakConfig` (LineBreakConfig?) - On a grand staff, `maxMeasuresPerLine` caps the bars on every system
+- `showMeasureNumbers` (bool) - Number the first bar of each system, above the start of the system (shown as `Measure.number + 1`)
+- `grandStaffGap`, `upperStaffHeight`, `lowerStaffHeight` (double) - Grand staff proportions; set them from the staff space (e.g. `space * 7`, `space * 4`, `space * 4`)
+- `expandWidth` (bool) - When true, every system, the last included, is justified to the full width; when false, the last system is left ragged (stretched at most 1.5 times)
+- `highlightedMeasure` (int?) - `Measure.number` of a bar to shade behind both staves, e.g. the bar being played
+- `highlightColor` (Color) - The shade for `highlightedMeasure`
 
 ---
 
@@ -100,11 +132,15 @@ const Measure({
   List<Note> notes = const [],
   List<Rest> rests = const [],
   BarlineType endBarline = BarlineType.single,
+  List<Tie>? ties,
+  List<Slur>? slurs,
+  List<TupletBracket>? tuplets,
+  BarlineType? startBarline,
 })
 ```
 
 **Properties:**
-- `number` (int) - Measure number (0-indexed)
+- `number` (int) - Measure number (0-indexed; displayed as `number + 1`)
 - `timeSignature` (TimeSignature) - Time signature for this measure
 - `keySignature` (KeySignature) - Key signature for this measure
 - `notes` (List<Note>) - Notes in this measure
@@ -141,6 +177,9 @@ const Note({
   bool? forceShowAccidental,
   int velocity = 64,
   required double startBeat,
+  int voice = 0,
+  StemDirection? stemDirection,
+  bool tieToNext = false,
 })
 ```
 
@@ -149,7 +188,10 @@ const Note({
 - `duration` (NoteDuration) - The duration of the note
 - `forceShowAccidental` (bool?) - Force accidental display
 - `velocity` (int) - MIDI velocity (0-127)
-- `startBeat` (double) - Beat position where note starts
+- `startBeat` (double) - Beat position where the note starts, in quarter-note beats from the start of the bar
+- `voice` (int) - Notes in the same voice starting together form a chord. For two voices on a staff use 0 and 1 (upper staff) or 2 and 3 (lower staff)
+- `stemDirection` (StemDirection?) - Explicit stem direction; for two voices, up for the upper voice and down for the lower. Ties follow it (above for stem up, below for stem down)
+- `tieToNext` (bool) - Tie to the next note of the same pitch and voice that starts where this one ends, in the same bar or at the start of the next (also across a line break)
 - `endBeat` (double, getter) - Beat position where note ends
 
 **Example:**
@@ -169,13 +211,30 @@ Represents a musical rest.
 const Rest({
   required NoteDuration duration,
   required double startBeat,
+  int? voice,
 })
 ```
 
 **Properties:**
 - `duration` (NoteDuration) - The duration of the rest
 - `startBeat` (double) - Beat position where rest starts
+- `voice` (int?) - On a staff with two voices, an even (upper) voice's rest is drawn two spaces higher and an odd (lower) voice's two spaces lower. Null centres the rest, e.g. when both voices rest together
 - `endBeat` (double, getter) - Beat position where rest ends
+
+### GrandStaff
+
+Two staves joined by a brace: treble above, bass below. Bar `i` of `upperStaff` and bar `i` of `lowerStaff` are drawn together, with their notes on one shared rhythmic grid so they line up.
+
+```dart
+const GrandStaff({
+  required List<Measure> upperStaff,
+  required List<Measure> lowerStaff,
+  String? instrumentName,
+  String? instrumentAbbreviation,
+})
+```
+
+For a four-part hymn put soprano (voice 0, stems up) and alto (voice 1, stems down) on the upper staff and tenor (voice 2, up) and bass (voice 3, down) on the lower. See the README's "Four-part writing on a grand staff".
 
 ### Chord
 
@@ -416,6 +475,30 @@ enum BarlineType {
   dashed,      // Dashed barline
 }
 ```
+
+---
+
+## Layout
+
+### GrandStaffLayout
+
+Breaks a grand staff into systems and spaces its bars.
+
+```dart
+static GrandStaffScoreLayout forConfig(
+  GrandStaff grandStaff,
+  NotationConfig config,
+  double pageWidth,
+)
+```
+
+Returns exactly the layout `NotationView` paints with `config` at `pageWidth`: `systems` (each with its bars, `spacing` and `yPosition`) and `totalHeight`. Use it to size a view or to find which system holds a bar (`findSystemForMeasure`).
+
+Each system reserves room for its clef, key signature and, on the first, time signature (`systemPrefixWidth(config, firstMeasure, firstSystem: …)`), and bars are measured with both staves together, so a system with more than one bar never runs past `pageWidth - rightMargin`.
+
+### SpacingEngine
+
+Proportional note spacing. `baseSpacing`, `minSpacing` and `maxSpacing` are given at a 12 px staff space (`SpacingEngine.referenceStaffSpace`) and scale with the staff size passed to it. Presets: `SpacingPresets.tight`, `normal` (default), `loose`, `uniform`.
 
 ---
 
