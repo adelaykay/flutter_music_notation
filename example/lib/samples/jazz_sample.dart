@@ -13,9 +13,19 @@ class JazzSample extends StatelessWidget {
         keySignature: KeySignature.cMajor,
         notes: [
           _note(60, const NoteDuration.quarter(), 0), // C
-          _note(63, const NoteDuration.quarter(), 1, accidental: Accidental.flat), // Eb
+          _note(
+            63,
+            const NoteDuration.quarter(),
+            1,
+            accidental: Accidental.flat,
+          ), // Eb
           _note(65, const NoteDuration.quarter(), 2), // F
-          _note(66, const NoteDuration.quarter(), 3, accidental: Accidental.sharp), // F#
+          _note(
+            66,
+            const NoteDuration.quarter(),
+            3,
+            accidental: Accidental.sharp,
+          ), // F#
         ],
       ),
       Measure(
@@ -24,9 +34,14 @@ class JazzSample extends StatelessWidget {
         keySignature: KeySignature.cMajor,
         notes: [
           _note(67, const NoteDuration.dottedQuarter(), 0), // G
-          _note(65, const NoteDuration.eighth(), 1.5),      // F
-          _note(63, const NoteDuration.quarter(), 2, accidental: Accidental.flat), // Eb
-          _note(60, const NoteDuration.quarter(), 3),      // C
+          _note(65, const NoteDuration.eighth(), 1.5), // F
+          _note(
+            63,
+            const NoteDuration.quarter(),
+            2,
+            accidental: Accidental.flat,
+          ), // Eb
+          _note(60, const NoteDuration.quarter(), 3), // C
         ],
         endBarline: BarlineType.double_,
       ),
@@ -41,16 +56,18 @@ class JazzSample extends StatelessWidget {
         const SizedBox(height: 20),
         NotationView(
           measures: measures,
-          config: const NotationConfig(
-            leftMargin: 80,
-            enableBeaming: true,
-          ),
+          config: const NotationConfig(leftMargin: 80, enableBeaming: true),
         ),
       ],
     );
   }
 
-  Note _note(int midi, NoteDuration duration, double startBeat, {Accidental? accidental}) {
+  Note _note(
+    int midi,
+    NoteDuration duration,
+    double startBeat, {
+    Accidental? accidental,
+  }) {
     Pitch pitch = Pitch.fromMidiNumber(midi);
     if (accidental != null) {
       pitch = pitch.copyWith(accidental: accidental);

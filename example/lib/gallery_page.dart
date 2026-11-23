@@ -21,13 +21,15 @@ class GalleryPage extends StatelessWidget {
         children: const [
           GalleryItem(
             title: 'Extended Melody Study',
-            description: 'Longer piece testing accidentals, dots, and ledger lines across systems.',
+            description:
+                'Longer piece testing accidentals, dots, and ledger lines across systems.',
             child: LongMelodySample(),
           ),
           Divider(height: 40),
           GalleryItem(
             title: 'SATB Hymn',
-            description: 'Abide With Me (Excerpt) showcasing 4 independent voices and syncopation.',
+            description:
+                'Four voices on a grand staff, with ties, voice rests, systems that fit the width and the playing bar shaded.',
             child: SATBSample(),
           ),
           Divider(height: 40),
@@ -77,23 +79,17 @@ class GalleryItem extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          title,
-          style: Theme.of(context).textTheme.headlineSmall,
-        ),
+        Text(title, style: Theme.of(context).textTheme.headlineSmall),
         Text(
           description,
-          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-            color: Colors.grey[600],
-          ),
+          style: Theme.of(
+            context,
+          ).textTheme.bodyMedium?.copyWith(color: Colors.grey[600]),
         ),
         const SizedBox(height: 20),
         Card(
           elevation: 2,
-          child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: child,
-          ),
+          child: Padding(padding: const EdgeInsets.all(16.0), child: child),
         ),
       ],
     );

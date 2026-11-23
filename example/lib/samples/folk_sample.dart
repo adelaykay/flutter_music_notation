@@ -16,7 +16,7 @@ class FolkSample extends StatelessWidget {
       _measure(1, [
         _note(69, const NoteDuration.quarter(), 0), // A
         _note(69, const NoteDuration.quarter(), 1), // A
-        _note(67, const NoteDuration.half(), 2),    // G
+        _note(67, const NoteDuration.half(), 2), // G
       ]),
       _measure(2, [
         _note(65, const NoteDuration.quarter(), 0), // F
@@ -27,7 +27,7 @@ class FolkSample extends StatelessWidget {
       _measure(3, [
         _note(62, const NoteDuration.quarter(), 0), // D
         _note(62, const NoteDuration.quarter(), 1), // D
-        _note(60, const NoteDuration.half(), 2),    // C
+        _note(60, const NoteDuration.half(), 2), // C
       ], endBarline: BarlineType.final_),
     ];
 
@@ -40,16 +40,17 @@ class FolkSample extends StatelessWidget {
         const SizedBox(height: 20),
         NotationView(
           measures: measures,
-          config: const NotationConfig(
-            useSystemLayout: true,
-            leftMargin: 80,
-          ),
+          config: const NotationConfig(useSystemLayout: true, leftMargin: 80),
         ),
       ],
     );
   }
 
-  Measure _measure(int number, List<Note> notes, {BarlineType endBarline = BarlineType.single}) {
+  Measure _measure(
+    int number,
+    List<Note> notes, {
+    BarlineType endBarline = BarlineType.single,
+  }) {
     return Measure(
       number: number,
       timeSignature: TimeSignature.fourFour,

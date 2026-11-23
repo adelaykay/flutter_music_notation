@@ -47,7 +47,10 @@ class HomePage extends StatelessWidget {
               icon: const Icon(Icons.collections),
               label: const Text('View Music Gallery'),
               style: ElevatedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 32,
+                  vertical: 16,
+                ),
                 textStyle: const TextStyle(fontSize: 18),
               ),
             ),
@@ -60,7 +63,10 @@ class HomePage extends StatelessWidget {
               icon: const Icon(Icons.settings),
               label: const Text('MIDI Integration Test'),
               style: ElevatedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 32,
+                  vertical: 16,
+                ),
                 textStyle: const TextStyle(fontSize: 18),
               ),
             ),
@@ -210,9 +216,7 @@ class _TestPageState extends State<TestPage> {
       body: Column(
         children: [
           _buildControlPanel(),
-          Expanded(
-            child: _buildContent(),
-          ),
+          Expanded(child: _buildContent()),
         ],
       ),
     );
@@ -261,34 +265,31 @@ class _TestPageState extends State<TestPage> {
           _buildToggleRow(
             'Enable Beaming',
             _enableBeaming,
-                (value) => setState(() => _enableBeaming = value),
+            (value) => setState(() => _enableBeaming = value),
           ),
 
           // Ties toggle
           _buildToggleRow(
             'Enable Ties',
             _enableTies,
-                (value) => setState(() => _enableTies = value),
+            (value) => setState(() => _enableTies = value),
           ),
 
           // Key signature toggle
           _buildToggleRow(
             'Show Key on Each System',
             _showKeyOnEachSystem,
-                (value) => setState(() => _showKeyOnEachSystem = value),
+            (value) => setState(() => _showKeyOnEachSystem = value),
           ),
 
           // Spacing toggle
           _buildToggleRow(
             'Use Uniform Spacing',
             _useUniformSpacing,
-                (value) => setState(() => _useUniformSpacing = value),
+            (value) => setState(() => _useUniformSpacing = value),
           ),
 
-          if (_midiData != null) ...[
-            const Divider(),
-            _buildMidiInfo(),
-          ],
+          if (_midiData != null) ...[const Divider(), _buildMidiInfo()],
         ],
       ),
     );
@@ -297,14 +298,8 @@ class _TestPageState extends State<TestPage> {
   Widget _buildToggleRow(String label, bool value, Function(bool) onChanged) {
     return Row(
       children: [
-        SizedBox(
-          width: 200,
-          child: Text(label),
-        ),
-        Switch(
-          value: value,
-          onChanged: onChanged,
-        ),
+        SizedBox(width: 200, child: Text(label)),
+        Switch(value: value, onChanged: onChanged),
       ],
     );
   }
@@ -321,8 +316,12 @@ class _TestPageState extends State<TestPage> {
         ),
         const SizedBox(height: 8),
         Text('Notes: ${data.notes.length}'),
-        Text('Time: ${data.timeSignatureNumerator}/${data.timeSignatureDenominator}'),
-        Text('Key: ${_getKeyName(data.keySignatureSharps, data.keySignatureIsMinor)}'),
+        Text(
+          'Time: ${data.timeSignatureNumerator}/${data.timeSignatureDenominator}',
+        ),
+        Text(
+          'Key: ${_getKeyName(data.keySignatureSharps, data.keySignatureIsMinor)}',
+        ),
         Text('Tempo: ${data.beatsPerMinute.toStringAsFixed(0)} BPM'),
       ],
     );
@@ -383,9 +382,7 @@ class _TestPageState extends State<TestPage> {
         height: 500,
         child: NotationView(
           grandStaff: _grandStaff,
-          config: config.copyWith(
-            showBrace: true,
-          ),
+          config: config.copyWith(showBrace: true),
         ),
       );
     }
@@ -393,27 +390,48 @@ class _TestPageState extends State<TestPage> {
     if (_singleStaffMeasures != null) {
       return SizedBox(
         height: 300,
-        child: NotationView(
-          measures: _singleStaffMeasures,
-          config: config,
-        ),
+        child: NotationView(measures: _singleStaffMeasures, config: config),
       );
     }
 
-    return const Center(
-      child: Text('No notation available'),
-    );
+    return const Center(child: Text('No notation available'));
   }
 
   String _getKeyName(int sharps, bool isMinor) {
     const majorKeys = {
-      0: 'C', 1: 'G', 2: 'D', 3: 'A', 4: 'E', 5: 'B', 6: 'F♯', 7: 'C♯',
-      -1: 'F', -2: 'B♭', -3: 'E♭', -4: 'A♭', -5: 'D♭', -6: 'G♭', -7: 'C♭',
+      0: 'C',
+      1: 'G',
+      2: 'D',
+      3: 'A',
+      4: 'E',
+      5: 'B',
+      6: 'F♯',
+      7: 'C♯',
+      -1: 'F',
+      -2: 'B♭',
+      -3: 'E♭',
+      -4: 'A♭',
+      -5: 'D♭',
+      -6: 'G♭',
+      -7: 'C♭',
     };
 
     const minorKeys = {
-      0: 'A', 1: 'E', 2: 'B', 3: 'F♯', 4: 'C♯', 5: 'G♯', 6: 'D♯', 7: 'A♯',
-      -1: 'D', -2: 'G', -3: 'C', -4: 'F', -5: 'B♭', -6: 'E♭', -7: 'A♭',
+      0: 'A',
+      1: 'E',
+      2: 'B',
+      3: 'F♯',
+      4: 'C♯',
+      5: 'G♯',
+      6: 'D♯',
+      7: 'A♯',
+      -1: 'D',
+      -2: 'G',
+      -3: 'C',
+      -4: 'F',
+      -5: 'B♭',
+      -6: 'E♭',
+      -7: 'A♭',
     };
 
     final key = isMinor ? minorKeys[sharps] : majorKeys[sharps];
@@ -421,7 +439,4 @@ class _TestPageState extends State<TestPage> {
   }
 }
 
-enum RenderMode {
-  singleStaff,
-  grandStaff,
-}
+enum RenderMode { singleStaff, grandStaff }

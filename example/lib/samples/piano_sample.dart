@@ -16,9 +16,9 @@ class PianoSample extends StatelessWidget {
         keySignature: keyG,
         notes: [
           _note(79, const NoteDuration.quarter(), 0), // G5
-          _note(74, const NoteDuration.eighth(), 1),  // D5
+          _note(74, const NoteDuration.eighth(), 1), // D5
           _note(76, const NoteDuration.eighth(), 1.5), // E5
-          _note(77, const NoteDuration.eighth(), 2),   // F#5 (in key)
+          _note(77, const NoteDuration.eighth(), 2), // F#5 (in key)
           _note(79, const NoteDuration.eighth(), 2.5), // G5
         ],
       ),
@@ -72,10 +72,7 @@ class PianoSample extends StatelessWidget {
           height: 300,
           child: NotationView(
             grandStaff: grandStaff,
-            config: const NotationConfig(
-              leftMargin: 120,
-              showBrace: true,
-            ),
+            config: const NotationConfig(leftMargin: 120, showBrace: true),
           ),
         ),
       ],

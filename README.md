@@ -490,7 +490,7 @@ Contributions are welcome! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for gui
 
 ```bash
 # Clone the repository
-git clone https://github.com/adelaykay/flutter_music_notation.git
+git clone https://github.com/empyrealworks/flutter_music_notation.git
 cd flutter_music_notation
 
 # Install dependencies
@@ -522,7 +522,7 @@ The Bravura font used for music symbols is licensed under the SIL Open Font Lice
 ## Support
 
 - 📖 [Documentation](https://pub.dev/documentation/flutter_music_notation/latest/)
-- 💬 [GitHub Issues](https://github.com/adelaykay/flutter_music_notation/issues)
+- 💬 [GitHub Issues](https://github.com/empyrealworks/flutter_music_notation/issues)
 - 📧 Email: hello@empyrealworks.com
 
 ## Related Projects

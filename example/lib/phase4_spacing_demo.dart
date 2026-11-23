@@ -43,10 +43,7 @@ class SpacingDemo extends StatelessWidget {
             _buildDescription(
               'All notes get equal horizontal space, regardless of duration',
             ),
-            _buildNotation(
-              _createMixedDurations(),
-              SpacingPresets.uniform,
-            ),
+            _buildNotation(_createMixedDurations(), SpacingPresets.uniform),
 
             const SizedBox(height: 30),
 
@@ -54,10 +51,7 @@ class SpacingDemo extends StatelessWidget {
             _buildDescription(
               'Longer notes get more space - whole notes wider than eighths',
             ),
-            _buildNotation(
-              _createMixedDurations(),
-              SpacingPresets.normal,
-            ),
+            _buildNotation(_createMixedDurations(), SpacingPresets.normal),
 
             const SizedBox(height: 40),
             const Divider(),
@@ -67,42 +61,26 @@ class SpacingDemo extends StatelessWidget {
             _buildDescription(
               'Compact layout for fitting more music on screen',
             ),
-            _buildNotation(
-              _createScale(),
-              SpacingPresets.tight,
-            ),
+            _buildNotation(_createScale(), SpacingPresets.tight),
 
             const SizedBox(height: 30),
 
             _buildTitle('Normal Spacing (Default)'),
-            _buildDescription(
-              'Balanced spacing for general use',
-            ),
-            _buildNotation(
-              _createScale(),
-              SpacingPresets.normal,
-            ),
+            _buildDescription('Balanced spacing for general use'),
+            _buildNotation(_createScale(), SpacingPresets.normal),
 
             const SizedBox(height: 30),
 
             _buildTitle('Loose Spacing'),
-            _buildDescription(
-              'Generous spacing for easy reading',
-            ),
-            _buildNotation(
-              _createScale(),
-              SpacingPresets.loose,
-            ),
+            _buildDescription('Generous spacing for easy reading'),
+            _buildNotation(_createScale(), SpacingPresets.loose),
 
             const SizedBox(height: 40),
             const Divider(),
 
             // Example 3: Real-World Comparison
             _buildTitle('Real Melody: "Twinkle Twinkle" - Uniform'),
-            _buildNotation(
-              _createTwinkleTwinkle(),
-              SpacingPresets.uniform,
-            ),
+            _buildNotation(_createTwinkleTwinkle(), SpacingPresets.uniform),
 
             const SizedBox(height: 30),
 
@@ -110,10 +88,7 @@ class SpacingDemo extends StatelessWidget {
             _buildDescription(
               'Notice how the half notes get more space - much more readable!',
             ),
-            _buildNotation(
-              _createTwinkleTwinkle(),
-              SpacingPresets.normal,
-            ),
+            _buildNotation(_createTwinkleTwinkle(), SpacingPresets.normal),
 
             const SizedBox(height: 40),
             const Divider(),
@@ -123,10 +98,7 @@ class SpacingDemo extends StatelessWidget {
             _buildDescription(
               'Mixed durations: whole, dotted half, quarter, eighth notes',
             ),
-            _buildNotation(
-              _createComplexRhythm(),
-              SpacingPresets.normal,
-            ),
+            _buildNotation(_createComplexRhythm(), SpacingPresets.normal),
 
             const SizedBox(height: 40),
           ],
@@ -140,10 +112,7 @@ class SpacingDemo extends StatelessWidget {
       padding: const EdgeInsets.all(16.0),
       child: Text(
         title,
-        style: const TextStyle(
-          fontSize: 20,
-          fontWeight: FontWeight.bold,
-        ),
+        style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
       ),
     );
   }
@@ -164,7 +133,10 @@ class SpacingDemo extends StatelessWidget {
   }
 
   Widget _buildNotation(List<Measure> measures, SpacingEngine spacingEngine) {
-    final g1 = GrandStaff(upperStaff: _createTwinkleTwinkle(), lowerStaff: _createMixedDurations());
+    final g1 = GrandStaff(
+      upperStaff: _createTwinkleTwinkle(),
+      lowerStaff: _createMixedDurations(),
+    );
     return Container(
       height: 180,
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -255,14 +227,46 @@ class SpacingDemo extends StatelessWidget {
         timeSignature: TimeSignature.fourFour,
         keySignature: KeySignature.cMajor,
         notes: [
-          Note(pitch: Pitch(noteName: NoteName.C, octave: 4), duration: const NoteDuration.eighth(), startBeat: 0.0),
-          Note(pitch: Pitch(noteName: NoteName.D, octave: 4), duration: const NoteDuration.eighth(), startBeat: 0.5),
-          Note(pitch: Pitch(noteName: NoteName.E, octave: 4), duration: const NoteDuration.eighth(), startBeat: 1.0),
-          Note(pitch: Pitch(noteName: NoteName.F, octave: 4), duration: const NoteDuration.eighth(), startBeat: 1.5),
-          Note(pitch: Pitch(noteName: NoteName.G, octave: 4), duration: const NoteDuration.eighth(), startBeat: 2.0),
-          Note(pitch: Pitch(noteName: NoteName.A, octave: 4), duration: const NoteDuration.eighth(), startBeat: 2.5),
-          Note(pitch: Pitch(noteName: NoteName.B, octave: 4), duration: const NoteDuration.eighth(), startBeat: 3.0),
-          Note(pitch: Pitch(noteName: NoteName.C, octave: 5), duration: const NoteDuration.eighth(), startBeat: 3.5),
+          Note(
+            pitch: Pitch(noteName: NoteName.C, octave: 4),
+            duration: const NoteDuration.eighth(),
+            startBeat: 0.0,
+          ),
+          Note(
+            pitch: Pitch(noteName: NoteName.D, octave: 4),
+            duration: const NoteDuration.eighth(),
+            startBeat: 0.5,
+          ),
+          Note(
+            pitch: Pitch(noteName: NoteName.E, octave: 4),
+            duration: const NoteDuration.eighth(),
+            startBeat: 1.0,
+          ),
+          Note(
+            pitch: Pitch(noteName: NoteName.F, octave: 4),
+            duration: const NoteDuration.eighth(),
+            startBeat: 1.5,
+          ),
+          Note(
+            pitch: Pitch(noteName: NoteName.G, octave: 4),
+            duration: const NoteDuration.eighth(),
+            startBeat: 2.0,
+          ),
+          Note(
+            pitch: Pitch(noteName: NoteName.A, octave: 4),
+            duration: const NoteDuration.eighth(),
+            startBeat: 2.5,
+          ),
+          Note(
+            pitch: Pitch(noteName: NoteName.B, octave: 4),
+            duration: const NoteDuration.eighth(),
+            startBeat: 3.0,
+          ),
+          Note(
+            pitch: Pitch(noteName: NoteName.C, octave: 5),
+            duration: const NoteDuration.eighth(),
+            startBeat: 3.5,
+          ),
         ],
         endBarline: BarlineType.final_,
       ),
@@ -276,10 +280,26 @@ class SpacingDemo extends StatelessWidget {
         timeSignature: TimeSignature.fourFour,
         keySignature: KeySignature.cMajor,
         notes: [
-          Note(pitch: Pitch(noteName: NoteName.C, octave: 4), duration: const NoteDuration.quarter(), startBeat: 0.0),
-          Note(pitch: Pitch(noteName: NoteName.C, octave: 4), duration: const NoteDuration.quarter(), startBeat: 1.0),
-          Note(pitch: Pitch(noteName: NoteName.G, octave: 4), duration: const NoteDuration.quarter(), startBeat: 2.0),
-          Note(pitch: Pitch(noteName: NoteName.G, octave: 4), duration: const NoteDuration.quarter(), startBeat: 3.0),
+          Note(
+            pitch: Pitch(noteName: NoteName.C, octave: 4),
+            duration: const NoteDuration.quarter(),
+            startBeat: 0.0,
+          ),
+          Note(
+            pitch: Pitch(noteName: NoteName.C, octave: 4),
+            duration: const NoteDuration.quarter(),
+            startBeat: 1.0,
+          ),
+          Note(
+            pitch: Pitch(noteName: NoteName.G, octave: 4),
+            duration: const NoteDuration.quarter(),
+            startBeat: 2.0,
+          ),
+          Note(
+            pitch: Pitch(noteName: NoteName.G, octave: 4),
+            duration: const NoteDuration.quarter(),
+            startBeat: 3.0,
+          ),
         ],
         endBarline: BarlineType.single,
       ),
@@ -288,9 +308,21 @@ class SpacingDemo extends StatelessWidget {
         timeSignature: TimeSignature.fourFour,
         keySignature: KeySignature.cMajor,
         notes: [
-          Note(pitch: Pitch(noteName: NoteName.A, octave: 4), duration: const NoteDuration.quarter(), startBeat: 0.0),
-          Note(pitch: Pitch(noteName: NoteName.A, octave: 4), duration: const NoteDuration.quarter(), startBeat: 1.0),
-          Note(pitch: Pitch(noteName: NoteName.G, octave: 4), duration: const NoteDuration.half(), startBeat: 2.0),
+          Note(
+            pitch: Pitch(noteName: NoteName.A, octave: 4),
+            duration: const NoteDuration.quarter(),
+            startBeat: 0.0,
+          ),
+          Note(
+            pitch: Pitch(noteName: NoteName.A, octave: 4),
+            duration: const NoteDuration.quarter(),
+            startBeat: 1.0,
+          ),
+          Note(
+            pitch: Pitch(noteName: NoteName.G, octave: 4),
+            duration: const NoteDuration.half(),
+            startBeat: 2.0,
+          ),
         ],
         endBarline: BarlineType.double_,
       ),

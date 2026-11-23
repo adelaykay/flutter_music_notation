@@ -8,7 +8,10 @@ class RhythmSample extends StatelessWidget {
   Widget build(BuildContext context) {
     // Triplet quarter notes (3 in 2 beats)
     final triplet = const Tuplet(actualNotes: 3, normalNotes: 2);
-    final tripletDuration = NoteDuration(type: DurationType.quarter, tuplet: triplet);
+    final tripletDuration = NoteDuration(
+      type: DurationType.quarter,
+      tuplet: triplet,
+    );
 
     final notes1 = [
       _note(72, tripletDuration, 0),
