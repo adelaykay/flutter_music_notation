@@ -13,6 +13,8 @@ import '../rendering/notation_painter.dart';
 
 /// Configuration for notation display
 class NotationConfig {
+  /// The distance between two staff lines, in logical pixels. Glyphs and
+  /// spacing scale with it.
   final double staffSpaceSize;
   final double barlineToClefSpace;
   final Color staffLineColor;
@@ -20,6 +22,9 @@ class NotationConfig {
   final Color activeNoteColor;
   final ClefType clef;
   final double? width;
+
+  /// The view's height. Null for a grand staff in system layout sizes the
+  /// view to its systems (see [GrandStaffLayout.forConfig]).
   final double? height;
   final EdgeInsets padding;
   final double noteWidth;
@@ -29,6 +34,9 @@ class NotationConfig {
   final double leadingSpace;
   final double measureSpacing;
   final double minMeasureWidth;
+
+  /// Horizontal spacing of notes, given at a 12 px staff space and scaled
+  /// with [staffSpaceSize].
   final SpacingEngine spacingEngine;
   final bool useSystemLayout;
   final double systemHeight;
@@ -36,6 +44,9 @@ class NotationConfig {
   final bool showMeasureNumbers;
   final bool showClefOnEachSystem;
   final bool showTimeSignature;
+
+  /// Line breaking for system layout; on a grand staff its
+  /// `maxMeasuresPerLine` caps the bars on every system.
   final LineBreakConfig? lineBreakConfig;
   final double grandStaffGap;
   final double upperStaffHeight;
@@ -45,6 +56,9 @@ class NotationConfig {
   final bool showKeySignatureOnEachSystem;
   final double clefNoteMargin;
   final bool enableTieDetection;
+
+  /// Justify every system, the last one included, to the full width. When
+  /// false the last system is left ragged (stretched at most 1.5 times).
   final bool expandWidth;
 
   /// The bar to shade (by [Measure.number]), e.g. the one playing now.

@@ -25,7 +25,8 @@ class TieRenderer {
 
     // A tie starts just past the notehead, a little to its curved side, so it
     // runs beside the heads rather than through them.
-    final lift = staffSpaceSize * 0.35 * (direction == CurveDirection.up ? -1 : 1);
+    final lift =
+        staffSpaceSize * 0.35 * (direction == CurveDirection.up ? -1 : 1);
     final startPoint = Offset(
       startNoteheadCenter.dx + noteheadWidth * 0.55,
       startNoteheadCenter.dy + lift,

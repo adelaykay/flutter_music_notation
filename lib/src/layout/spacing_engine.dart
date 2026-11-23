@@ -10,13 +10,14 @@ import 'collision_detector.dart';
 /// Calculates optimal horizontal spacing for musical notation
 /// based on duration and engraving best practices.
 class SpacingEngine {
-  /// Base spacing unit in pixels
+  /// Base spacing unit, in pixels at a 12 px staff space
+  /// ([referenceStaffSpace]); scaled with the staff size in use.
   final double baseSpacing;
 
-  /// Minimum spacing between any two elements
+  /// Minimum spacing between any two elements (at a 12 px staff space)
   final double minSpacing;
 
-  /// Maximum spacing between any two elements
+  /// Maximum spacing between any two elements (at a 12 px staff space)
   final double maxSpacing;
 
   /// Whether to use proportional spacing (true) or uniform spacing (false)

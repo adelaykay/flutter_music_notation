@@ -11,9 +11,11 @@ A professional music notation rendering library for Flutter that displays standa
 - 🎶 Time signatures with SMuFL glyphs, including common and cut time
 - 🎹 Notes, rests, dots, ledger lines, chords and barlines engraved with the Bravura font
 - ♯ Accidentals that follow real engraving rules: by letter name, carried through the bar, with naturals where needed
-- 📏 Proportional spacing, automatic line breaks and a ragged final line
-- 🎹 Grand staff (piano) with brace and shared spacing across both staves
-- 🔗 Beams, ties (including across barlines and line breaks), slurs and tuplets
+- 📏 Proportional spacing that scales with the staff size, automatic line breaks that fit the width, and a ragged final line
+- 🎹 Grand staff (piano) with brace, with both staves on one rhythmic grid so their notes line up
+- 🎶 Four-part (SATB) writing: two voices per staff with their own stems, rests and ties
+- 🔗 Beams, ties (within a bar, across barlines and across line breaks), slurs and tuplets
+- 🟨 Shade a bar, e.g. the one being played
 - 🎧 MIDI import: from a `.mid` file or live keyboard input to clean notation, with quantization, rests, ties, chords, key-aware spelling and key estimation
 - ⚡ Playback with real-time note highlighting
 
@@ -35,6 +37,9 @@ A professional music notation rendering library for Flutter that displays standa
 ### 📏 Ledger Lines
 ![Ledger Lines](example/screenshots/ledger_lines.png)
 
+### 🎶 Four parts on a grand staff
+![A hymn tune in four parts on a grand staff, with the playing bar shaded](example/screenshots/satb_grand_staff.png)
+
 ### 🎯 Multiple Barlines
 ![Multiple Barlines](example/screenshots/barline_types.png)
 
@@ -45,7 +50,7 @@ Add this to your package's `pubspec.yaml` file:
 
 ```yaml
 dependencies:
-  flutter_music_notation: ^0.1.0
+  flutter_music_notation: ^0.4.0
 ```
 
 Then run:
@@ -129,7 +134,7 @@ final measure = Measure(
 
 ### 2. Notes
 
-Notes have a pitch, duration, and position:
+Notes have a pitch, duration, and position. `startBeat` counts quarter-note beats from the start of the bar, whatever the time signature:
 
 ```dart
 final note = Note(
@@ -138,6 +143,8 @@ final note = Note(
   startBeat: 0.0,
 );
 ```
+
+Notes that start together in the same `voice` form a chord. For two voices on one staff, give them different voices and stems (see [Four-part writing](#four-part-writing-on-a-grand-staff)). `tieToNext: true` ties a note to the next note of the same pitch and voice that starts where it ends, in the same bar or at the start of the next.
 
 ### 3. Pitch
 
@@ -186,6 +193,8 @@ const rest = Rest(
   startBeat: 1.0,
 );
 ```
+
+On a staff with two voices, give a rest its `voice`: an upper (even) voice's rest is drawn higher and a lower (odd) voice's lower, clear of the other voice. A rest without a voice is centred, as when both voices rest together.
 
 ## Key Signatures
 
@@ -340,6 +349,48 @@ The converter:
 
 For a recording with no key, `converter.estimateKey()` suggests one. Pass its `accidentals` and `isMinor` as `keySignatureSharps` and `keySignatureIsMinor`.
 
+## Four-part writing on a grand staff
+
+Hymns and choral music put soprano and alto on the treble staff and tenor and bass on the bass staff. Give each part its own voice (0 and 1 on the upper staff, 2 and 3 on the lower) with the upper part's stems up and the lower part's down. Ties follow the stems: the upper voice ties above, the lower below.
+
+```dart
+Note part(int midi, NoteDuration d, double beat, int voice, {bool tie = false}) => Note(
+  pitch: Pitch.fromMidiNumber(midi, preferredAccidental: Accidental.flat),
+  duration: d,
+  startBeat: beat,
+  voice: voice,
+  stemDirection: voice.isEven ? StemDirection.up : StemDirection.down,
+  tieToNext: tie,
+);
+
+const key = KeySignature(accidentals: -2); // B flat major
+const time = TimeSignature(beats: 3, beatUnit: 4);
+
+final bar1 = (
+  upper: Measure(number: 0, timeSignature: time, keySignature: key, notes: [
+    part(70, const NoteDuration.half(), 0, 0), part(72, const NoteDuration.quarter(), 2, 0), // soprano
+    part(65, const NoteDuration.half(), 0, 1, tie: true), part(65, const NoteDuration.quarter(), 2, 1), // alto, tied
+  ]),
+  lower: Measure(number: 0, timeSignature: time, keySignature: key, notes: [
+    part(62, const NoteDuration.quarter(), 0, 2), part(63, const NoteDuration.half(), 1, 2), // tenor
+    part(46, const NoteDuration.dottedHalf(), 0, 3), // bass
+  ]),
+);
+
+NotationView(
+  grandStaff: GrandStaff(upperStaff: [bar1.upper /* , … */], lowerStaff: [bar1.lower /* , … */]),
+  config: const NotationConfig(
+    staffSpaceSize: 8,          // spacing scales with it
+    useSystemLayout: true,      // break into systems that fit the width
+    highlightedMeasure: 0,      // shade a bar, e.g. the one playing
+  ),
+)
+```
+
+With `useSystemLayout` and no `height`, the view takes the available width and sizes itself to the systems it needs, so it can sit in a scrolling column. To know the size in advance, `GrandStaffLayout.forConfig(grandStaff, config, width)` returns the same layout the view paints, including `totalHeight`.
+
+Each system reserves room for its clef, key signature and (on the first) time signature, and bars are measured with both staves together, so a full system ends at the right margin. Cap the bars per system with `lineBreakConfig: LineBreakConfig(targetLineWidth: width, maxMeasuresPerLine: 4)`.
+
 ## Configuration
 
 Customize the notation appearance:
@@ -357,13 +408,20 @@ NotationView(
     enableBeaming: true,           // Beam eighths and shorter
     showTimeSignature: true,       // Hide the time signature with false
     showKeySignatureOnEachSystem: true,
-    expandWidth: false,            // Stretch the staff to the full width
+    expandWidth: false,            // Justify every system, the last included, to the full width
     leadingSpace: 0.0,             // Extra space before the first note
     barlineToClefSpace: 0.0,       // Space between the start barline and the clef
+    highlightedMeasure: null,      // Measure.number of a bar to shade
+    highlightColor: Color(0x33FFC107),
+    spacingEngine: SpacingPresets.normal, // or tight, loose, uniform
     width: 400.0,
   ),
 )
 ```
+
+Spacing presets are given at the default 12 px staff space and scale with `staffSpaceSize`, so a smaller staff is also narrower and fits more bars on a line.
+
+Bar numbers are drawn above the start of each system as `Measure.number + 1`, so number measures from 0.
 
 ## Examples
 
@@ -387,11 +445,11 @@ flutter run
 
 ## Roadmap
 
-Done: core engraving, layout and spacing, grand staff, beams, ties, slurs, tuplets and MIDI import.
+Done: core engraving, layout and spacing, grand staff, two voices per staff, beams, ties, slurs, tuplets and MIDI import.
 
 Next:
 - Dynamics (f, p, hairpins) and articulations (staccato, accent, fermata)
-- Two voices on one staff (e.g. a held bass note under a moving line)
+- Unisons and seconds between two voices on one staff (noteheads shared or offset)
 - Triplet detection in MIDI input
 - Smarter hand split for piano input
 
