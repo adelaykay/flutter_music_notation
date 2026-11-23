@@ -532,4 +532,4 @@ The Bravura font used for music symbols is licensed under the SIL Open Font Lice
 
 ---
 
-Made with ♥ by [Empyreal Digital Works]
+Made with ♥ by [Empyreal Digital Works](https://empyrealworks.com)

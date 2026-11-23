@@ -26,7 +26,7 @@ class GrandStaffLayout {
   double get totalSystemHeight =>
       upperStaffHeight + staffGap + lowerStaffHeight;
 
-  /// Lays out [grandStaff] exactly as [NotationPainter] draws it with
+  /// Lays out [grandStaff] exactly as [NotationView] draws it with
   /// [config] at [pageWidth]. Use it to size a view before painting.
   static GrandStaffScoreLayout forConfig(
     GrandStaff grandStaff,

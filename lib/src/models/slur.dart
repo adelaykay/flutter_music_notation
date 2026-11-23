@@ -133,7 +133,7 @@ class CurveCalculator {
   }
 
   /// Calculate control points for a Bézier curve
-  /// Returns [controlPoint1, controlPoint2] for a cubic Bézier
+  /// Returns `[controlPoint1, controlPoint2]` for a cubic Bézier
   static List<Offset> calculateBezierControlPoints(
     Offset start,
     Offset end,
