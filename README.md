@@ -50,7 +50,7 @@ Add this to your package's `pubspec.yaml` file:
 
 ```yaml
 dependencies:
-  flutter_music_notation: ^0.4.0
+  flutter_music_notation: ^0.4.1
 ```
 
 Then run:
@@ -348,6 +348,22 @@ The converter:
 - spells pitches from the key (F♯ in G major, C♭ in C♭ major, G♯ as the leading note of A minor)
 
 For a recording with no key, `converter.estimateKey()` suggests one. Pass its `accidentals` and `isMinor` as `keySignatureSharps` and `keySignatureIsMinor`.
+
+To highlight the notes as the MIDI plays, time the score bar by bar with `PlaybackController.forGrandStaff` (or `forMeasures` for a single staff). Each note's `startBeat` counts from the start of its bar. The converter leaves out the empty bars before the first note, so subtract `droppedLeadingBeats()` when turning playback time into a score position:
+
+```dart
+final score = converter.toGrandStaff();
+final controller = PlaybackController.forGrandStaff(score, beatsPerMinute: midi.beatsPerMinute);
+
+// From your player's clock, e.g. each frame:
+controller.seekTo(seconds * midi.beatsPerMinute / 60 - converter.droppedLeadingBeats());
+
+NotationView(
+  grandStaff: score,
+  playbackController: controller,
+  config: NotationConfig(highlightedMeasure: controller.currentMeasureNumber),
+);
+```
 
 ## Four-part writing on a grand staff
 

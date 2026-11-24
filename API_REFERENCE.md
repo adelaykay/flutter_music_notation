@@ -561,20 +561,41 @@ double toPixels(double staffSpaceSize)
 
 ### PlaybackController
 
-Controls playback state and active note tracking.
+Controls playback state and active note tracking. Positions are in
+quarter-note beats from the start of the score.
 
 ```dart
+// Notes in measures (including MidiToNotation output): startBeat counts
+// from the start of each bar.
+PlaybackController.forMeasures(
+  List<Measure> measures, {
+  double beatsPerMinute = 120.0,
+  double? pickupBeats,          // length of a short first bar
+})
+PlaybackController.forGrandStaff(
+  GrandStaff grandStaff, {
+  double beatsPerMinute = 120.0,
+  double? pickupBeats,
+})
+
+// A flat list whose startBeat counts from the start of the score.
 PlaybackController({
   required List<Note> notes,
   double beatsPerMinute = 120.0,
 })
 ```
 
+Use `forMeasures` or `forGrandStaff` whenever the notes live in `Measure`s:
+the plain constructor would read every bar's `startBeat` as if it were in
+the first bar. Active notes are tracked by identity, so a note equal to one
+in another bar lights up only when its own bar plays.
+
 **Properties:**
 - `position` (double, getter) - Current beat position
 - `isPlaying` (bool, getter) - Whether playback is active
 - `activeNotes` (Set<Note>, getter) - Currently playing notes
 - `speed` (double, getter) - Playback speed multiplier
+- `currentMeasureNumber` (int?, getter) - `Measure.number` of the bar at `position`, e.g. for `NotationConfig.highlightedMeasure` (null for the plain constructor)
 
 **Methods:**
 ```dart
@@ -587,14 +608,26 @@ void update(double deltaTime)  // Update position (called each frame)
 void onNoteOn(int midiNumber, int velocity)   // External MIDI trigger
 void onNoteOff(int midiNumber)                // External MIDI stop
 List<Note> getNotesAtBeat(double beat)        // Get notes at position
+int? measureNumberAt(double beat)             // Bar at a position
+double startOf(Note note)                     // Note start, from score start
+double endOf(Note note)                       // Note end, from score start
 ```
 
 **Example:**
 ```dart
-final controller = PlaybackController(
-  notes: myNotes,
-  beatsPerMinute: 120,
+final converter = MidiToNotation(midiData: midiData);
+final score = converter.toGrandStaff();
+final controller = PlaybackController.forGrandStaff(
+  score,
+  beatsPerMinute: midiData.beatsPerMinute,
 );
+
+// Follow an external player at `seconds` into the MIDI.
+controller.seekTo(
+  seconds * midiData.beatsPerMinute / 60 - converter.droppedLeadingBeats(),
+);
+// ...and shade the bar being played:
+// NotationConfig(highlightedMeasure: controller.currentMeasureNumber)
 
 // Start playback
 controller.play();

@@ -111,6 +111,17 @@ class MidiToNotation {
     );
   }
 
+  /// The whole bars of silence before the first note that the conversion
+  /// leaves out, in quarter-note beats. Bar 1 of the result starts this many
+  /// beats into the MIDI, so a [PlaybackController] position is
+  /// `seconds * beatsPerMinute / 60 - droppedLeadingBeats()`.
+  ///
+  /// Pass the same [gridResolution] as to the conversion.
+  double droppedLeadingBeats({double? gridResolution}) {
+    final quantized = quantizer.quantizeNotes(gridResolution: gridResolution);
+    return _leadingShift(quantized.map((q) => q.startTime.absoluteBeat));
+  }
+
   /// Attempt to separate four voices (soprano, alto, tenor, bass).
   /// Returns null if detection fails.
   List<List<Measure>>? toSATB({double? gridResolution}) {

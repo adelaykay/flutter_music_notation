@@ -20,7 +20,7 @@ Add this to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  flutter_music_notation: ^0.4.0
+  flutter_music_notation: ^0.4.1
 ```
 
 ### Step 2: Install

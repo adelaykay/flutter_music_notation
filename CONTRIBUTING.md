@@ -146,7 +146,7 @@ If applicable, add screenshots.
 - Flutter version: [e.g., 3.16.0]
 - Dart version: [e.g., 3.2.0]
 - Platform: [e.g., iOS 17, Android 14, Web]
-- Package version: [e.g., 0.4.0]
+- Package version: [e.g., 0.4.1]
 
 **Additional Context**
 Any other relevant information.

@@ -5,6 +5,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.1] - 2026-11-24
+
+### Fixed
+- **Playback highlighting past the first bar.** Notes in a `Measure`, including everything `MidiToNotation` produces, count `startBeat` from the start of their bar, but `PlaybackController` treated it as a position in the whole score. Once playback left the opening bar no note matched, and notes from later bars lit up during the first. Use the new `PlaybackController.forMeasures` or `PlaybackController.forGrandStaff`, which time each bar from where the one before it ends.
+- **A repeated note no longer lights up in every bar.** `Note` compares by value, so `activeNotes` matched every note equal to the one playing (same pitch, length and beat in its bar), wherever it was. Active notes are now tracked by identity.
+
+### Added
+- `PlaybackController.forMeasures(measures, {pickupBeats})` and `PlaybackController.forGrandStaff(grandStaff, {pickupBeats})`. Bars are as long as their time signature; `pickupBeats` sets the length of a short first bar.
+- `PlaybackController.currentMeasureNumber` and `measureNumberAt(beat)`, e.g. to set `NotationConfig.highlightedMeasure` to the bar being played.
+- `PlaybackController.startOf(note)` and `endOf(note)`: a note's position in beats from the start of the score.
+- `MidiToNotation.droppedLeadingBeats()`: the whole bars of silence before the first note that the conversion leaves out, to line MIDI time up with score time.
+
+### Unchanged
+- `PlaybackController(notes: ...)` still reads each `startBeat` as a position in the whole score.
+
 ## [0.4.0] - 2026-11-23
 
 Grand staff engraving for hymns and other four-part music, driven by the
@@ -227,7 +242,8 @@ eChoir Library app's staff view.
 - 80%+ test coverage
 - pub.dev beta release
 
-[Unreleased]: https://github.com/empyrealworks/flutter_music_notation/compare/v0.4.0...HEAD
+[Unreleased]: https://github.com/empyrealworks/flutter_music_notation/compare/v0.4.1...HEAD
+[0.4.1]: https://github.com/empyrealworks/flutter_music_notation/compare/v0.4.0...v0.4.1
 [0.4.0]: https://github.com/empyrealworks/flutter_music_notation/compare/v0.3.0...v0.4.0
 [0.3.0]: https://github.com/empyrealworks/flutter_music_notation/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/empyrealworks/flutter_music_notation/releases/tag/v0.2.0
